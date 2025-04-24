@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Item" ADD COLUMN     "weight" DECIMAL(65,30),
+ALTER COLUMN "price" SET DATA TYPE DECIMAL(65,30);

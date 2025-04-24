@@ -1,0 +1,70 @@
+generator client {
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+  provider      = "prisma-client-js"
+  output        = "../src/lib/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int      @id @default(autoincrement())
+  name     String   @unique
+  qq       BigInt   @unique
+  email    String?  @unique
+  phone    String?
+  address  String?
+  createAt DateTime @default(now())
+
+  groups Join[]
+  orders Order[]
+}
+
+model Group {
+  id       Int      @id @default(autoincrement())
+  name     String   @unique
+  qq       BigInt   @unique
+  createAt DateTime @default(now())
+
+  users Join[]
+  items Item[]
+}
+
+model Join {
+  userId   Int
+  groupId  Int
+  createAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  group Group @relation(fields: [groupId], references: [id])
+
+  @@id([userId, groupId])
+}
+
+model Item {
+  id      Int     @id @default(autoincrement())
+  groupId Int
+  name    String
+  url     String
+  price   Float
+  weight  Float?
+  allowed Boolean @default(false)
+
+  group  Group   @relation(fields: [groupId], references: [id])
+  orders Order[]
+}
+
+model Order {
+  id       Int      @id @default(autoincrement())
+  userId   Int
+  itemId   Int
+  count    Int      @default(1)
+  status   String   @default("pending")
+  createAt DateTime @default(now())
+  comment  String?
+
+  user User @relation(fields: [userId], references: [id])
+  item Item @relation(fields: [itemId], references: [id])
+}
