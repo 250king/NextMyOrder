@@ -1,40 +1,43 @@
 "use client";
+
+import {ProColumns, ProTable} from "@ant-design/pro-table";
+import {Typography} from "antd";
 import React from "react";
-import {DataGrid, GridColDef} from "@mui/x-data-grid";
-import {Item} from "@/lib/prisma";
 
 interface Props {
-    items: Item[]
+    data: Record<string, unknown>[] | undefined
 }
 
 const ItemTable = (props: Props) => {
-    const [mounted, setMounted] = React.useState(false);
-    const columns: GridColDef[] = [
-        {field: "id", headerName: "ID"},
-        {field: "name", headerName: "商品名", width: 250},
-        {field: "price", headerName: "单价", type: "number"},
-        {field: "weight", headerName: "重量", type: "number"},
-        {field: "allowed", headerName: "已通过", type: "boolean"}
-    ]
-    React.useEffect(() => {
-        setMounted(true);
-    }, []);
-    if (!mounted) {
-        return null;
-    }
+    const columns: ProColumns[] = [
+        {title: "ID", dataIndex: "id", sorter: (a, b) => a.id - b.id},
+        {
+            title: "商品",
+            dataIndex: "name",
+            sorter: (a, b) => a.name.localeCompare(b.name),
+            render: (_, record) => (
+                <div>
+                    <Typography>{record.name}</Typography>
+                    <Typography style={{fontSize: 12}}>
+                        {Intl.NumberFormat("ja-JP", {style: "currency", currency: "JPY"}).format(Number(record.price))}
+                    </Typography>
+                </div>
+            )
+        },
+        {title: "数量", dataIndex: "count", sorter: (a, b) => a.count - b.count, valueType: "digit"},
+        {
+            title: "汇总",
+            dataIndex: "total",
+            sorter: (a, b) => a.total - b.total,
+            valueType: "money",
+            fieldProps: {
+                precision: 0
+            }
+        }
+    ];
 
     return (
-        <DataGrid
-            columns={columns}
-            rows={props.items}
-            initialState={{
-                pagination: {
-                    paginationModel: {
-                        pageSize: 10,
-                    },
-                },
-            }}
-        />
+        <ProTable rowKey="id" options={{reload: false}} dataSource={props.data} columns={columns} search={false}/>
     );
 }
 

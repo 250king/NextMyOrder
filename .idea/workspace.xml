@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="f3be85e7-06d4-48bb-bb30-43f107c04695" name="更改" comment="">
+      <change afterPath="$PROJECT_DIR$/src/component/action.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/util/http/query.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NextMyOrder.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/next.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/next.config.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/prisma/schema.prisma" beforeDir="false" afterPath="$PROJECT_DIR$/prisma/schema.prisma" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/(main)/group/[id]/item/page.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/(main)/group/[id]/order/page.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/(main)/group/[id]/page.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/(main)/group/[id]/user/page.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/(main)/group/page.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/(main)/layout.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/(main)/user/[id]/order/page.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/(main)/user/[id]/page.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/(main)/user/page.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/api/user/route.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/(ui)/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/component/card/action.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/component/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/component/layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/component/link.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/component/navbar.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/component/table/group.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/component/table/item.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/component/table/join.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/component/table/order.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/prisma/client.d.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/prisma/client.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/prisma/default.d.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/prisma/default.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/prisma/edge.d.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/prisma/edge.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/prisma/index-browser.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/prisma/index.d.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/prisma/index.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/prisma/libquery_engine-linux-musl-openssl-3.0.x.so.node" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/prisma/package.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/prisma/query_engine-windows.dll.node" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/prisma/query_engine-windows.dll.node.tmp14472" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/prisma/query_engine-windows.dll.node.tmp24844" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/prisma/runtime/edge-esm.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/prisma/runtime/edge.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/prisma/runtime/index-browser.d.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/prisma/runtime/index-browser.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/prisma/runtime/library.d.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/prisma/runtime/library.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/prisma/runtime/react-native.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/prisma/runtime/wasm.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/prisma/schema.prisma" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/prisma/wasm.d.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/prisma/wasm.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/util/database.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/util/database.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/util/paging.ts" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="TypeScript JSX File" />
+        <option value="TypeScript File" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6
+}</component>
+  <component name="ProjectId" id="2wSHFiDbVuZbwLyoNbGfkZHQFha" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;js.debugger.nextJs.config.created.client&quot;: &quot;true&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/Project/NextMyOrder/src/app/api/delivery&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;npm.Next.js: 服务器端.executor&quot;: &quot;Run&quot;,
+    &quot;npm.studio.executor&quot;: &quot;Run&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;settings.typescriptcompiler&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;D:\\Project\\NextMyOrder\\node_modules\\typescript\\lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\Project\NextMyOrder\src\app\api\delivery" />
+      <recent name="D:\Project\NextMyOrder\src\app\api\util\address" />
+      <recent name="D:\Project\NextMyOrder\src\util\print" />
+      <recent name="D:\Project\NextMyOrder\src\component\table" />
+      <recent name="D:\Project\NextMyOrder\src\component\field" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\Project\NextMyOrder\src\app\api\v1.0" />
+      <recent name="D:\Project\NextMyOrder\src\util\http" />
+      <recent name="D:\Project\NextMyOrder\src\app\(ui)\delivery\ticket" />
+      <recent name="D:\Project\NextMyOrder\src\util\print" />
+      <recent name="D:\Project\NextMyOrder\src\component" />
+    </key>
+  </component>
+  <component name="RunManager" selected="npm.Next.js: 服务器端">
+    <configuration name="Next.js: 调试客户端" type="JavascriptDebugType" uri="http://localhost:3000/">
+      <method v="2" />
+    </configuration>
+    <configuration name="Next.js: 服务器端" type="js.build_tools.npm">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="dev" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <configuration name="studio" type="js.build_tools.npm" nameIsGenerated="true">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="studio" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="JavaScript 调试.Next.js: 调试客户端" />
+      <item itemvalue="npm.studio" />
+      <item itemvalue="npm.Next.js: 服务器端" />
+    </list>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-fbdcb00ec9e3-intellij.indexing.shared.core-IU-251.25410.129" />
+        <option value="bundled-js-predefined-d6986cc7102b-6a121458b545-JavaScript-IU-251.25410.129" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="默认任务">
+      <changelist id="f3be85e7-06d4-48bb-bb30-43f107c04695" name="更改" comment="" />
+      <created>1746027953657</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1746027953657</updated>
+      <workItem from="1746027954918" duration="2125000" />
+      <workItem from="1746030737695" duration="8335000" />
+      <workItem from="1746089996140" duration="4622000" />
+      <workItem from="1746183572485" duration="1527000" />
+      <workItem from="1746232521042" duration="670000" />
+      <workItem from="1746254825859" duration="48000" />
+      <workItem from="1746271352908" duration="4844000" />
+      <workItem from="1746291195099" duration="1381000" />
+      <workItem from="1746328821330" duration="9477000" />
+      <workItem from="1746396879482" duration="1973000" />
+      <workItem from="1746400195167" duration="2912000" />
+      <workItem from="1746412255841" duration="21046000" />
+      <workItem from="1746493125528" duration="27767000" />
+      <workItem from="1746581272030" duration="11166000" />
+      <workItem from="1746601895595" duration="12986000" />
+      <workItem from="1746636545310" duration="2123000" />
+      <workItem from="1746676347162" duration="2880000" />
+      <workItem from="1746690305472" duration="4762000" />
+      <workItem from="1746698717573" duration="260000" />
+      <workItem from="1746699048467" duration="7388000" />
+      <workItem from="1746766070540" duration="4523000" />
+      <workItem from="1746773005220" duration="52000" />
+      <workItem from="1746773802769" duration="12950000" />
+      <workItem from="1746806442778" duration="1386000" />
+      <workItem from="1746840832563" duration="4836000" />
+      <workItem from="1746859471780" duration="4087000" />
+      <workItem from="1746872455529" duration="4760000" />
+      <workItem from="1746879310310" duration="9909000" />
+      <workItem from="1746920907716" duration="1530000" />
+      <workItem from="1746943066754" duration="5964000" />
+      <workItem from="1747019758730" duration="3262000" />
+      <workItem from="1747106259065" duration="2821000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+</project>

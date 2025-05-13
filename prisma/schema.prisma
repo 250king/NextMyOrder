@@ -1,7 +1,6 @@
 generator client {
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
   provider      = "prisma-client-js"
-  output        = "../src/lib/prisma"
 }
 
 datasource db {
@@ -12,20 +11,21 @@ datasource db {
 model User {
   id       Int      @id @default(autoincrement())
   name     String   @unique
-  qq       BigInt   @unique
+  qq       String   @unique
   email    String?  @unique
   phone    String?
   address  String?
   createAt DateTime @default(now())
 
-  groups Join[]
+  joined Join[]
   orders Order[]
 }
 
 model Group {
   id       Int      @id @default(autoincrement())
   name     String   @unique
-  qq       BigInt   @unique
+  qq       String   @unique
+  status   String   @default("activated")
   createAt DateTime @default(now())
 
   users Join[]
@@ -37,34 +37,50 @@ model Join {
   groupId  Int
   createAt DateTime @default(now())
 
-  user  User  @relation(fields: [userId], references: [id])
-  group Group @relation(fields: [groupId], references: [id])
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   @@id([userId, groupId])
 }
 
 model Item {
-  id      Int     @id @default(autoincrement())
+  id      Int      @id @default(autoincrement())
   groupId Int
-  name    String
+  name    String   @unique
   url     String
-  price   Float
-  weight  Float?
-  allowed Boolean @default(false)
+  price   Decimal
+  weight  Decimal?
+  allowed Boolean  @default(false)
 
-  group  Group   @relation(fields: [groupId], references: [id])
+  group  Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
   orders Order[]
 }
 
 model Order {
-  id       Int      @id @default(autoincrement())
-  userId   Int
-  itemId   Int
-  count    Int      @default(1)
-  status   String   @default("pending")
-  createAt DateTime @default(now())
-  comment  String?
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  itemId     Int
+  deliveryId Int?
+  count      Int      @default(1)
+  status     String   @default("pending")
+  createAt   DateTime @default(now())
+  comment    String?
 
-  user User @relation(fields: [userId], references: [id])
-  item Item @relation(fields: [itemId], references: [id])
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item     Item      @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  delivery Delivery? @relation(fields: [deliveryId], references: [id])
+}
+
+model Delivery {
+  id       Int    @id @default(autoincrement())
+  name     String
+  phone    String
+  method   String
+  province String
+  city     String
+  town     String
+  address  String
+  status   String @default("pending")
+
+  orders Order[]
 }
