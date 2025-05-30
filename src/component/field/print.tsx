@@ -36,7 +36,7 @@ const PrintField = (props: Props) => {
                 onClick={async () => {
                     try {
                         setLoading(true);
-                        //await printLabel(props.data!, true);
+                        await printLabel(props.data!, true);
                         model.onChange(true);
                     }
                     catch {
