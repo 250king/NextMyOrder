@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NextMyOrder
 
-## Getting Started
+一个基于Next.js的团购管理系统。
 
-First, run the development server:
+## 简介
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+现团购规模越来越大，要处理的数据也越来越多，传统的Excel表格虽然容易实行，但其与其他环节的联动性差，局限性也很大，大多数地方依旧要手动处理，在大规模的情况下效率很低，而且容易出现问题。
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+因无法忍受低效处理，遂依借自己的一技之长，尝试性开发这一套系统。除了基本的订单和团购管理，还与标签机、快递公司API等拓展功能联动，力求实现一站式的团购管理。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 技术栈
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+主体使用Next.js，前端使用React、TypeScript，UI库选择Ant Design
 
-## Learn More
+后端使用TRPC，数据库框架使用Prisma
 
-To learn more about Next.js, take a look at the following resources:
+使用精臣™标签机API打印标签，快递100 API完成C端寄件
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 使用
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+> 注意：本项目仍在开发中，功能不完善，可能存在bug，仅供学习和参考使用，**不建议用于生产环境**。
+> 
+> 如果您对本项目感兴趣，欢迎参与开发和完善，提交issue或PR。
 
-## Deploy on Vercel
+### 系统要求
+- Node.js 18.x 或更高版本
+- Git
+- Prisma支持的数据库，也可以使用SQLite，**但不推荐生产环境使用**
+- Nginx（可选），主要用于身份验证，因为项目目前没有实现登录功能，如果暴露在公网需要配置避免被非授权操作。如果不需要公网访问可以不配置
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 安装
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. 克隆仓库
+   ```bash
+   git clone https://github.com/250king/NextMyOrder.git
+   cd NextMyOrder
+   ```
+2. 安装依赖
+   ```bash
+   npm install
+   ```
+3. 配置环境变量。复制`.env.example`为`.env`并根据注释参考进行配置。
+4. 初始化数据库
+   ```bash
+   npx prisma migrate dev --name init
+   ```
+5. 构造项目
+   ```bash
+   npm run build
+   ```
+6. 启动项目
+   ```bash
+   npm start
+   ```
+
+### 访问
+访问`http://localhost:3000`即可访问系统。请注意，首次访问请在设置页面完成应用配置。
+
+基本使用按照正常团购流程进行，创建团购、添加商品、添加订单等。具体教程正在编写中，敬请期待！
+
+## ToDo
+- [ ] 完善文档
+- [ ] 部署支付系统
+- [ ] 降低使用门槛
+- [ ] 完善批量处理
+- [ ] 添加登录功能
+- [ ] 提供更高的可拓展性
+
+其中支付系统因为还没通过审核，还在研究中
+
+然后关于可用性问题，最大问题是快递API是只面向企业，所以对于个体用户来说使用门槛较高，后续会考虑提供更简单的寄件方式。还有简化部署流程，届时会提供Docker镜像，方便用户快速部署，也在考虑本地化部署方式。
+
+关于拓展性，目前通过URL解析商品信息是支持自行编写解析过程来适配每个网站。但像标签机目前只能使用精臣的标签机，后续会考虑提供更高的可拓展性，支持为不同的标签机提供不同的API
