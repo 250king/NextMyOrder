@@ -35,10 +35,12 @@ const Page = async (props: Props) => {
             }
         }
     });
-    if (!group) return notFound();
+    if (!group) {
+        return notFound();
+    }
 
     return (
-        <GroupContainer title={group.name}>
+        <GroupContainer data={group}>
             <Row gutter={[16, 16]}>
                 <Col xs={24}>
                     <GroupStatus user={userCount} item={itemCount} order={orderCount} delivery={deliveryCount}/>

@@ -5,15 +5,14 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "studio": "prisma studio"
+    "start": "next start --turbopack",
+    "lint": "next lint"
   },
   "dependencies": {
     "@ant-design/nextjs-registry": "^1.0.2",
     "@ant-design/pro-components": "^2.8.7",
     "@ant-design/v5-patch-for-react-19": "^1.0.3",
-    "@prisma/client": "^6.6.0",
+    "@prisma/client": "^6.8.2",
     "@tanstack/react-query": "^5.76.0",
     "@trpc/react-query": "^11.1.2",
     "@trpc/server": "^11.1.2",
@@ -35,7 +34,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.3.1",
-    "prisma": "^6.6.0",
+    "prisma": "^6.8.2",
     "typescript": "^5"
   }
 }

@@ -16,11 +16,11 @@ const Layout = (props: Props) => {
     return (
         <html lang="zh-Hans">
             <body>
-                <AntdRegistry>
-                    <App>
-                        {props.children}
-                    </App>
-                </AntdRegistry>
+            <AntdRegistry>
+                <App>
+                    {props.children}
+                </App>
+            </AntdRegistry>
             </body>
         </html>
     );

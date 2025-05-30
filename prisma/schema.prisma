@@ -44,13 +44,13 @@ model Join {
 }
 
 model Item {
-  id      Int      @id @default(autoincrement())
+  id      Int     @id @default(autoincrement())
   groupId Int
-  name    String   @unique
+  name    String  @unique
   url     String
-  price   Decimal
-  weight  Decimal?
-  allowed Boolean  @default(false)
+  price   Float
+  weight  Float?
+  allowed Boolean @default(false)
 
   group  Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
   orders Order[]
@@ -68,19 +68,27 @@ model Order {
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   item     Item      @relation(fields: [itemId], references: [id], onDelete: Cascade)
-  delivery Delivery? @relation(fields: [deliveryId], references: [id])
+  delivery Delivery? @relation(fields: [deliveryId], references: [id], onDelete: SetNull)
 }
 
 model Delivery {
-  id       Int    @id @default(autoincrement())
-  name     String
-  phone    String
-  method   String
-  province String
-  city     String
-  town     String
-  address  String
-  status   String @default("pending")
+  id            Int      @id @default(autoincrement())
+  name          String
+  phone         String
+  method        String
+  address       String
+  status        String   @default("pending")
+  createAt      DateTime @default(now())
+  comment       String?
+  taskId        String?  @unique
+  expressId     String?
+  expressNumber String?
+  token         String?
 
   orders Order[]
+}
+
+model Setting {
+  key   String @unique
+  value String
 }

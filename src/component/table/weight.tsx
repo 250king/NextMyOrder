@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
-import {Avatar, Space, Typography} from "antd";
 import {ProColumns, ProTable} from "@ant-design/pro-table";
+import {Avatar, Space, Typography} from "antd";
 import {Weight} from "@/type/summary";
 
 interface Props {
@@ -10,7 +10,11 @@ interface Props {
 
 const WeightTable = (props: Props) => {
     const columns: ProColumns[] = [
-        {title: "ID", dataIndex: "id", sorter: (a, b) => a.id - b.id},
+        {
+            title: "ID",
+            dataIndex: "id",
+            sorter: (a, b) => a.id - b.id
+        },
         {
             title: "QQ",
             dataIndex: "qq",
@@ -28,13 +32,23 @@ const WeightTable = (props: Props) => {
         {
             title: "总重",
             dataIndex: "total",
-            sorter: (a, b) => a.total - b.total,
             valueType: "digit",
-            fieldProps: {
-                precision: 0
+            sorter: (a, b) => a.total - b.total,
+            render: (_, record) => {
+                const formatter = new Intl.NumberFormat("ja-JP", {
+                    style: "unit",
+                    unit: "gram",
+                    unitDisplay: "short"
+                });
+                return formatter.format(record.total);
             }
         },
-        {title: "占比", dataIndex: "ratio", sorter: (a, b) => a.ratio - b.ratio, valueType: "percent"},
+        {
+            title: "占比",
+            dataIndex: "ratio",
+            valueType: "percent",
+            sorter: (a, b) => a.ratio - b.ratio,
+        }
     ];
 
     return (

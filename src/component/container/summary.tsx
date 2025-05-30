@@ -14,7 +14,7 @@ interface Props {
 }
 
 const SummaryContainer = (props: Props) => {
-    const [index, setIndex] = React.useState("item");
+    const [index, setIndex] = React.useState("user");
     let price = 0;
     let weight = 0;
     for (const i of props.user) {
@@ -27,8 +27,8 @@ const SummaryContainer = (props: Props) => {
     return (
         <PageContainer
             tabList={[
-                {tab: '商品', key: 'item'},
                 {tab: '用户', key: 'user'},
+                {tab: '商品', key: 'item'},
                 {tab: '重量', key: 'weight', disabled: props.weight?.length === 0}
             ]}
             onTabChange={(key) => {
@@ -37,10 +37,10 @@ const SummaryContainer = (props: Props) => {
         >
             <SummaryStatus price={price} weight={weight}/>
             {
-                index === "item" ? (
-                    <ItemTable data={props.item}/>
-                ): index === "user" ? (
+                index === "user" ? (
                     <UserTable data={props.user}/>
+                ): index === "item" ? (
+                    <ItemTable data={props.item}/>
                 ): (
                     <WeightTable data={props.weight}/>
                 )

@@ -1,115 +1,247 @@
 "use client";
 import React from "react";
-import UserForm from "@/component/form/user";
-import {Space, Avatar, Typography, Popconfirm, App, Button} from "antd";
+import trpc from "@/server/client";
+import Link from "next/link";
 import {ActionType, ProColumns, ProTable} from "@ant-design/pro-table";
+import {CloseOutlined, DeleteOutlined, EditOutlined, MessageOutlined} from "@ant-design/icons";
+import {DeliveryData, DeliverySchema, methodMap, statusMap} from "@/type/delivery";
+import {App, Avatar, Button, Form, Popconfirm, Popover} from "antd";
 import {PageContainer} from "@ant-design/pro-layout";
-import {queryBuilder} from "@/util/http/query";
-import {User} from "@prisma/client";
-import $ from "@/util/http/api";
+import {ModalForm, ProFormText, ProFormTextArea} from "@ant-design/pro-form";
+import {CheckCard} from "@ant-design/pro-card";
+import {TRPCClientError} from "@trpc/client";
 
 const Page = () => {
     const message = App.useApp().message;
-    const table = React.useRef<ActionType>(undefined);
-    const [disabled, setDisabled] = React.useState(false);
-    const columns: ProColumns<User>[] = [
-        {title: "ID", dataIndex: "id", sorter: true},
+    const table = React.useRef<ActionType>(null);
+    const columns: ProColumns<DeliveryData>[] = [
         {
-            title: "QQ",
-            dataIndex: "qq",
-            sorter: true,
-            search: false,
-            render: (_, record) => (
-                <Space size="middle" align="center">
-                    <Avatar src={`https://q1.qlogo.cn/g?b=qq&nk=${record.qq}&s=0`}/>
-                    <div>
-                        <Typography>{record.name}</Typography>
-                        <Typography style={{fontSize: 12}}>{record.qq}</Typography>
-                    </div>
-                </Space>
-            )
+            title: "ID",
+            dataIndex: "id",
+            sorter: true
         },
-        {title: "邮箱", dataIndex: "email", sorter: true, search: false},
-        {title: "注册时间", dataIndex: "createAt", valueType: "dateTime", sorter: true, search: false},
         {
-            title: '操作',
-            valueType: 'option',
+            title: "收件人",
+            dataIndex: "name",
+            sorter: true,
+            search: false
+        },
+        {
+            title: "手机号码",
+            dataIndex: "phone",
+            sorter: true,
+            search: false
+        },
+        {
+            title: "地址",
+            dataIndex: "address",
+            search: false
+        },
+        {
+            title: "快递方式",
+            dataIndex: "method",
+            sorter: true,
+            valueType: "select",
+            valueEnum: methodMap
+        },
+        {
+            title: "快递单号",
+            dataIndex: "expressNumber"
+        },
+        {
+            title: "状态",
+            dataIndex: "status",
+            sorter: true,
+            valueType: "select",
+            valueEnum: statusMap
+        },
+        {
+            title: "创建时间",
+            dataIndex: "createAt",
+            valueType: "dateTime",
+            sorter: true,
+            search: false
+        },
+        {
+            title: "操作",
+            valueType: "option",
             width: 150,
             render: (_, record, _1, action) => [
-                <UserForm
-                    key={"edit"}
-                    data={record}
-                    title="修改用户"
-                    target={<a>修改</a>}
-                    onSubmit={async (values: Record<string, never>) => {
-                        try {
-                            await $.patch(`/user/${record.id}`, values);
-                            message.success("修改成功");
-                            action?.reload();
-                            return true;
-                        }
-                        catch {
-                            message.error("发生错误，请稍后再试");
-                            return false;
-                        }
+                <Popover key="comment" content={record.comment}>
+                    <Button icon={<MessageOutlined/>} disabled={!record.comment} size="small" type="link"/>
+                </Popover>,
+                <ModalForm
+                    key="edit"
+                    title="修改运单"
+                    initialValues={record}
+                    trigger={
+                        <Button
+                            type="link"
+                            size="small"
+                            icon={<EditOutlined/>}
+                            disabled={record.status !== "pending"}
+                        />
+                    }
+                    modalProps={{
+                        destroyOnClose: true
                     }}
-                />,
-                <Popconfirm
-                    key={"delete"}
-                    title="提醒"
-                    description="您确定删除该用户？"
-                    onConfirm={async () => {
+                    onFinish={async (values) => {
                         try {
-                            await $.delete(`/user/${record.id}`)
-                            message.success("删除成功");
+                            values.id = record.id
+                            await trpc.delivery.update.mutate(values as DeliverySchema)
+                            message.success("修改成功")
                             action?.reload();
                             return true;
-                        }
-                        catch {
-                            message.error("发生错误，请稍后再试");
+                        } catch {
+                            message.error("发生错误，请稍后再试")
                             return false;
                         }
                     }}
                 >
-                    <a>删除</a>
+                    <Form.Item name="method" label="快递方式" rules={[{required: true}]}>
+                        <CheckCard.Group>
+                            {
+                                Object.keys(methodMap).map((method, index) => (
+                                    <CheckCard
+                                        key={index}
+                                        title={methodMap[method as keyof typeof methodMap].text}
+                                        value={method}
+                                        avatar={
+                                            <Avatar src={methodMap[method as keyof typeof methodMap].icon}/>
+                                        }
+                                    />
+                                ))
+                            }
+                        </CheckCard.Group>
+                    </Form.Item>
+                    <ProFormText name="name" label="收件人" rules={[{required: true}]}/>
+                    <ProFormText
+                        name="phone"
+                        label="电话号码"
+                        rules={[
+                            {
+                                pattern: /^1\d{10}$/,
+                                message: "手机号格式有误"
+                            },
+                            {
+                                required: true
+                            }
+                        ]}
+                    />
+                    <ProFormTextArea name="address" label="地址" rules={[{required: true}]}/>
+                </ModalForm>,
+                <Popconfirm
+                    key="cancel"
+                    title="提醒"
+                    description="您确定取消该订单？"
+                    onConfirm={async () => {
+                        try {
+                            await trpc.delivery.flow.mutate({
+                                id: record.id
+                            });
+                            message.success("取消成功");
+                            action?.reload();
+                            return true;
+                        } catch {
+                            message.error("发生错误，请稍后再试");
+                            return false;
+                        }
+                    }}
+                    okText="确定"
+                    cancelText="取消"
+                >
+                    <Button
+                        size="small"
+                        type="link"
+                        variant="link"
+                        color="danger"
+                        icon={<CloseOutlined/>}
+                        disabled={record.status !== "waiting" && record.status !== "pushed"}
+                    />
+                </Popconfirm>,
+                <Popconfirm
+                    key="delete"
+                    title="提醒"
+                    description="您确定删除该订单？"
+                    onConfirm={async () => {
+                        try {
+                            await trpc.delivery.delete.mutate({
+                                id: record.id
+                            });
+                            message.success("删除成功");
+                            action?.reload();
+                            return true;
+                        } catch {
+                            message.error("发生错误，请稍后再试");
+                            return false;
+                        }
+                    }}
+                    okText="确定"
+                    cancelText="取消"
+                >
+                    <Button
+                        size="small"
+                        type="link"
+                        variant="link"
+                        color="danger"
+                        icon={<DeleteOutlined/>}
+                        disabled={record.status !== "pending"}
+                    />
                 </Popconfirm>
-            ],
+            ]
         }
     ];
 
     return (
         <PageContainer>
-            <ProTable<User>
+            <ProTable<DeliveryData>
                 rowKey="id"
+                rowSelection={{}}
                 actionRef={table}
                 columns={columns}
                 search={{filterType: "light"}}
-                onLoadingChange={loading => setDisabled(loading === true)}
                 options={{search: {allowClear: true}}}
-                toolBarRender={() => [
-                    <UserForm
-                        key={"add"}
-                        title={"添加用户"}
-                        target={<Button type="primary" disabled={disabled}>添加</Button>}
-                        onSubmit={async (values: Record<string, never>) => {
+                tableAlertOptionRender={({selectedRowKeys}) => [
+                    <Popconfirm
+                        key="remove"
+                        title="提醒"
+                        description="您确定推送运单到快递公司？"
+                        onConfirm={async () => {
                             try {
-                                await $.post("/user", values);
-                                message.success("添加成功");
-                                table.current?.reload();
+                                await trpc.delivery.push.mutate({
+                                    ids: selectedRowKeys.map((id) => Number(id)),
+                                });
+                                message.success("推送成功，请注意回调通知");
+                                table.current?.reload()
                                 return true;
-                            }
-                            catch {
-                                message.error("该用户已存在");
+                            } catch (e) {
+                                if (e instanceof TRPCClientError) {
+                                    message.error(e.message);
+                                } else {
+                                    message.error("发生未知错误");
+                                }
                                 return false;
                             }
                         }}
-                    />
+                    >
+                        <Button type="link">推送运单</Button>
+                    </Popconfirm>,
+                    <Button key="cancle" type="link" onClick={() => table.current?.clearSelected?.()}>取消选择</Button>
+                ]}
+                toolBarRender={() => [
+                    <Link key="add" href="/delivery/create" passHref>
+                        <Button type="primary">添加</Button>
+                    </Link>
                 ]}
                 request={async (params, sort) => {
-                    const query = queryBuilder(params, sort);
-                    const res = await $.get("/user", {params: query});
-                    const data = await res.data;
-                    return {data: data.items, success: res.status === 200, total: data.total};
+                    const res = await trpc.delivery.get.query({
+                        params, sort
+                    });
+                    return {
+                        data: res.items,
+                        success: true,
+                        total: res.total
+                    }
                 }}
             />
         </PageContainer>

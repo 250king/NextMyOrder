@@ -3,52 +3,49 @@ import React from "react";
 import DeliveryTable from "@/component/table/delivery";
 import PrintField from "@/component/field/print";
 import printLabel from "@/util/print/label";
-import $ from "@/util/http/api";
+import trpc from "@/server/client";
 import {ProFormText, ProFormTextArea} from "@ant-design/pro-form";
+import {DeliverySchema, methodMap} from "@/type/delivery";
 import {PageContainer} from "@ant-design/pro-layout";
 import {StepsForm} from "@ant-design/pro-components";
 import {CheckCard} from "@ant-design/pro-card";
 import {labelSdk} from "@/util/print/sdk";
-import {methodMap} from "@/type/delivery";
 import {useRouter} from "next/navigation";
 import {App, Avatar, Form} from "antd";
-import {User} from "@prisma/client";
+import {UserSchema} from "@/type/user";
 
 const Page = () => {
     const message = App.useApp().message;
     const router = useRouter();
     const [step, setStep] = React.useState(0);
-    const [user, setUser] = React.useState<User[]>([]);
+    const [user, setUser] = React.useState<UserSchema[]>([]);
     const [data, setData] = React.useState<Record<string, unknown>>();
     const [connect, setConnect] = React.useState("");
-    React.useEffect(
-        () => {
-            const init = async () => {
-                await labelSdk.connect()
-                const painters = JSON.parse((await labelSdk.getAllPrinters()).info)
-                await labelSdk.selectPrinter(Object.keys(painters)[0], Number(Object.values(painters)[0]))
-                await labelSdk.initSdk()
-                await labelSdk.setPrinterAutoShutDownTime(4)
-            }
-            if (step !== 2) return;
-            init().then(async () => {
-                const result = JSON.parse((await printLabel(data!)).info)
-                setConnect(result.ImageData)
-            }).catch((err) => {
-                message.error(err.message);
-            });
-            return () => {
-                labelSdk.disconnect()
-                setConnect("");
-            };
-        },
-        [data, step, message]
-    )
+    React.useEffect(() => {
+        const init = async () => {
+            await labelSdk.connect()
+            const painters = JSON.parse((await labelSdk.getAllPrinters()).info as string)
+            await labelSdk.selectPrinter(Object.keys(painters)[0], Number(Object.values(painters)[0]))
+            await labelSdk.initSdk()
+            await labelSdk.setPrinterAutoShutDownTime(4)
+        }
+        if (step !== 2) return;
+        init().then(async () => {
+            const result = JSON.parse((await printLabel(data!))?.info as string)
+            setConnect(result.ImageData)
+        }).catch((err) => {
+            message.error(err.message);
+        });
+        return () => {
+            labelSdk.disconnect()
+            setConnect("");
+        };
+    }, [data, step, message])
 
     return (
         <PageContainer>
             <StepsForm
-                containerStyle={step === 0? {width: "100%"}: {}}
+                containerStyle={step === 0 ? {width: "100%"} : {}}
                 onCurrentChange={(current) => setStep(current)}
                 onFormFinish={(name, info) => {
                     if (name === "select") {
@@ -58,15 +55,13 @@ const Page = () => {
                 onFinish={async (values) => {
                     try {
                         delete values.print
-                        await $.post("/delivery", values)
+                        await trpc.delivery.create.mutate(values as DeliverySchema);
                         message.success("创建成功")
                         router.back()
-                        return true
-                    }
-                    catch {
+                    } catch {
                         message.error("创建失败")
-                        return false
                     }
+                    return false
                 }}
             >
                 <StepsForm.StepForm title="选择订单" name="select">
@@ -76,7 +71,9 @@ const Page = () => {
                             {
                                 message: "请选择订单",
                                 validator: async (_, value: number[]) => {
-                                    if (value.length === 0) return Promise.reject();
+                                    if (value.length === 0) {
+                                        return Promise.reject();
+                                    }
                                     return Promise.resolve();
                                 }
                             }
@@ -90,19 +87,10 @@ const Page = () => {
                     name="info"
                     onFinish={async (values) => {
                         try {
-                            const res = await $.get(`/util/delivery`, {
-                                params: {
-                                    address: values.address,
-                                }
-                            })
-                            const result = res.data;
-                            values.city = result.city;
-                            values.province = result.province;
-                            values.town = result.town;
+                            values.label = (await trpc.setting.get.query()).label;
                             setData(values);
                             return true;
-                        }
-                        catch {
+                        } catch {
                             message.error("发生错误，请稍后再试")
                             return false
                         }
@@ -117,7 +105,7 @@ const Page = () => {
                                         title={methodMap[method as keyof typeof methodMap].text}
                                         value={method}
                                         avatar={
-                                            <Avatar icon={methodMap[method as keyof typeof methodMap].icon}/>
+                                            <Avatar src={methodMap[method as keyof typeof methodMap].icon}/>
                                         }
                                     />
                                 ))
@@ -142,7 +130,9 @@ const Page = () => {
                             {
                                 message: "请打印订单",
                                 validator: async (_, value: boolean) => {
-                                    if (!value) return Promise.reject();
+                                    if (!value) {
+                                        return Promise.reject();
+                                    }
                                     return Promise.resolve();
                                 }
                             }

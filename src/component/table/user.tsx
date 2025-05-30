@@ -1,8 +1,8 @@
 "use client";
 import React from "react";
 import {ProColumns, ProTable} from "@ant-design/pro-table";
-import {User} from "@/type/summary";
 import {Avatar, Space, Typography} from "antd";
+import {User} from "@/type/summary";
 
 interface Props {
     data?: User[]
@@ -28,11 +28,12 @@ const UserTable = (props: Props) => {
         {
             title: "汇总",
             dataIndex: "total",
-            sorter: (a, b) => a.total - b.total,
             valueType: "money",
-            fieldProps: {
-                precision: 0
-            }
+            sorter: (a, b) => a.total - b.total,
+            render: (_, record) => Intl.NumberFormat("ja-JP", {
+                style: "currency",
+                currency: "JPY"
+            }).format(record.total)
         }
     ];
 

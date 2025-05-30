@@ -1,9 +1,7 @@
-import {Typography} from "antd";
+import {redirect} from "next/navigation";
 
 const Page = () => {
-    return (
-        <Typography>建设中……</Typography>
-    );
+    return redirect("/group")
 }
 
 export default Page;

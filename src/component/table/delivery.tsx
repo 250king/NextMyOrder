@@ -2,21 +2,26 @@
 import React from "react";
 import UserSelector from "@/component/field/user";
 import GroupSelector from "@/component/field/group";
-import $ from "@/util/http/api";
+import trpc from "@/server/client";
 import {useControlModel, WithControlPropsType} from "@ant-design/pro-form";
 import {Avatar, Button, Popover, Space, Typography} from "antd";
 import {ProColumns, ProTable} from "@ant-design/pro-table";
-import {queryBuilder} from "@/util/http/query";
-import {EyeOutlined} from "@ant-design/icons";
-import {Delivery} from "@/type/delivery";
-import {User} from "@prisma/client";
+import {MessageOutlined} from "@ant-design/icons";
+import {OrderData} from "@/type/delivery";
+import {UserSchema} from "@/type/user";
 
-type Props = WithControlPropsType<{callback: React.Dispatch<React.SetStateAction<User[]>>}>
+type Props = WithControlPropsType<{
+    callback: React.Dispatch<React.SetStateAction<UserSchema[]>>
+}>
 
 const DeliveryTable = (props: Props) => {
     const model = useControlModel(props);
-    const columns: ProColumns<Delivery>[] = [
-        {title: "ID", dataIndex: "id", sorter: true},
+    const columns: ProColumns<OrderData>[] = [
+        {
+            title: "ID",
+            dataIndex: "id",
+            sorter: true
+        },
         {
             title: "用户",
             dataIndex: "userId",
@@ -34,9 +39,8 @@ const DeliveryTable = (props: Props) => {
         },
         {
             title: "商品",
-            dataIndex: ["item", "name"],
+            dataIndex: ["itemId"],
             sorter: true,
-            search: false,
             render: (_, record) => (
                 <div>
                     <Typography>{record.item.name}</Typography>
@@ -48,30 +52,42 @@ const DeliveryTable = (props: Props) => {
             title: "团购",
             dataIndex: ["item", "groupId"],
             hidden: true,
+            search: false,
             renderFormItem: () => <GroupSelector/>
         },
-        {title: "数量", dataIndex: "count", sorter: true, valueType: "digit", search: false},
-        {title: "创建时间", dataIndex: "createAt", valueType: "dateTime", sorter: true, search: false},
         {
-            title: "备注",
-            dataIndex: "comment",
-            search: false,
-            render: (_, record) => {
-                if (!record.comment) return "-";
-                return (
-                    <Popover content={record.comment}>
-                        <Button shape="circle" icon={<EyeOutlined/>} size="small" type="link"/>
-                    </Popover>
-                );
-            }
+            title: "数量",
+            dataIndex: "count",
+            valueType: "digit",
+            sorter: true,
+            search: false
+        },
+        {
+            title: "创建时间",
+            dataIndex: "createAt",
+            valueType: "dateTime",
+            sorter: true,
+            search: false
+        },
+        {
+            title: "操作",
+            valueType: "option",
+            width: 150,
+            render: (_, record) => [
+                <Popover key="comment" content={record.comment}>
+                    <Button icon={<MessageOutlined/>} disabled={!record.comment} size="small" type="link"/>
+                </Popover>
+            ]
         }
     ];
 
     return (
-        <ProTable<Delivery>
+        <ProTable<OrderData>
             rowKey="id"
             columns={columns}
-            search={{filterType: "light"}}
+            search={{
+                filterType: "light"
+            }}
             rowSelection={{
                 selectedRowKeys: model.value,
                 onChange: (selectedRowKeys, selectedRows) => {
@@ -81,11 +97,20 @@ const DeliveryTable = (props: Props) => {
                     model.onChange(selectedRowKeys);
                 }
             }}
-            request={async (props, sort) => {
-                const query = queryBuilder(props, sort)
-                const res = await $.get(`/order`, {params: query});
-                const data = await res.data;
-                return {data: data.items, success: res.status === 200, total: data.total}
+            request={async (params, sort) => {
+                const res = await trpc.order.get.query({
+                    params: {
+                        ...params,
+                        status: "arrived",
+                        deliveryId: null
+                    },
+                    sort
+                });
+                return {
+                    data: res.items,
+                    success: true,
+                    total: res.total
+                };
             }}
         />
     );

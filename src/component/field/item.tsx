@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import debounce from 'lodash/debounce';
+import trpc from "@/server/client";
 import {Select, Spin, Typography} from "antd";
 import {currencyFormat} from "@/util/string";
 import {useParams} from "next/navigation";
@@ -20,22 +21,20 @@ const ItemSelector = (props: Props) => {
         () => {
             const fetcher = (search: string) => {
                 setFetching(true);
-                fetch(`/api/group/${params.groupId}/item?keyword=${search}`).then(res => {
-                    if (!res.ok) {
-                        setFetching(false);
-                        return;
-                    }
-                    res.json().then(data => {
-                        setOptions(
-                            data.items.map((item: Item) => ({
-                                ...item,
-                                label: item.name,
-                                value: item.id
-                            }))
-                        );
-                        setFetching(false);
-                    })
-                });
+                trpc.item.get.query({
+                    params: {
+                        keyword: search,
+                        groupId: Number(params.groupId)
+                    },
+                }).then(res => {
+                    setOptions(
+                        res.items.map((item: Item) => ({
+                            ...item,
+                            label: item.name,
+                            value: item.id
+                        }))
+                    );
+                }).finally(() => setFetching(false));
             };
             return debounce(fetcher, 500)
         },

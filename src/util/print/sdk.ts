@@ -1,7 +1,8 @@
 import {
+    ApiResponse,
     DrawQrCodeParams,
     DrawTextParams,
-    InitCanvasParams,
+    InitCanvasParams, PrinterRequest,
     PrinterResponse,
     SendMessage,
     StartJobParams
@@ -9,7 +10,7 @@ import {
 
 export class LabelSdk {
     private websocket: WebSocket | null = null;
-    private callbacks: Map<string, (res: any) => void> = new Map();
+    private callbacks: Map<string, (res: PrinterResponse) => void> = new Map();
     private timeout = 10000;
 
     constructor(private url = "ws://127.0.0.1:37989") {}
@@ -43,14 +44,18 @@ export class LabelSdk {
         this.websocket?.close()
     }
 
-    send<T = any>(apiName: string, parameter: Record<string, any> = {}, displayScale?: number): Promise<PrinterResponse<T>> {
+    send<T = ApiResponse, P = Record<string, unknown>>(
+        apiName: string,
+        parameter: P = {} as P,
+        displayScale?: number
+    ): Promise<T> {
         return new Promise((resolve, reject) => {
             if (!this.websocket || this.websocket.readyState !== WebSocket.OPEN) {
                 return reject(new Error("WebSocket 未连接"));
             }
 
-            const msg: SendMessage = displayScale? {apiName, displayScale}: {apiName, parameter};
-            this.callbacks.set(apiName, (res) => resolve(res));
+            const msg: SendMessage<P> = displayScale ? {apiName, displayScale} : {apiName, parameter};
+            this.callbacks.set(apiName, (res) => resolve(res as T));
 
             this.websocket.send(JSON.stringify(msg));
 
@@ -81,20 +86,12 @@ export class LabelSdk {
 
     startJob(printDensity: number, printLabelType: number, printMode: number, count: number) {
         const params: StartJobParams = { printDensity, printLabelType, printMode, count };
-        return this.send("startJob", params);
-    }
-
-    endJob() {
-        return this.send("endJob");
+        return this.send("startJob", params as unknown as PrinterRequest);
     }
 
     commitJob(printData: Record<string, unknown> | null, printerImageProcessingInfo: Record<string, unknown>) {
         const params = {printData, printerImageProcessingInfo};
         return this.send("commitJob", params);
-    }
-
-    clearCanvas() {
-        return this.send("clearCanvas");
     }
 
     initCanvas(params: InitCanvasParams) {

@@ -13,6 +13,11 @@ const PrintField = (props: Props) => {
     const message = App.useApp().message;
     const model = useControlModel(props);
     const [loading, setLoading] = React.useState(false);
+    React.useEffect(() => {
+        if (!props.data) {
+            setLoading(false)
+        }
+    }, [props.data])
 
     return (
         <Space size="large" direction="vertical">
@@ -25,7 +30,6 @@ const PrintField = (props: Props) => {
                     <Image src={`data:image/jpeg;base64,${props.image}`} alt=""/>
                 )
             }
-
             <Button
                 type="primary"
                 loading={loading}

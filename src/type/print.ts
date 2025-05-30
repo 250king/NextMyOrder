@@ -1,9 +1,16 @@
-export type PrinterResponse<T = unknown> = T;
+export type ApiResponse = Record<string, unknown>;
 
-export interface SendMessage {
+export type PrinterRequest = Record<string, unknown>;
+
+export interface SendMessage<P = Record<string, unknown>> {
     apiName: string;
-    parameter?: Record<string, any>;
+    parameter?: P;
     displayScale?: number;
+}
+
+export interface PrinterResponse<T = unknown> {
+    apiName: string;
+    resultAck: T;
 }
 
 export interface InitCanvasParams {

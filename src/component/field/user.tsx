@@ -1,11 +1,12 @@
 "use client";
 import React from "react";
 import debounce from 'lodash/debounce';
+import trpc from "@/server/client";
 import {Avatar, Select, Space, Spin, Typography} from "antd";
 import {useParams} from "next/navigation";
-import {JoinDetail} from "@/type/join";
+import {UserSchema} from "@/type/user";
+import {JoinData} from "@/type/group";
 import type {SelectProps} from "antd";
-import {User} from "@prisma/client";
 
 interface Props {
     value?: number;
@@ -20,33 +21,28 @@ const UserSelector = (props: Props) => {
         () => {
             const fetcher = (search: string) => {
                 setFetching(true);
-                let endpoint;
-                if (params.groupId) {
-                    endpoint = `/api/group/${params.groupId}/user?keyword=${search}`;
-                }
-                else {
-                    endpoint = `/api/user?keyword=${search}`
-                }
-                fetch(endpoint).then(res => {
-                    if (!res.ok) {
-                        setFetching(false);
-                        return;
-                    }
-                    res.json().then(data => {
-                        setOptions(
-                            params.groupId? (data.items as JoinDetail[]).map((data) => ({
-                                ...data,
-                                label: data.user.name,
-                                value: data.userId,
-                            })): (data.items as User[]).map((data) => ({
-                                ...data,
-                                label: data.name,
-                                value: data.id,
-                            }))
-                        );
-                        setFetching(false);
-                    })
-                });
+                const method = params.groupId? trpc.group.user: trpc.user;
+                method.get.query({
+                    params: {
+                        keyword: search
+                    },
+                    sort: params.groupId? {
+                        userId: "ascend"
+                    }: {},
+                    groupId: Number(params.groupId)
+                }).then(data => {
+                    setOptions(
+                        params.groupId? (data.items as unknown as JoinData[]).map((data) => ({
+                            ...data,
+                            label: data.user.name,
+                            value: data.userId,
+                        })): (data.items as UserSchema[]).map((data) => ({
+                            ...data,
+                            label: data.name,
+                            value: data.id,
+                        }))
+                    );
+                }).finally(() => setFetching(false));
             };
             return debounce(fetcher, 500)
         },
@@ -73,7 +69,7 @@ const UserSelector = (props: Props) => {
             onSearch={debouncedFetch}
             notFoundContent={fetching ? <Spin size="small"/> : undefined}
             optionRender={(option) => {
-                const qq = params.groudId ? option.data.user.qq : option.data.qq;
+                const qq = params.groupId ? option.data.user.qq : option.data.qq;
                 return (
                     <Space size="middle" align="center">
                         <Avatar src={`https://q1.qlogo.cn/g?b=qq&nk=${qq}&s=0`}/>

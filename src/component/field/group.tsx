@@ -1,8 +1,9 @@
 "use client";
 import React from "react";
 import debounce from 'lodash/debounce';
+import trpc from "@/server/client";
 import {Select, Spin, Typography} from "antd";
-import {Item} from "@prisma/client";
+import {GroupSchema} from "@/type/group";
 import type {SelectProps} from "antd";
 
 interface Props {
@@ -17,22 +18,15 @@ const GroupSelector = (props: Props) => {
         () => {
             const fetcher = (search: string) => {
                 setFetching(true);
-                fetch(`/api/group/?keyword=${search}`).then(res => {
-                    if (!res.ok) {
-                        setFetching(false);
-                        return;
-                    }
-                    res.json().then(data => {
-                        setOptions(
-                            data.items.map((item: Item) => ({
-                                ...item,
-                                label: item.name,
-                                value: item.id
-                            }))
-                        );
-                        setFetching(false);
-                    })
-                });
+                trpc.group.get.query({params: {keyword: search}}).then(res => {
+                    setOptions(
+                        res.items.map((item: GroupSchema) => ({
+                            ...item,
+                            label: item.name,
+                            value: item.id
+                        }))
+                    );
+                }).finally(() => setFetching(false));
             };
             return debounce(fetcher, 500)
         },

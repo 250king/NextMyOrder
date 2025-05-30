@@ -17,11 +17,11 @@ const SummaryStatus = (props: Props) => {
         <RcResizeObserver onResize={(offset) => setResponsive(offset.width < 596)}>
             <ProCard.Group direction={responsive ? 'column' : 'row'} style={{marginBottom: 24}}>
                 <ProCard>
-                    <Statistic title="总额" value={props.price}/>
+                    <Statistic title="总额" value={props.price} prefix={"￥"}/>
                 </ProCard>
                 <Divider type={responsive ? 'horizontal' : 'vertical'}/>
                 <ProCard>
-                    <Statistic title="总重" value={props.weight}/>
+                    <Statistic title="总重" value={props.weight} suffix={"g"}/>
                 </ProCard>
             </ProCard.Group>
         </RcResizeObserver>

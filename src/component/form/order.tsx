@@ -1,18 +1,16 @@
 import React from "react";
-import $ from "@/util/http/api";
+import trpc from "@/server/client";
 import {ModalForm, ProFormDigit, ProFormSelect, ProFormTextArea} from "@ant-design/pro-form";
 import {Avatar, Space, Typography} from "antd";
-import {OrderDetail, statusMap} from "@/type/order";
 import {currencyFormat} from "@/util/string";
-import {JoinDetail} from "@/type/join";
 import {useParams} from "next/navigation";
-import {Item} from "@prisma/client";
+import {OrderSchema} from "@/type/group";
 
 interface Props {
     title: string,
-    data?: OrderDetail,
-    target: React.ReactElement,
     edit: boolean,
+    data?: OrderSchema,
+    target: React.ReactElement,
     onSubmit: (values: Record<string, never>) => Promise<boolean>
 }
 
@@ -49,12 +47,16 @@ export const OrderForm = (props: Props) => {
                                 )
                             }}
                             request={async (props) => {
-                                const res = await $.get(`/group/${params.groupId}/user`, {
+                                const res = await trpc.group.user.get.query({
                                     params: {
                                         keyword: props.keyWords ?? ""
-                                    }
+                                    },
+                                    sort: params.groupId? {
+                                        userId: "ascend"
+                                    }: {},
+                                    groupId: Number(params.groupId)
                                 });
-                                return res.data.items.map((join: JoinDetail) => ({
+                                return res.items.map((join) => ({
                                     ...join,
                                     label: join.user.name,
                                     value: join.userId,
@@ -71,31 +73,25 @@ export const OrderForm = (props: Props) => {
                                 filterOption: false,
                                 optionRender: option => (
                                     <div>
-                                        <Typography style={{color: option.data.allowed? "inherit": "darkgray"}}>
-                                            {option.data.name}
-                                        </Typography>
-                                        <Typography
-                                            style={{
-                                                fontSize: 12,
-                                                color: option.data.allowed? "inherit": "darkgray"
-                                            }}
-                                        >
+                                        <Typography>{option.data.name}</Typography>
+                                        <Typography style={{fontSize: 12}}>
                                             {currencyFormat(option.data.price)}
                                         </Typography>
                                     </div>
                                 )
                             }}
                             request={async (props) => {
-                                const res = await $.get(`/group/${params.groupId}/item`, {
+                                const res = await trpc.item.get.query({
                                     params: {
-                                        keyword: props.keyWords ?? ""
-                                    }
+                                        keyword: props.keyWords ?? "",
+                                        groupId: Number(params.groupId),
+                                        allowed: true
+                                    },
                                 });
-                                return res.data.items.map((item: Item) => ({
+                                return res.items.map((item) => ({
                                     ...item,
                                     label: item.name,
-                                    value: item.id,
-                                    disabled: !item.allowed
+                                    value: item.id
                                 }));
                             }}
                         />
@@ -103,7 +99,6 @@ export const OrderForm = (props: Props) => {
                 )
             }
             <ProFormDigit name="count" label="数量" rules={[{required: true}]} min={1} fieldProps={{precision: 0}}/>
-            <ProFormSelect name="status" label="状态" valueEnum={statusMap}/>
             <ProFormTextArea name="comment" label="备注"/>
         </ModalForm>
     );

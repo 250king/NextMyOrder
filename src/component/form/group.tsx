@@ -1,11 +1,10 @@
 import React from "react";
-import {Group} from "@prisma/client";
-import {ModalForm, ProFormSelect, ProFormText} from "@ant-design/pro-form";
-import {statusMap} from "@/type/group";
+import {ModalForm, ProFormText} from "@ant-design/pro-form";
+import {GroupSchema} from "@/type/group";
 
 interface Props {
     title: string,
-    data?: Group,
+    data?: GroupSchema,
     target: React.ReactElement,
     onSubmit: (values: Record<string, never>) => Promise<boolean>
 }
@@ -21,7 +20,6 @@ const GroupForm = (props: Props) => {
         >
             <ProFormText name="qq" label="Q群" rules={[{required: true}, {pattern: /^\d+$/, message: "Q群号格式不正确"}]}/>
             <ProFormText name="name" label="名称" rules={[{required: true}]}/>
-            <ProFormSelect name="status" label="状态" valueEnum={statusMap}/>
         </ModalForm>
     );
 }

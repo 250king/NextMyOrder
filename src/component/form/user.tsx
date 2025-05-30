@@ -1,12 +1,12 @@
 import React from "react";
-import $ from "@/util/http/api";
+import trpc from "@/server/client";
 import {ModalForm, ProForm, ProFormInstance, ProFormText, ProFormTextArea} from "@ant-design/pro-form";
 import {App, Button, Space} from "antd";
-import {User} from "@prisma/client";
+import {UserSchema} from "@/type/user";
 
 interface Props {
     title: string,
-    data?: User,
+    data?: UserSchema,
     target: React.ReactElement,
     onSubmit: (values: Record<string, never>) => Promise<boolean>
 }
@@ -36,9 +36,8 @@ const UserForm = (props: Props) => {
                             if (!qq) return;
                             setLoading(true);
                             try {
-                                const res = await $.get("/util/user", {params: {qq: qq}});
-                                const data = await res.data;
-                                form.current?.setFieldsValue({name: data.name});
+                                const res = await trpc.user.getName.query({qq});
+                                form.current?.setFieldsValue({name: res.name});
                             }
                             catch {
                                 message.error("无法自动获得信息，请手动输入")

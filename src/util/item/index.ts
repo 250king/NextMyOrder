@@ -10,7 +10,7 @@ type ItemParser = {
 const parsers: ItemParser[] = [];
 const currentDir = path.dirname(fileURLToPath(import.meta.url)); // 当前路径 /lib/item
 
-async function loadParsers() {
+const loadParsers = async () => {
     const files = fs.readdirSync(currentDir);
     for (const file of files) {
         if (file === "index.ts" || !file.endsWith(".ts")) continue;
@@ -23,9 +23,7 @@ async function loadParsers() {
     }
 }
 
-await loadParsers();
-
-export async function parseItem(url: string) {
+const parseItem = async (url: string) => {
     const parser = parsers.find(p => {
         if ("test" in p.match) {
             return p.match.test(url);
@@ -33,3 +31,7 @@ export async function parseItem(url: string) {
     })
     return parser?.parse(new URL(url));
 }
+
+await loadParsers();
+
+export default parseItem;

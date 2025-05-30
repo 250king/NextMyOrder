@@ -7,43 +7,61 @@ interface Props {
 }
 
 const summaryItem = async (id: number) => {
-    const orderSummary = await database.order.groupBy({
-        by: ["itemId"],
+    const sum = await database.order.groupBy({
+        by: [
+            "itemId"
+        ],
         where: {
-            item: {groupId: id}
+            item: {
+                groupId: id
+            },
+            status: {
+                not: "failed"
+            }
         },
         _sum: {
-            count: true
+            count: true,
         }
     });
-    return await Promise.all(
-        orderSummary.map(async row => {
-            const item = await database.item.findUnique({where: {id: row.itemId}});
-            const price = Number(item?.price)
-            return {
-                id: row.itemId,
-                name: item?.name,
-                price: price,
-                count: row._sum.count,
-                total: price * (row._sum.count || 0)
-            };
-        })
-    );
+    const items = new Map((await database.item.findMany({
+        where: {
+            id: {
+                in: sum.map(i => i.itemId)
+            }
+        }
+    })).map(i => [i.id, i]))
+    return sum.map(i => ({
+        id: i.itemId,
+        name: items.get(i.itemId)?.name,
+        url: items.get(i.itemId)?.url,
+        price: items.get(i.itemId)?.price,
+        count: i._sum.count,
+        total: (items.get(i.itemId)?.price ?? 0) * (i._sum.count ?? 0)
+    }))
 }
 
 const summaryUser = async (id: number) => {
     const orders = await database.order.findMany({
-        where: {item: {groupId: id}},
+        where: {
+            item: {
+                groupId: id
+            },
+            status: {
+                not: "failed"
+            }
+        },
         include: {
             item: {
-                select: {price: true}
+                select: {
+                    price: true
+                }
             },
             user: true
         }
     });
     const userSpendMap: Record<number, User & {total: number}> = {};
     for (const order of orders) {
-        const amount = Number(order.count) * Number(order.item.price);
+        const amount = order.count * order.item.price;
         userSpendMap[order.userId] = {
             ...order.user,
             total: (userSpendMap[order.userId]?.total || 0) + amount
@@ -55,11 +73,13 @@ const summaryUser = async (id: number) => {
 const summaryWeight = async (id: number) => {
     const orders = await database.order.findMany({
         where: {
-            item: {groupId: id}
+            item: {
+                groupId: id
+            }
         },
         include: {
-            user: { select: { id: true, name: true, qq: true } },
-            item: { select: { weight: true } }
+            user: true,
+            item: true
         }
     });
     const hasMissingWeight = orders.some(order => order.item.weight == null);
@@ -74,12 +94,16 @@ const summaryWeight = async (id: number) => {
     }>();
     let grandTotal = 0;
     for (const order of orders) {
-        const { id, name, qq } = order.user;
+        const {id, name, qq} = order.user;
         const weight = Number(order.item.weight);
         const total = weight * order.count;
         grandTotal += total;
         if (!map.has(id)) {
-            map.set(id, { id: id, name, qq, total: total });
+            map.set(id, {
+                id: id,
+                total: total,
+                name, qq
+            });
         } else {
             map.get(id)!.total += total;
         }
@@ -89,6 +113,8 @@ const summaryWeight = async (id: number) => {
         ratio: grandTotal === 0 ? 0 : user.total / grandTotal * 100
     }));
 }
+
+export const revalidate = 0;
 
 const Page = async (props: Props) => {
     const id = Number((await props.params).groupId);

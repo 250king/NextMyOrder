@@ -1,5 +1,4 @@
 import React from "react";
-import $ from "@/util/http/api";
 import {
     ModalForm,
     ProForm,
@@ -11,6 +10,7 @@ import {
 } from "@ant-design/pro-form";
 import {App, Button, Space} from "antd";
 import {Item} from "@prisma/client";
+import trpc from "@/server/client";
 
 interface Props {
     title: string,
@@ -44,13 +44,10 @@ const ItemForm = (props: Props) => {
                             if (!form.current?.getFieldsValue().url) return;
                             setLoading(true);
                             try {
-                                const res = await $.get(`/util/item`, {
-                                    params: {
-                                        url: form.current.getFieldsValue().url,
-                                    }
+                                const res = await trpc.item.getInfo.query({
+                                    url: form.current.getFieldsValue().url,
                                 });
-                                const data = res.data;
-                                form.current?.setFieldsValue({name: data.name, price: data.price, url: data.url});
+                                form.current?.setFieldsValue(res);
                             }
                             catch {
                                 message.error("无法自动获得信息，请手动输入")

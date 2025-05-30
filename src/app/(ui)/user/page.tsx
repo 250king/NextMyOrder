@@ -1,19 +1,23 @@
 "use client";
 import React from "react";
+import trpc from "@/server/client";
 import UserForm from "@/component/form/user";
 import {Space, Avatar, Typography, Popconfirm, App, Button} from "antd";
 import {ActionType, ProColumns, ProTable} from "@ant-design/pro-table";
+import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
 import {PageContainer} from "@ant-design/pro-layout";
-import {queryBuilder} from "@/util/http/query";
-import {User} from "@prisma/client";
-import $ from "@/util/http/api";
+import {TRPCClientError} from "@trpc/client";
+import {UserSchema} from "@/type/user";
 
 const Page = () => {
     const message = App.useApp().message;
-    const table = React.useRef<ActionType>(undefined);
-    const [disabled, setDisabled] = React.useState(false);
-    const columns: ProColumns<User>[] = [
-        {title: "ID", dataIndex: "id", sorter: true},
+    const table = React.useRef<ActionType>(null);
+    const columns: ProColumns<UserSchema>[] = [
+        {
+            title: "ID",
+            dataIndex: "id",
+            sorter: true
+        },
         {
             title: "QQ",
             dataIndex: "qq",
@@ -29,49 +33,65 @@ const Page = () => {
                 </Space>
             )
         },
-        {title: "邮箱", dataIndex: "email", sorter: true, search: false},
-        {title: "注册时间", dataIndex: "createAt", valueType: "dateTime", sorter: true, search: false},
+        {
+            title: "邮箱",
+            dataIndex: "email",
+            sorter: true,
+            search: false
+        },
+        {
+            title: "注册时间",
+            dataIndex: "createAt",
+            valueType: "dateTime",
+            sorter: true,
+            search: false
+        },
         {
             title: '操作',
             valueType: 'option',
             width: 150,
             render: (_, record, _1, action) => [
                 <UserForm
-                    key={"edit"}
+                    key="edit"
                     data={record}
                     title="修改用户"
-                    target={<a>修改</a>}
-                    onSubmit={async (values: Record<string, never>) => {
+                    target={<Button type="link" icon={<EditOutlined/>}/>}
+                    onSubmit={async (values: Record<string, unknown>) => {
                         try {
-                            await $.patch(`/user/${record.id}`, values);
+                            values.id = record.id;
+                            await trpc.user.update.mutate(values as UserSchema);
                             message.success("修改成功");
                             action?.reload();
                             return true;
-                        }
-                        catch {
+                        } catch {
                             message.error("发生错误，请稍后再试");
                             return false;
                         }
                     }}
                 />,
                 <Popconfirm
-                    key={"delete"}
+                    key="delete"
                     title="提醒"
                     description="您确定删除该用户？"
                     onConfirm={async () => {
                         try {
-                            await $.delete(`/user/${record.id}`)
+                            await trpc.user.delete.mutate({
+                                id: record.id
+                            });
                             message.success("删除成功");
                             action?.reload();
                             return true;
-                        }
-                        catch {
-                            message.error("发生错误，请稍后再试");
+                        } catch (e) {
+                            if (e instanceof TRPCClientError) {
+                                message.error(e.message);
+                            } else {
+                                message.error("发生未知错误");
+                            }
                             return false;
                         }
                     }}
                 >
-                    <a>删除</a>
+                    <Button type="link" variant="link" color="danger" icon={<DeleteOutlined/>}/>
                 </Popconfirm>
             ],
         }
@@ -79,26 +99,30 @@ const Page = () => {
 
     return (
         <PageContainer>
-            <ProTable<User>
+            <ProTable<UserSchema>
                 rowKey="id"
                 actionRef={table}
                 columns={columns}
-                search={{filterType: "light"}}
-                onLoadingChange={loading => setDisabled(loading === true)}
-                options={{search: {allowClear: true}}}
+                search={{
+                    filterType: "light"
+                }}
+                options={{
+                    search: {
+                        allowClear: true
+                    }
+                }}
                 toolBarRender={() => [
                     <UserForm
-                        key={"add"}
+                        key="add"
                         title={"添加用户"}
-                        target={<Button type="primary" disabled={disabled}>添加</Button>}
-                        onSubmit={async (values: Record<string, never>) => {
+                        target={<Button type="primary">添加</Button>}
+                        onSubmit={async (values: Record<string, unknown>) => {
                             try {
-                                await $.post("/user", values);
+                                await trpc.user.add.mutate(values as UserSchema);
                                 message.success("添加成功");
                                 table.current?.reload();
                                 return true;
-                            }
-                            catch {
+                            } catch {
                                 message.error("该用户已存在");
                                 return false;
                             }
@@ -106,10 +130,14 @@ const Page = () => {
                     />
                 ]}
                 request={async (params, sort) => {
-                    const query = queryBuilder(params, sort);
-                    const res = await $.get("/user", {params: query});
-                    const data = await res.data;
-                    return {data: data.items, success: res.status === 200, total: data.total};
+                    const res = await trpc.user.get.query({
+                        params, sort
+                    });
+                    return {
+                        data: res.items,
+                        success: true,
+                        total: res.total
+                    };
                 }}
             />
         </PageContainer>
