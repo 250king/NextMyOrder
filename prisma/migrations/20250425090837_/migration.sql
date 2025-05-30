@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE "Group" ALTER COLUMN "qq" SET DATA TYPE TEXT;
