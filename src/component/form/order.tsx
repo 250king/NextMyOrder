@@ -4,7 +4,7 @@ import {ModalForm, ProFormDigit, ProFormSelect, ProFormTextArea} from "@ant-desi
 import {Avatar, Space, Typography} from "antd";
 import {currencyFormat} from "@/util/string";
 import {useParams} from "next/navigation";
-import {OrderSchema} from "@/type/group";
+import {OrderSchema} from "@/type/order";
 
 interface Props {
     title: string,

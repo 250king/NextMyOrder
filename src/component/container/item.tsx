@@ -4,10 +4,11 @@ import ItemForm from "@/component/form/item";
 import trpc from "@/server/client";
 import {CheckOutlined, CloseOutlined, DeleteOutlined, EditOutlined, LinkOutlined} from "@ant-design/icons";
 import {ActionType, ProColumns, ProTable} from "@ant-design/pro-table";
-import {GroupData, ItemSchema, itemStatusMap} from "@/type/group";
+import {ItemSchema, statusMap} from "@/type/item";
 import {PageContainer} from "@ant-design/pro-layout";
 import {App, Button, Popconfirm} from "antd";
 import {TRPCClientError} from "@trpc/client";
+import {GroupData} from "@/type/group";
 
 interface Props {
     data: GroupData
@@ -50,7 +51,7 @@ const ItemContainer = (props: Props) => {
             dataIndex: "allowed",
             sorter: true,
             valueType: "select",
-            valueEnum: itemStatusMap,
+            valueEnum: statusMap,
             render: (_, record) => (
                 record.allowed? <CheckOutlined/>: <CloseOutlined/>
             )

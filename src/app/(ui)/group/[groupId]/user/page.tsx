@@ -1,5 +1,5 @@
 import React from "react";
-import JoinContainer from "@/component/container/join";
+import JoinContainer from "@/component/container/user";
 import database from "@/util/database";
 import {notFound} from "next/navigation";
 

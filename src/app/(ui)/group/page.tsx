@@ -3,8 +3,8 @@ import React from "react";
 import GroupForm from "@/component/form/group";
 import trpc from "@/server/client";
 import {ActionType, ProColumns, ProTable} from "@ant-design/pro-table";
-import {GroupSchema, groupStatusMap} from "@/type/group";
 import {PageContainer} from "@ant-design/pro-layout";
+import {GroupSchema, statusMap} from "@/type/group";
 import {SettingOutlined} from "@ant-design/icons";
 import {Typography, Button, App} from "antd";
 import Link from "next/link";
@@ -16,7 +16,8 @@ const Page = () => {
         {
             title: "ID",
             dataIndex: "id",
-            sorter: true},
+            sorter: true
+        },
         {
             title: "Q群",
             dataIndex: "qq",
@@ -41,7 +42,7 @@ const Page = () => {
             dataIndex: "status",
             valueType: "select",
             sorter: true,
-            valueEnum: groupStatusMap
+            valueEnum: statusMap
         },
         {
             title: "操作",
@@ -80,8 +81,7 @@ const Page = () => {
                                 message.success("添加成功")
                                 table.current?.reload();
                                 return true;
-                            }
-                            catch {
+                            } catch {
                                 message.error("发生错误，请稍后再试")
                                 return false;
                             }

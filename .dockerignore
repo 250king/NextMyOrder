@@ -1,0 +1,10 @@
+.next
+.idea
+.gitignore
+.env*
+*.log
+node_modules
+eslint.config.mjs
+package.json
+package-lock.json
+Dockerfile

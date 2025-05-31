@@ -1,6 +1,6 @@
 import {publicProcedure, router} from "@/server/loader";
 import {queryParams, queryParser} from "@/util/query";
-import {orderSchema, orderStatusMap} from "@/type/group";
+import {orderSchema, statusMap} from "@/type/order";
 import {TRPCError} from "@trpc/server";
 import {number} from "zod";
 
@@ -101,7 +101,7 @@ const orderRouter = router({
                     in: input.ids
                 },
                 status: {
-                    in: flow[input.status as keyof typeof orderStatusMap],
+                    in: flow[input.status as keyof typeof statusMap],
                 }
             },
             data: {
