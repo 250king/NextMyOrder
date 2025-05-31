@@ -29,7 +29,6 @@ const Layout = (props: Props) => {
                 layout="top"
                 location={{pathname}}
                 title="NextMyOrder"
-                logo="https://p.qlogo.cn/gh/387665635/387665635/40/"
                 route={{
                     path: "/",
                     routes: [
