@@ -6,11 +6,12 @@ import UserSelector from "@/component/field/user";
 import trpc from "@/server/client";
 import {DeleteOutlined, EditOutlined, LinkOutlined, MessageOutlined, TruckOutlined} from "@ant-design/icons";
 import {App, Avatar, Button, Popconfirm, Popover, Space, Typography} from "antd";
-import {GroupData, OrderData, OrderSchema, orderStatusMap} from "@/type/group";
 import {ActionType, ProColumns, ProTable} from "@ant-design/pro-table";
+import {OrderData, OrderSchema, statusMap} from "@/type/order";
 import {PageContainer} from "@ant-design/pro-layout";
 import {currencyFormat} from "@/util/string";
 import {useRouter} from "next/navigation";
+import {GroupData} from "@/type/group";
 
 interface Props {
     data: GroupData
@@ -86,7 +87,7 @@ const OrderContainer = (props: Props) => {
             title: "状态",
             dataIndex: "status",
             sorter: true,
-            valueEnum: orderStatusMap,
+            valueEnum: statusMap,
             valueType: "select"
         },
         {

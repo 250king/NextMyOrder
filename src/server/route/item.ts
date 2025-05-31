@@ -1,9 +1,9 @@
 import parseItem from "@/util/item";
 import {publicProcedure, router} from "@/server/loader";
 import {queryParams, queryParser} from "@/util/query";
-import {object, string} from "zod";
-import {itemSchema} from "@/type/group";
+import {itemSchema} from "@/type/item";
 import {TRPCError} from "@trpc/server";
+import {object, string} from "zod";
 
 const itemRouter = router({
     getInfo: publicProcedure.input(object({

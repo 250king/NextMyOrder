@@ -3,9 +3,11 @@ import ZtoIcon from "@/component/icon/zto";
 import YtoIcon from "@/component/icon/yto";
 import JdIcon from "@/component/icon/jd";
 import SfIcon from "@/component/icon/sf";
-import {GroupSchema, ItemSchema, OrderSchema} from "@/type/group";
 import {number, object, string, infer as zInfer} from "zod";
+import {GroupSchema} from "@/type/group";
+import {OrderSchema} from "@/type/order";
 import {UserSchema} from "@/type/user";
+import {ItemSchema} from "@/type/item";
 
 export const methodMap = {
     shunfeng: {
@@ -61,8 +63,6 @@ export const deliverySchema = object({
     comment: string().nullable().default(null)
 })
 
-export type DeliverySchema = zInfer<typeof deliverySchema>;
-
 export type DeliveryData = Omit<DeliverySchema, "orders"> & {
     orders: OrderSchema[]
 }
@@ -73,3 +73,6 @@ export type OrderData = OrderSchema & {
     },
     user: UserSchema
 }
+
+
+export type DeliverySchema = zInfer<typeof deliverySchema>;
