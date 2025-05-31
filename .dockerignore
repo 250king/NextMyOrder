@@ -1,10 +1,8 @@
-.next
-.idea
+# This file specifies which files and directories should be ignored by Docker when building images.
+
 .gitignore
 .env*
 *.log
 node_modules
 eslint.config.mjs
-package.json
-package-lock.json
 Dockerfile
