@@ -10,11 +10,11 @@
 
 ### 技术栈
 
-主体使用Next.js，前端使用React、TypeScript，UI库选择Ant Design
+主体使用Next.js，前端使用React、TypeScript，UI库选择Ant Design。
 
-后端使用TRPC，数据库框架使用Prisma
+后端使用TRPC，数据库框架使用Prisma。
 
-使用精臣™标签机API打印标签，快递100 API完成C端寄件
+使用精臣标签机API打印标签，快递100 API完成C端寄件。
 
 ## 使用
 
@@ -22,13 +22,30 @@
 > 
 > 如果您对本项目感兴趣，欢迎参与开发和完善，提交issue或PR。
 
-### 系统要求
-- Node.js 18.x 或更高版本
-- Git
-- Prisma支持的数据库，也可以使用SQLite，**但不推荐生产环境使用**
-- Nginx（可选），主要用于身份验证，因为项目目前没有实现登录功能，如果暴露在公网需要配置避免被非授权操作。如果不需要公网访问可以不配置
+现在已经支持Docker部署，使用Docker可以更方便地进行部署。
 
-### 安装
+```bash
+docker run -d \
+  --name nextmyorder \
+  -p 3000:3000 \
+  -e DATABASE_URL="mysql://user:password@host:port/database" \
+  -e API_KEY="your_fast_express_api_key" \
+  -e EXPRESS_KEY="your_fast_express_api_secret" \
+  -e EXPRESS_SECRET="https://api.fast-express.com" \
+  250king/nextmyorder:beta
+```
+
+### 环境变量说明
+- `DATABASE_URL`: 用于配置Prisma与数据库连接，详情请参考[Prisma文档](https://www.prisma.io/docs/orm/reference/connection-urls)。
+- `API_KEY`: 应用加密密钥，请使用`openssl rand -base64 64 | tr -d '\n'`生成随机密钥
+- `EXPRESS_KEY` `EXPRESS_SECRET`: 快递100 API密钥，请在[快递100官网](https://api.kuaidi100.com/manager/v2/myinfo/enterprise)申请。
+
+### 访问
+访问`http://localhost:3000`即可访问系统。请注意，首次访问请在设置页面完成应用配置。
+
+基本使用按照正常团购流程进行，创建团购、添加商品、添加订单等。具体教程正在编写中，敬请期待！
+
+## 开发环境搭建
 
 1. 克隆仓库
    ```bash
@@ -39,24 +56,15 @@
    ```bash
    npm install
    ```
-3. 配置环境变量。复制`.env.example`为`.env`并根据注释参考进行配置。
+3. 配置环境变量。复制`.env.example`为`.env`并根据上面的环境变量说明进行修改
 4. 初始化数据库
    ```bash
    npx prisma migrate dev --name init
    ```
-5. 构造项目
-   ```bash
-   npm run build
-   ```
-6. 启动项目
+5. 启动项目
    ```bash
    npm start
    ```
-
-### 访问
-访问`http://localhost:3000`即可访问系统。请注意，首次访问请在设置页面完成应用配置。
-
-基本使用按照正常团购流程进行，创建团购、添加商品、添加订单等。具体教程正在编写中，敬请期待！
 
 ## ToDo
 - [ ] 完善文档
@@ -70,6 +78,8 @@
 
 其中支付系统因为还没通过审核，还在研究中
 
-然后关于可用性问题，最大问题是快递API是只面向企业，所以对于个体用户来说使用门槛较高，后续会考虑提供更简单的寄件方式。还有简化部署流程，届时会提供Docker镜像，方便用户快速部署，也在考虑本地化部署方式。
+然后关于可用性问题，最大问题是快递API是只面向企业，所以对于个体用户来说使用门槛较高，后续会考虑提供更简单的寄件方式。
+
+关于本地化部署，现在也在研究了。
 
 关于拓展性，目前通过URL解析商品信息是支持自行编写解析过程来适配每个网站。但像标签机目前只能使用精臣的标签机，后续会考虑提供更高的可拓展性，支持为不同的标签机提供不同的API
