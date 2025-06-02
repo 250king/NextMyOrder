@@ -1,10 +1,12 @@
-import {createTRPCClient, httpBatchLink} from '@trpc/client';
+import superjson from "superjson";
 import type appRouter from '@/server';
+import {createTRPCClient, httpBatchLink} from '@trpc/client';
 
 const trpc = createTRPCClient<typeof appRouter>({
     links: [
         httpBatchLink({
-            url: '/api/v1.0', // 注意这是你后端暴露 tRPC API 的路径
+            url: '/api/v1.0',
+            transformer: superjson
         }),
     ]
 });
