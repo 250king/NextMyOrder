@@ -9,11 +9,7 @@ const user = router({
         groupId: number(),
         ...queryParams.shape
     })).query(async ({ctx, input}) => {
-        const query = queryParser(input, [
-            "user.name",
-            "user.qq",
-            "user.email"
-        ], {
+        const query = queryParser(input, ["user.name", "user.qq", "user.email"], {
             groupId: input.groupId
         });
         return {

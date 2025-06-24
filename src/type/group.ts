@@ -1,4 +1,4 @@
-import {number, object, string, infer as zInfer} from "zod";
+import {number, object, string, infer as zInfer, coerce} from "zod";
 import {UserSchema} from "@/type/user";
 
 export const statusMap = {
@@ -22,7 +22,8 @@ export const groupSchema = object({
 
 export const joinSchema = object({
     userId: number(),
-    groupId: number()
+    groupId: number(),
+    createAt: coerce.date().default(new Date())
 })
 
 export type GroupData = GroupSchema & {

@@ -1,8 +1,8 @@
 "use client";
 import React from "react";
-import ItemTable from "@/component/table/item";
-import UserTable from "@/component/table/user";
-import WeightTable from "@/component/table/weight";
+import ItemTable from "@/component/table/summary/item";
+import UserTable from "@/component/table/summary/user";
+import WeightTable from "@/component/table/summary/weight";
 import SummaryStatus from "@/component/status/summary";
 import {PageContainer} from "@ant-design/pro-layout";
 import {User, Weight} from "@/type/summary";
@@ -27,9 +27,19 @@ const SummaryContainer = (props: Props) => {
     return (
         <PageContainer
             tabList={[
-                {tab: '用户', key: 'user'},
-                {tab: '商品', key: 'item'},
-                {tab: '重量', key: 'weight', disabled: props.weight?.length === 0}
+                {
+                    tab: '用户',
+                    key: 'user'
+                },
+                {
+                    tab: '商品',
+                    key: 'item'
+                },
+                {
+                    tab: '重量',
+                    key: 'weight',
+                    disabled: props.weight?.length === 0
+                }
             ]}
             onTabChange={(key) => {
                 setIndex(key);

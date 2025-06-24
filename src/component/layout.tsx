@@ -27,6 +27,7 @@ const Layout = (props: Props) => {
         <ConfigProvider theme={{algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm}}>
             <ProLayout
                 layout="top"
+                logo={null}
                 location={{pathname}}
                 title="NextMyOrder"
                 route={{
@@ -43,18 +44,8 @@ const Layout = (props: Props) => {
                                     hideInMenu: true
                                 },
                                 {
-                                    path: "/group/:groupId/item",
-                                    name: "商品管理",
-                                    hideInMenu: true
-                                },
-                                {
-                                    path: "/group/:groupId/user",
+                                    path: "/group/:groupId/user/:userId",
                                     name: "用户管理",
-                                    hideInMenu: true
-                                },
-                                {
-                                    path: "/group/:groupId/order",
-                                    name: "订单管理",
                                     hideInMenu: true
                                 },
                                 {

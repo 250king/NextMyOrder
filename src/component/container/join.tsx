@@ -2,22 +2,27 @@
 import React from "react";
 import ItemSelector from "@/component/field/item";
 import OrderForm from "@/component/form/order";
-import UserSelector from "@/component/field/user";
 import trpc from "@/server/client";
 import {DeleteOutlined, EditOutlined, LinkOutlined, MessageOutlined, TruckOutlined} from "@ant-design/icons";
-import {App, Avatar, Button, Popconfirm, Popover, Space, Typography} from "antd";
+import {App, Button, Popconfirm, Popover, Typography, Descriptions} from "antd";
 import {ActionType, ProColumns, ProTable} from "@ant-design/pro-table";
-import {OrderData, OrderSchema, statusMap} from "@/type/order";
 import {PageContainer} from "@ant-design/pro-layout";
+import {OrderSchema, statusMap} from "@/type/order";
 import {currencyFormat} from "@/util/string";
 import {useRouter} from "next/navigation";
-import {GroupData} from "@/type/group";
+import {JoinData} from "@/type/group";
+import {TRPCClientError} from "@trpc/client";
 
 interface Props {
-    data: GroupData
+    data: JoinData
 }
 
-const OrderContainer = (props: Props) => {
+type Data = Omit<OrderSchema, "itemId" | "userId"> & {
+    userIds: number[],
+    itemIds: number[]
+}
+
+const JoinContainer = (props: Props) => {
     const router = useRouter();
     const message = App.useApp().message;
     const table = React.useRef<ActionType>(null);
@@ -43,26 +48,11 @@ const OrderContainer = (props: Props) => {
             buttonText: "作废",
         },
     ];
-    const columns: ProColumns<OrderData>[] = [
+    const columns: ProColumns[] = [
         {
             title: "ID",
             dataIndex: "id",
             sorter: true
-        },
-        {
-            title: "用户",
-            dataIndex: "userId",
-            sorter: true,
-            render: (_, record) => (
-                <Space size="middle" align="center">
-                    <Avatar src={`https://q1.qlogo.cn/g?b=qq&nk=${record.user.qq}&s=0`}/>
-                    <div>
-                        <Typography>{record.user.name}</Typography>
-                        <Typography style={{fontSize: 12}}>{record.user.qq}</Typography>
-                    </div>
-                </Space>
-            ),
-            renderFormItem: () => <UserSelector/>
         },
         {
             title: "商品",
@@ -174,8 +164,45 @@ const OrderContainer = (props: Props) => {
     ];
 
     return (
-        <PageContainer>
-            <ProTable<OrderData>
+        <PageContainer
+            title={props.data.user.name}
+            content={
+                <Descriptions>
+                    <Descriptions.Item label="QQ">{props.data.user.qq}</Descriptions.Item>
+                    <Descriptions.Item label="手机号">{props.data.user.phone}</Descriptions.Item>
+                    <Descriptions.Item label="地址">{props.data.user.address}</Descriptions.Item>
+                    <Descriptions.Item label="加入时间">{props.data.createAt.toLocaleString()}</Descriptions.Item>
+                </Descriptions>
+            }
+            extra={[
+                <Popconfirm
+                    key="remove"
+                    title="提醒"
+                    description="您确定移除该用户？"
+                    onConfirm={async () => {
+                        try {
+                            await trpc.group.user.delete.mutate({
+                                groupId: props.data.groupId,
+                                userId: props.data.userId
+                            });
+                            message.success("移除成功");
+                            router.replace("/group");
+                            return true;
+                        } catch (e) {
+                            if (e instanceof TRPCClientError) {
+                                message.error(e.message);
+                            } else {
+                                message.error("发生未知错误");
+                            }
+                            return false;
+                        }
+                    }}
+                >
+                    <Button color="danger" variant="solid" disabled={props.data.group.status === "finished"}>移除</Button>
+                </Popconfirm>
+            ]}
+        >
+            <ProTable
                 rowKey="id"
                 actionRef={table}
                 columns={columns}
@@ -216,11 +243,12 @@ const OrderContainer = (props: Props) => {
                         key="create"
                         edit={false}
                         title="添加订单"
-                        target={<Button type="primary" disabled={props.data.status === "finished"}>添加</Button>}
+                        target={<Button type="primary" disabled={props.data.group.status === "finished"}>添加</Button>}
                         onSubmit={async (values: Record<string, unknown>) => {
                             try {
-                                values.groupId = props.data.id;
-                                await trpc.order.create.mutate(values as OrderSchema);
+                                values.groupId = props.data.groupId;
+                                values.userId = props.data.userId;
+                                await trpc.order.create.mutate(values as Data);
                                 message.success("添加成功");
                                 table.current?.reload();
                                 return true;
@@ -235,8 +263,9 @@ const OrderContainer = (props: Props) => {
                     const res = await trpc.order.get.query({
                         params: {
                             ...params,
+                            userId: props.data.userId,
                             item: {
-                                groupId: props.data.id
+                                groupId: props.data.groupId,
                             }
                         },
                         sort
@@ -252,4 +281,4 @@ const OrderContainer = (props: Props) => {
     );
 }
 
-export default OrderContainer;
+export default JoinContainer;

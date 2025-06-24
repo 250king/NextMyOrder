@@ -1,4 +1,4 @@
-import {number, object, string, infer as zInfer} from "zod";
+import {number, object, string, infer as zInfer, coerce} from "zod";
 
 export const userSchema = object({
     id: number(),
@@ -7,7 +7,7 @@ export const userSchema = object({
     email: string().email().nullable().default(null),
     phone: string().regex(/^1\d{10}$/).nullable().default(null),
     address: string().nullable().default(null),
-    createAt: string().datetime().default(new Date().toISOString())
+    createAt: coerce.date().default(new Date()),
 })
 
 export type UserSchema = zInfer<typeof userSchema>

@@ -33,14 +33,21 @@ const orderRouter = router({
         };
     }),
 
-    create: publicProcedure.input(orderSchema.omit({
-        id: true,
-        status: true
+    create: publicProcedure.input(orderSchema.pick({
+        count: true,
+        comment: true,
+        userId: true
+    }).extend({
+        itemIds: number().array()
     })).mutation(async ({ctx, input}) => {
-        return await ctx.database.order.create({
-            data: {
-                ...input
-            }
+        const {itemIds, ...data} = input;
+        return await ctx.database.order.createMany({
+            data: itemIds.map(itemId => ({
+                ...data,
+                itemId: itemId,
+                userId: input.userId,
+                status: "pending"
+            }))
         });
     }),
 

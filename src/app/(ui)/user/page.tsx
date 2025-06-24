@@ -12,7 +12,7 @@ import {UserSchema} from "@/type/user";
 const Page = () => {
     const message = App.useApp().message;
     const table = React.useRef<ActionType>(null);
-    const columns: ProColumns<UserSchema>[] = [
+    const columns: ProColumns[] = [
         {
             title: "ID",
             dataIndex: "id",
@@ -99,7 +99,7 @@ const Page = () => {
 
     return (
         <PageContainer>
-            <ProTable<UserSchema>
+            <ProTable
                 rowKey="id"
                 actionRef={table}
                 columns={columns}
