@@ -38,8 +38,8 @@ const GroupContainer = (props: Props) => {
             ]}
             content={
                 <Descriptions>
-                    <Descriptions.Item label="状态">{statusMap[props.data.status as keyof typeof statusMap].text}</Descriptions.Item>
                     <Descriptions.Item label="Q群">{props.data.qq}</Descriptions.Item>
+                    <Descriptions.Item label="状态">{statusMap[props.data.status as keyof typeof statusMap].text}</Descriptions.Item>
                 </Descriptions>
             }
             extra={[

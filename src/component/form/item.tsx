@@ -31,7 +31,9 @@ const ItemForm = (props: Props) => {
             trigger={props.target}
             onFinish={props.onSubmit}
             initialValues={props.data ?? {allowed: false}}
-            modalProps={{destroyOnClose: true}}
+            modalProps={{
+                destroyOnClose: true
+            }}
         >
             <ProFormText name="name" label="名称" rules={[{required: true}]}/>
             <ProForm.Item name="url" label="URL" rules={[{required: true}, {type: "url", message: "URL格式有误"}]}>

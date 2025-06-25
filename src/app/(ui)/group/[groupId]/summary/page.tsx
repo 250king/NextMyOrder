@@ -1,5 +1,7 @@
 import SummaryContainer from "@/component/container/summary";
 import {summaryItem, summaryUser, summaryWeight} from "@/util/summary";
+import database from "@/util/data/database";
+import {notFound} from "next/navigation";
 
 interface Props {
     params: Promise<{
@@ -10,12 +12,20 @@ interface Props {
 export const revalidate = 0;
 
 const Page = async (props: Props) => {
-    const id = Number((await props.params).groupId);
-    const item = await summaryItem(id);
-    const user = await summaryUser(id);
-    const weight = await summaryWeight(id);
+    const groupId = Number((await props.params).groupId)
+    const group = await database.group.findUnique({
+        where: {
+            id: groupId
+        }
+    });
+    if (!group) {
+        return notFound();
+    }
+    const item = await summaryItem(groupId);
+    const user = await summaryUser(groupId);
+    const weight = await summaryWeight(groupId);
     return (
-        <SummaryContainer item={item} user={user} weight={weight}/>
+        <SummaryContainer group={group} item={item} user={user} weight={weight}/>
     );
 }
 

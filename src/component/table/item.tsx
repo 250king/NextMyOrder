@@ -8,6 +8,7 @@ import {ItemSchema, statusMap} from "@/type/item";
 import {App, Button, Popconfirm} from "antd";
 import {TRPCClientError} from "@trpc/client";
 import {GroupData} from "@/type/group";
+import {cStd, mStd} from "@/util/string";
 
 interface Props {
     data: GroupData
@@ -32,18 +33,17 @@ const ItemTable = (props: Props) => {
             title: "单价",
             dataIndex: "price",
             sorter: true,
-            valueType: "money",
             search: false,
-            fieldProps: {
-                precision: 0
-            }
+            valueType: "money",
+            render: (_, record) => cStd(record.price)
         },
         {
             title: "重量",
             dataIndex: "weight",
             sorter: true,
+            search: false,
             valueType: "digit",
-            search: false
+            render: (_, record) => mStd(record.weight)
         },
         {
             title: "合规性",

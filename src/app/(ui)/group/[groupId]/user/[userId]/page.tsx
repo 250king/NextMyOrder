@@ -1,5 +1,5 @@
 import JoinContainer from "@/component/container/join";
-import database from "@/util/database";
+import database from "@/util/data/database";
 import {notFound} from "next/navigation";
 
 interface Props {

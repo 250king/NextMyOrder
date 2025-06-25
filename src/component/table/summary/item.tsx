@@ -5,6 +5,7 @@ import {CheckOutlined, LinkOutlined} from "@ant-design/icons";
 import {ModalForm, ProFormDigit} from "@ant-design/pro-form";
 import {ProColumns, ProTable} from "@ant-design/pro-table";
 import {App, Button, Typography} from "antd";
+import {cStd} from "@/util/string";
 
 interface Props {
     data: Record<string, unknown>[] | undefined
@@ -40,10 +41,7 @@ const ItemTable = (props: Props) => {
         {
             title: "汇总",
             valueType: "money",
-            render: (_, record) => Intl.NumberFormat("ja-JP", {
-                style: "currency",
-                currency: "JPY"
-            }).format(record.total),
+            render: (_, record) => cStd(record.total),
             sorter: (a, b) => a.total - b.total
         },
         {

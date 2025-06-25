@@ -1,20 +1,19 @@
-"use client";
+"use client"
 import React from "react";
+import ItemSelector from "@/component/field/item";
 import UserSelector from "@/component/field/user";
-import GroupSelector from "@/component/field/group";
 import trpc from "@/server/client";
-import {useControlModel, WithControlPropsType} from "@ant-design/pro-form";
-import {Avatar, Button, Popover, Space, Typography} from "antd";
 import {ProColumns, ProTable} from "@ant-design/pro-table";
-import {MessageOutlined} from "@ant-design/icons";
-import {UserSchema} from "@/type/user";
+import {Avatar, Space, Typography} from "antd";
+import {statusMap} from "@/type/order";
+import {GroupData} from "@/type/group";
+import {cStd} from "@/util/string";
 
-type Props = WithControlPropsType<{
-    callback: React.Dispatch<React.SetStateAction<UserSchema[]>>
-}>
+interface Props {
+    data: GroupData
+}
 
-const DeliveryTable = (props: Props) => {
-    const model = useControlModel(props);
+const OverviewTable = (props: Props) => {
     const columns: ProColumns[] = [
         {
             title: "ID",
@@ -25,7 +24,6 @@ const DeliveryTable = (props: Props) => {
             title: "用户",
             dataIndex: "userId",
             sorter: true,
-            renderFormItem: () => <UserSelector/>,
             render: (_, record) => (
                 <Space size="middle" align="center">
                     <Avatar src={`https://q1.qlogo.cn/g?b=qq&nk=${record.user.qq}&s=0`}/>
@@ -34,7 +32,8 @@ const DeliveryTable = (props: Props) => {
                         <Typography style={{fontSize: 12}}>{record.user.qq}</Typography>
                     </div>
                 </Space>
-            )
+            ),
+            renderFormItem: () => <UserSelector/>
         },
         {
             title: "商品",
@@ -43,23 +42,24 @@ const DeliveryTable = (props: Props) => {
             render: (_, record) => (
                 <div>
                     <Typography>{record.item.name}</Typography>
-                    <Typography style={{fontSize: 12}}>{record.item.group.name}</Typography>
+                    <Typography style={{fontSize: 12}}>{cStd(record.item.price)}</Typography>
                 </div>
-            )
-        },
-        {
-            title: "团购",
-            dataIndex: ["item", "groupId"],
-            hidden: true,
-            search: false,
-            renderFormItem: () => <GroupSelector/>
+            ),
+            renderFormItem: () => <ItemSelector/>
         },
         {
             title: "数量",
             dataIndex: "count",
-            valueType: "digit",
             sorter: true,
+            valueType: "digit",
             search: false
+        },
+        {
+            title: "状态",
+            dataIndex: "status",
+            sorter: true,
+            valueEnum: statusMap,
+            valueType: "select"
         },
         {
             title: "创建时间",
@@ -67,16 +67,6 @@ const DeliveryTable = (props: Props) => {
             valueType: "dateTime",
             sorter: true,
             search: false
-        },
-        {
-            title: "操作",
-            valueType: "option",
-            width: 150,
-            render: (_, record) => [
-                <Popover key="comment" content={record.comment}>
-                    <Button icon={<MessageOutlined/>} disabled={!record.comment} size="small" type="link"/>
-                </Popover>
-            ]
         }
     ];
 
@@ -87,21 +77,18 @@ const DeliveryTable = (props: Props) => {
             search={{
                 filterType: "light"
             }}
-            rowSelection={{
-                selectedRowKeys: model.value,
-                onChange: (selectedRowKeys, selectedRows) => {
-                    if (selectedRows.length !== 0) {
-                        props.callback(selectedRows.map(i => i.user))
-                    }
-                    model.onChange(selectedRowKeys);
+            options={{
+                search: {
+                    allowClear: true
                 }
             }}
             request={async (params, sort) => {
                 const res = await trpc.order.get.query({
                     params: {
                         ...params,
-                        status: "arrived",
-                        deliveryId: null
+                        item: {
+                            groupId: props.data.id
+                        }
                     },
                     sort
                 });
@@ -109,10 +96,10 @@ const DeliveryTable = (props: Props) => {
                     data: res.items,
                     success: true,
                     total: res.total
-                };
+                }
             }}
         />
     );
 }
 
-export default DeliveryTable;
+export default OverviewTable;

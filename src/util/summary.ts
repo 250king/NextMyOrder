@@ -1,4 +1,4 @@
-import database from "@/util/database";
+import database from "@/util/data/database";
 import {User} from "@/type/summary";
 
 export const summaryItem = async (id: number) => {
@@ -54,6 +54,7 @@ export const summaryUser = async (id: number) => {
             user: true
         }
     });
+    let total = 0;
     const userSpendMap: Record<number, User & {total: number}> = {};
     for (const order of orders) {
         const amount = order.count * order.item.price;
@@ -61,8 +62,12 @@ export const summaryUser = async (id: number) => {
             ...order.user,
             total: (userSpendMap[order.userId]?.total || 0) + amount
         };
+        total += amount;
     }
-    return Object.entries(userSpendMap).map(([, result]) => result);
+    return Object.entries(userSpendMap).map(([, result]) => ({
+        ...result,
+        ratio: total === 0 ? 0 : result.total / total
+    }));
 }
 
 export const summaryWeight = async (id: number) => {
@@ -105,6 +110,6 @@ export const summaryWeight = async (id: number) => {
     }
     return Array.from(map.values()).map(user => ({
         ...user,
-        ratio: grandTotal === 0 ? 0 : user.total / grandTotal * 100
+        ratio: grandTotal === 0 ? 0 : user.total / grandTotal
     }));
 }

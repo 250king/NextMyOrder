@@ -9,16 +9,16 @@ import {ActionType, ProColumns, ProTable} from "@ant-design/pro-table";
 import {PageContainer} from "@ant-design/pro-layout";
 import {OrderSchema, statusMap} from "@/type/order";
 import {currencyFormat} from "@/util/string";
+import {TRPCClientError} from "@trpc/client";
 import {useRouter} from "next/navigation";
 import {JoinData} from "@/type/group";
-import {TRPCClientError} from "@trpc/client";
 
 interface Props {
     data: JoinData
 }
 
 type Data = Omit<OrderSchema, "itemId" | "userId"> & {
-    userIds: number[],
+    userId: number,
     itemIds: number[]
 }
 

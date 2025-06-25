@@ -39,7 +39,7 @@ export const statusMap = {
         text: "待揽收"
     },
     confirmed: {
-        text: "已揽收"
+        text: "正在运输"
     },
     finished: {
         text: "已完成"

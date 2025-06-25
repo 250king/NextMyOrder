@@ -1,14 +1,17 @@
 "use client";
 import React from "react";
 import {ProColumns, ProTable} from "@ant-design/pro-table";
-import {Avatar, Space, Typography} from "antd";
+import {Avatar, Button, Space, Typography} from "antd";
 import {Weight} from "@/type/summary";
+import {ModalForm, ProFormMoney} from "@ant-design/pro-form";
+import {mStd, rStd} from "@/util/string";
 
 interface Props {
     data: Weight[] | undefined
 }
 
 const WeightTable = (props: Props) => {
+    const [fee, setFee] = React.useState<number>(0);
     const columns: ProColumns[] = [
         {
             title: "ID",
@@ -34,25 +37,56 @@ const WeightTable = (props: Props) => {
             dataIndex: "total",
             valueType: "digit",
             sorter: (a, b) => a.total - b.total,
-            render: (_, record) => {
-                const formatter = new Intl.NumberFormat("ja-JP", {
-                    style: "unit",
-                    unit: "gram",
-                    unitDisplay: "short"
-                });
-                return formatter.format(record.total);
-            }
+            render: (_, record) => mStd(record.total)
         },
         {
             title: "占比",
             dataIndex: "ratio",
             valueType: "percent",
-            sorter: (a, b) => a.ratio - b.ratio,
+            sorter: false,
+            render: (_, record) => rStd(record.ratio)
+        },
+        {
+            title: "运费",
+            dataIndex: "fee",
+            valueType: "money",
+            sorter: false,
+            render: (_, record) => new Intl.NumberFormat("zh-CN", {
+                style: "currency",
+                currency: "CNY"
+            }).format(fee * record.ratio)
         }
     ];
 
     return (
-        <ProTable rowKey="id" options={{reload: false}} dataSource={props.data} columns={columns} search={false}/>
+        <ProTable
+            rowKey="id"
+            dataSource={props.data}
+            columns={columns}
+            search={false}
+            options={{
+                reload: false
+            }}
+            toolBarRender={() => [
+                <ModalForm
+                    key="add"
+                    title="设置运费"
+                    trigger={<Button type="primary">运费计算</Button>}
+                    initialValues={{
+                        fee: fee
+                    }}
+                    modalProps={{
+                        destroyOnClose: true
+                    }}
+                    onFinish={async (values) => {
+                        setFee(values.fee);
+                        return true;
+                    }}
+                >
+                    <ProFormMoney name="fee" label="总额" rules={[{required: true}]} min={0} fieldProps={{precision: 2}}/>
+                </ModalForm>
+            ]}
+        />
     );
 }
 

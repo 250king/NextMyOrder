@@ -5,9 +5,9 @@ import Link from "next/link";
 import {ActionType, ProColumns, ProTable} from "@ant-design/pro-table";
 import {CloseOutlined, DeleteOutlined, EditOutlined, MessageOutlined} from "@ant-design/icons";
 import {DeliveryData, DeliverySchema, methodMap, statusMap} from "@/type/delivery";
+import {ModalForm, ProFormText, ProFormTextArea} from "@ant-design/pro-form";
 import {App, Avatar, Button, Form, Popconfirm, Popover} from "antd";
 import {PageContainer} from "@ant-design/pro-layout";
-import {ModalForm, ProFormText, ProFormTextArea} from "@ant-design/pro-form";
 import {CheckCard} from "@ant-design/pro-card";
 import {TRPCClientError} from "@trpc/client";
 

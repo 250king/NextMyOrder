@@ -1,4 +1,4 @@
-import database from "@/util/database";
+import database from "@/util/data/database";
 
 export const createContext = async () => {
     return {database};
