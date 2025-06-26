@@ -3,10 +3,10 @@ import React from "react";
 import debounce from 'lodash/debounce';
 import trpc from "@/server/client";
 import {Select, Spin, Typography} from "antd";
-import {currencyFormat} from "@/util/string";
 import {useParams} from "next/navigation";
-import {Item} from "@prisma/client";
 import type {SelectProps} from "antd";
+import {Item} from "@prisma/client";
+import {cStd} from "@/util/string";
 
 interface Props {
     value?: number;
@@ -64,7 +64,7 @@ const ItemSelector = (props: Props) => {
                 return (
                     <div>
                         <Typography>{option.data.name}</Typography>
-                        <Typography style={{fontSize: 12}}>{currencyFormat(option.data.price)}</Typography>
+                        <Typography style={{fontSize: 12}}>{cStd(option.data.price)}</Typography>
                     </div>
                 );
             }}

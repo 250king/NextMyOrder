@@ -36,7 +36,7 @@ const UserSelector = (props: Props) => {
                             ...data,
                             label: data.user.name,
                             value: data.userId,
-                        })): (data.items as UserSchema[]).map((data) => ({
+                        })): (data.items as unknown as UserSchema[]).map((data) => ({
                             ...data,
                             label: data.name,
                             value: data.id,
