@@ -8,10 +8,10 @@ import {App, Button, Popconfirm, Popover, Typography, Descriptions} from "antd";
 import {ActionType, ProColumns, ProTable} from "@ant-design/pro-table";
 import {PageContainer} from "@ant-design/pro-layout";
 import {OrderSchema, statusMap} from "@/type/order";
-import {currencyFormat} from "@/util/string";
 import {TRPCClientError} from "@trpc/client";
 import {useRouter} from "next/navigation";
 import {JoinData} from "@/type/group";
+import {cStd} from "@/util/string";
 
 interface Props {
     data: JoinData
@@ -61,7 +61,7 @@ const JoinContainer = (props: Props) => {
             render: (_, record) => (
                 <div>
                     <Typography>{record.item.name}</Typography>
-                    <Typography style={{fontSize: 12}}>{currencyFormat(Number(record.item.price))}</Typography>
+                    <Typography style={{fontSize: 12}}>{cStd(record.item.price)}</Typography>
                 </div>
             ),
             renderFormItem: () => <ItemSelector/>
