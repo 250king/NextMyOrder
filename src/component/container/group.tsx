@@ -91,7 +91,7 @@ const GroupContainer = (props: Props) => {
                         router.push(`/group/${props.data.id}/summary`);
                     }}
                 >
-                    汇总
+                    报表
                 </Button>,
                 <Popconfirm
                     key="remove"

@@ -3,7 +3,6 @@ import trpc from "@/server/client";
 import {ModalForm, ProFormSelect} from "@ant-design/pro-form";
 import {App, Avatar, Button, Space, Typography} from "antd";
 import {ActionType} from "@ant-design/pro-table";
-import {UserSchema} from "@/type/user";
 import {GroupData} from "@/type/group";
 
 interface Props {
@@ -17,8 +16,10 @@ const JoinForm =(props: Props) => {
     return (
         <ModalForm
             title="添加用户"
-            modalProps={{destroyOnClose: true}}
             trigger={<Button type="primary" disabled={props.data.status !== "activated"}>添加</Button>}
+            modalProps={{
+                destroyOnHidden: true
+            }}
             onFinish={async (values: Record<string, never>) => {
                 try {
                     await trpc.group.user.add.mutate({
@@ -40,7 +41,11 @@ const JoinForm =(props: Props) => {
                 name="userId"
                 label="用户"
                 debounceTime={500}
-                rules={[{required: true}]}
+                rules={[
+                    {
+                        required: true
+                    }
+                ]}
                 fieldProps={{
                     filterOption: false,
                     optionRender: option => (
@@ -59,7 +64,7 @@ const JoinForm =(props: Props) => {
                             keyword: props.keyWords
                         }
                     });
-                    return res.items.map((user: UserSchema) => ({
+                    return res.items.map((user) => ({
                         ...user,
                         label: user.name,
                         value: user.id

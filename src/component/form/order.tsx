@@ -1,10 +1,10 @@
 import React from "react";
 import trpc from "@/server/client";
 import {ModalForm, ProFormDigit, ProFormSelect, ProFormTextArea} from "@ant-design/pro-form";
-import {currencyFormat} from "@/util/string";
 import {useParams} from "next/navigation";
 import {OrderSchema} from "@/type/order";
 import {Typography} from "antd";
+import {cStd} from "@/util/string";
 
 interface Props {
     title: string,
@@ -21,9 +21,14 @@ export const OrderForm = (props: Props) => {
         <ModalForm
             title={props.title}
             trigger={props.target}
-            initialValues={props.data ?? {status: "pending", count: 1}}
-            modalProps={{destroyOnClose: true}}
             onFinish={props.onSubmit}
+            modalProps={{
+                destroyOnHidden: true
+            }}
+            initialValues={props.data ?? {
+                status: "pending",
+                count: 1
+            }}
         >
             {
                 props.edit? null: (
@@ -40,7 +45,7 @@ export const OrderForm = (props: Props) => {
                                 <div>
                                     <Typography>{option.data.name}</Typography>
                                     <Typography style={{fontSize: 12}}>
-                                        {currencyFormat(option.data.price)}
+                                        {cStd(option.data.price)}
                                     </Typography>
                                 </div>
                             )

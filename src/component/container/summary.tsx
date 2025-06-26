@@ -57,11 +57,11 @@ const SummaryContainer = (props: Props) => {
                 index === "overview" ? (
                     <OverviewTable data={props.group}/>
                 ): index === "user" ? (
-                    <UserTable data={props.user}/>
+                    <UserTable data={props.user} group={props.group}/>
                 ): index === "item" ? (
                     <ItemTable data={props.item}/>
                 ): (
-                    <WeightTable data={props.weight}/>
+                    <WeightTable data={props.weight} group={props.group}/>
                 )
             }
         </PageContainer>

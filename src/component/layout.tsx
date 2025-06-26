@@ -50,7 +50,7 @@ const Layout = (props: Props) => {
                                 },
                                 {
                                     path: "/group/:groupId/summary",
-                                    name: "汇总",
+                                    name: "报表",
                                     hideInMenu: true
                                 }
                             ]

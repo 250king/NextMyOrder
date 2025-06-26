@@ -22,8 +22,10 @@ const UserForm = (props: Props) => {
             formRef={form}
             trigger={props.target}
             onFinish={props.onSubmit}
-            modalProps={{destroyOnClose: true}}
             initialValues={props.data}
+            modalProps={{
+                destroyOnHidden: true
+            }}
         >
             <ProForm.Item label="QQ" name="qq" rules={[{required: true}, {pattern: /^\d+$/, message: "QQ号格式有误"}]}>
                 <Space.Compact style={{width: "100%"}}>

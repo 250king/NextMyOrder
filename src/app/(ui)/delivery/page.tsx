@@ -83,7 +83,7 @@ const Page = () => {
                         />
                     }
                     modalProps={{
-                        destroyOnClose: true
+                        destroyOnHidden: true
                     }}
                     onFinish={async (values) => {
                         try {

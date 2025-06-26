@@ -1,17 +1,25 @@
 "use client";
 import React from "react";
+import {ModalForm, ProFormMoney} from "@ant-design/pro-form";
 import {ProColumns, ProTable} from "@ant-design/pro-table";
 import {Avatar, Button, Space, Typography} from "antd";
-import {Weight} from "@/type/summary";
-import {ModalForm, ProFormMoney} from "@ant-design/pro-form";
+import {useLiveQuery} from "dexie-react-hooks";
 import {mStd, rStd} from "@/util/string";
+import {db} from "@/util/data/indexedDB";
+import {GroupData} from "@/type/group";
+import {Weight} from "@/type/summary";
 
 interface Props {
-    data: Weight[] | undefined
+    data: Weight[]
+    group: GroupData
 }
 
 const WeightTable = (props: Props) => {
-    const [fee, setFee] = React.useState<number>(0);
+    const result = useLiveQuery(
+        async () => await db.localData.where("id").equals(props.group.id).first(),
+        [props.group.id],
+        {fee: 0} // 默认值
+    )
     const columns: ProColumns[] = [
         {
             title: "ID",
@@ -54,7 +62,7 @@ const WeightTable = (props: Props) => {
             render: (_, record) => new Intl.NumberFormat("zh-CN", {
                 style: "currency",
                 currency: "CNY"
-            }).format(fee * record.ratio)
+            }).format((result?.fee || 0) * record.ratio)
         }
     ];
 
@@ -73,13 +81,17 @@ const WeightTable = (props: Props) => {
                     title="设置运费"
                     trigger={<Button type="primary">运费计算</Button>}
                     initialValues={{
-                        fee: fee
+                        fee: result?.fee
                     }}
                     modalProps={{
-                        destroyOnClose: true
+                        destroyOnHidden: true
                     }}
                     onFinish={async (values) => {
-                        setFee(values.fee);
+                        await db.localData.put({
+                            ...result,
+                            id: props.group.id,
+                            fee: values.fee
+                        });
                         return true;
                     }}
                 >

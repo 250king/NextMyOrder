@@ -58,7 +58,7 @@ const ItemTable = (props: Props) => {
                         count: record.count
                     }}
                     modalProps={{
-                        destroyOnClose: true
+                        destroyOnHidden: true
                     }}
                     onFinish={async (values) => {
                         try {

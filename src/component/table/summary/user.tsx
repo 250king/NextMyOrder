@@ -1,17 +1,25 @@
 "use client";
 import React from "react";
+import {ModalForm, ProFormMoney} from "@ant-design/pro-form";
 import {ProColumns, ProTable} from "@ant-design/pro-table";
 import {Avatar, Button, Space, Typography} from "antd";
-import {User} from "@/type/summary";
-import {ModalForm, ProFormMoney} from "@ant-design/pro-form";
+import {useLiveQuery} from "dexie-react-hooks";
 import {cStd, rStd} from "@/util/string";
+import {db} from "@/util/data/indexedDB";
+import {GroupData} from "@/type/group";
+import {User} from "@/type/summary";
 
 interface Props {
-    data?: User[]
+    data: User[];
+    group: GroupData
 }
 
 const UserTable = (props: Props) => {
-    const [tax, setTax] = React.useState<number>(0);
+    const result = useLiveQuery(
+        async () => await db.localData.where("id").equals(props.group.id).first(),
+        [props.group.id],
+        {tax: 0}
+    )
     const columns: ProColumns[] = [
         {title: "ID", dataIndex: "id", sorter: (a, b) => a.id - b.id},
         {
@@ -50,7 +58,7 @@ const UserTable = (props: Props) => {
             render: (_, record) => new Intl.NumberFormat("zh-CN", {
                 style: "currency",
                 currency: "CNY"
-            }).format(tax * record.ratio)
+            }).format((result?.tax || 0) * record.ratio)
         }
     ];
 
@@ -69,13 +77,17 @@ const UserTable = (props: Props) => {
                     title="设置税费"
                     trigger={<Button type="primary">税费计算</Button>}
                     initialValues={{
-                        tax: tax
+                        tax: result?.tax
                     }}
                     modalProps={{
-                        destroyOnClose: true
+                        destroyOnHidden: true
                     }}
                     onFinish={async (values) => {
-                        setTax(values.tax);
+                        await db.localData.put({
+                            ...result,
+                            id: props.group.id,
+                            tax: values.tax
+                        });
                         return true;
                     }}
                 >
