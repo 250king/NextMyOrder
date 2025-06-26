@@ -1,89 +1,178 @@
-"use client";
+"use client"
 import React from "react";
+import ItemForm from "@/component/form/item";
 import trpc from "@/server/client";
-import {CheckOutlined, LinkOutlined} from "@ant-design/icons";
-import {ModalForm, ProFormDigit} from "@ant-design/pro-form";
-import {ProColumns, ProTable} from "@ant-design/pro-table";
-import {App, Button, Typography} from "antd";
+import {CheckOutlined, CloseOutlined, DeleteOutlined, EditOutlined, LinkOutlined} from "@ant-design/icons";
+import {ActionType, ProColumns, ProTable} from "@ant-design/pro-table";
+import {ItemSchema, statusMap} from "@/type/item";
+import {App, Button, Popconfirm} from "antd";
+import {TRPCClientError} from "@trpc/client";
+import {GroupData} from "@/type/group";
+import {cStd, mStd} from "@/util/string";
 
 interface Props {
-    data: Record<string, unknown>[] | undefined
+    data: GroupData
 }
 
 const ItemTable = (props: Props) => {
     const message = App.useApp().message;
-    const columns: ProColumns[] = [
+    const table = React.useRef<ActionType>(null);
+    const columns: ProColumns<ItemSchema>[] = [
         {
             title: "ID",
             dataIndex: "id",
-            sorter: (a, b) => a.id - b.id
+            sorter: true
         },
         {
-            title: "商品",
+            title: "名称",
             dataIndex: "name",
-            sorter: (a, b) => a.name.localeCompare(b.name),
-            render: (_, record) => (
-                <div>
-                    <Typography>{record.name}</Typography>
-                    <Typography style={{fontSize: 12}}>
-                        {Intl.NumberFormat("ja-JP", {style: "currency", currency: "JPY"}).format(Number(record.price))}
-                    </Typography>
-                </div>
-            )
+            sorter: true,
+            search: false
         },
         {
-            title: "数量",
-            dataIndex: "count",
-            valueType: "digit",
-            sorter: (a, b) => a.count - b.count
-        },
-        {
-            title: "汇总",
+            title: "单价",
+            dataIndex: "price",
+            sorter: true,
+            search: false,
             valueType: "money",
-            render: (_, record) => Intl.NumberFormat("ja-JP", {
-                style: "currency",
-                currency: "JPY"
-            }).format(record.total),
-            sorter: (a, b) => a.total - b.total
+            render: (_, record) => cStd(record.price)
+        },
+        {
+            title: "重量",
+            dataIndex: "weight",
+            sorter: true,
+            search: false,
+            valueType: "digit",
+            render: (_, record) => mStd(record.weight)
+        },
+        {
+            title: "合规性",
+            dataIndex: "allowed",
+            sorter: true,
+            valueType: "select",
+            valueEnum: statusMap,
+            render: (_, record) => (
+                record.allowed? <CheckOutlined/>: <CloseOutlined/>
+            )
         },
         {
             title: "操作",
             valueType: "option",
             width: 150,
-            render: (_, record) => [
-                <Button key="link" icon={<LinkOutlined/>} size="small" type="link" href={record.url}/>,
-                <ModalForm
-                    key="pushed"
-                    title="存货信息"
-                    trigger={<Button icon={<CheckOutlined/>} size="small" type="link"/>}
-                    initialValues={{
-                        count: record.count
-                    }}
-                    modalProps={{
-                        destroyOnClose: true
-                    }}
-                    onFinish={async (values) => {
+            render: (_, record, _1, action) => [
+                <Button key="link" shape="circle" icon={<LinkOutlined/>} size="small" type="link" href={record.url}/>,
+                <ItemForm
+                    key="edit"
+                    title="修改商品"
+                    target={
+                        <Button
+                            size="small"
+                            type="link"
+                            icon={<EditOutlined/>}
+                            disabled={props.data.status === "finished"}
+                        />
+                    }
+                    data={record}
+                    onSubmit={async (values: Record<string, unknown>) => {
                         try {
-                            await trpc.order.push.mutate({
-                                itemId: record.id,
-                                count: values.count
-                            })
+                            values.id = record.id;
+                            await trpc.item.update.mutate(values as ItemSchema);
                             message.success("修改成功")
+                            table.current?.reload();
                             return true;
-                        } catch {
+                        }
+                        catch {
                             message.error("发生错误，请稍后再试")
                             return false;
                         }
                     }}
+                />,
+                <Popconfirm
+                    key="remove"
+                    title="提醒"
+                    description="您确定删除该商品？"
+                    onConfirm={async () => {
+                        try {
+                            await trpc.item.delete.mutate({
+                                id: record.id
+                            });
+                            message.success("删除成功");
+                            action?.reload();
+                            return true;
+                        }
+                        catch (e) {
+                            if (e instanceof TRPCClientError) {
+                                message.error(e.message);
+                            } else {
+                                message.error("发生未知错误");
+                            }
+                            return false;
+                        }
+                    }}
+                    okText="确定"
+                    cancelText="取消"
                 >
-                    <ProFormDigit name="count" label="数量" min={1} max={record.count} rules={[{required: true}]}/>
-                </ModalForm>
+                    <Button
+                        size="small"
+                        type="link"
+                        variant="link"
+                        color="danger"
+                        icon={<DeleteOutlined/>}
+                        disabled={props.data.status === "finished"}
+                    />
+                </Popconfirm>
             ]
         }
     ];
 
     return (
-        <ProTable rowKey="id" options={{reload: false}} dataSource={props.data} columns={columns} search={false}/>
+        <ProTable<ItemSchema>
+            rowKey="id"
+            actionRef={table}
+            columns={columns}
+            search={{
+                filterType: "light"
+            }}
+            options={{
+                search: {
+                    allowClear: true
+                }
+            }}
+            toolBarRender={() => [
+                <ItemForm
+                    key="add"
+                    title="添加商品"
+                    target={<Button type="primary" disabled={props.data.status === "finished"}>添加</Button>}
+                    onSubmit={async (values: Record<string, unknown>) => {
+                        try {
+                            values.groupId = props.data.id;
+                            await trpc.item.create.mutate(values as ItemSchema);
+                            message.success("添加成功");
+                            table.current?.reload();
+                            return true;
+                        }
+                        catch {
+                            message.error("该商品已存在")
+                            return false;
+                        }
+                    }}
+                />
+            ]}
+            request={async (params, sort) => {
+                const res = await trpc.item.get.query({
+                    params: {
+                        ...params,
+                        groupId: props.data.id
+                    },
+                    sort
+                });
+                return {
+                    data: res.items,
+                    success: true,
+                    total: res.total
+                }
+            }}
+        />
     );
 }
 

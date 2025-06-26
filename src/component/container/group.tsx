@@ -1,19 +1,21 @@
 "use client";
 import React from "react";
 import GroupForm from "@/component/form/group";
+import JoinTable from "@/component/table/join";
+import ItemTable from "@/component/table/item";
 import trpc from "@/server/client";
+import {App, Button, Descriptions, Popconfirm} from "antd";
 import {usePathname, useRouter} from "next/navigation";
 import {PageContainer} from "@ant-design/pro-layout";
-import {App, Button, Popconfirm} from "antd";
-import {GroupData} from "@/type/group";
 import {TRPCClientError} from "@trpc/client";
+import {GroupData, statusMap} from "@/type/group";
 
 interface Props {
     data: GroupData
-    children: React.ReactNode
 }
 
 const GroupContainer = (props: Props) => {
+    const [index, setIndex] = React.useState("join");
     const message = App.useApp().message;
     const router = useRouter();
     const path = usePathname()
@@ -21,6 +23,25 @@ const GroupContainer = (props: Props) => {
     return (
         <PageContainer
             title={props.data.name}
+            onTabChange={(key) => {
+                setIndex(key);
+            }}
+            tabList={[
+                {
+                    tab: '用户',
+                    key: 'join'
+                },
+                {
+                    tab: '商品',
+                    key: 'item'
+                }
+            ]}
+            content={
+                <Descriptions>
+                    <Descriptions.Item label="Q群">{props.data.qq}</Descriptions.Item>
+                    <Descriptions.Item label="状态">{statusMap[props.data.status as keyof typeof statusMap].text}</Descriptions.Item>
+                </Descriptions>
+            }
             extra={[
                 <GroupForm
                     key="edit"
@@ -62,6 +83,16 @@ const GroupContainer = (props: Props) => {
                 >
                     <Button color="primary" variant="solid" disabled={props.data.status !== "activated"}>截单</Button>
                 </Popconfirm>,
+                <Button
+                    key="summary"
+                    color="primary"
+                    variant="solid"
+                    onClick={() => {
+                        router.push(`/group/${props.data.id}/summary`);
+                    }}
+                >
+                    报表
+                </Button>,
                 <Popconfirm
                     key="remove"
                     title="提醒"
@@ -87,7 +118,13 @@ const GroupContainer = (props: Props) => {
                 </Popconfirm>
             ]}
         >
-            {props.children}
+            {
+                index === "join" ? (
+                    <JoinTable data={props.data}/>
+                ) : (
+                    <ItemTable data={props.data}/>
+                )
+            }
         </PageContainer>
     );
 }

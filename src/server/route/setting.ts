@@ -1,6 +1,6 @@
 import {publicProcedure, router} from "@/server/loader";
 import {settingSchema} from "@/type/setting";
-import {parse, update} from "@/util/setting";
+import {parse, update} from "@/util/data/setting";
 
 const settingRouter = router({
     get: publicProcedure.query(async () => {

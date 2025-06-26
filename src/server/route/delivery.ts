@@ -4,7 +4,7 @@ import {queryParams, queryParser} from "@/util/query";
 import {deliverySchema} from "@/type/delivery";
 import {TRPCError} from "@trpc/server";
 import {number, object} from "zod";
-import {parse} from "@/util/setting";
+import {parse} from "@/util/data/setting";
 
 const deliveryRouter = router({
     get: publicProcedure.input(queryParams).query(async ({ctx, input}) => {

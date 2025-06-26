@@ -30,8 +30,12 @@ const ItemForm = (props: Props) => {
             title={props.title}
             trigger={props.target}
             onFinish={props.onSubmit}
-            initialValues={props.data ?? {allowed: false}}
-            modalProps={{destroyOnClose: true}}
+            modalProps={{
+                destroyOnHidden: true
+            }}
+            initialValues={props.data ?? {
+                allowed: false
+            }}
         >
             <ProFormText name="name" label="名称" rules={[{required: true}]}/>
             <ProForm.Item name="url" label="URL" rules={[{required: true}, {type: "url", message: "URL格式有误"}]}>
@@ -61,8 +65,21 @@ const ItemForm = (props: Props) => {
                     </Button>
                 </Space.Compact>
             </ProForm.Item>
-            <ProFormMoney name="price" label="单价" rules={[{required: true}]} locale="ja_JP" min={0}  fieldProps={{precision: 0}}/>
-            <ProFormDigit name="weight" label="重量" min={0} fieldProps={{precision: 0}}/>
+            <ProFormMoney
+                name="price"
+                label="单价"
+                customSymbol={"JP￥"}
+                min={0}
+                fieldProps={{
+                    precision: 0
+                }}
+                rules={[
+                    {
+                        required: true
+                    }
+                ]}
+            />
+            <ProFormDigit name="weight" label="重量" min={0} fieldProps={{precision: 0, suffix: "g"}}/>
             <ProFormSwitch name="allowed" label="合规性"/>
         </ModalForm>
     );

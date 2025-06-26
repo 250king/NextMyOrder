@@ -1,4 +1,4 @@
-import database from "@/util/database";
+import database from "@/util/data/database";
 import {SettingSchema, settingSchema} from "@/type/setting";
 
 export const parse = async () => {

@@ -1,5 +1,5 @@
 import SettingContainer from "@/component/container/setting";
-import {parse} from "@/util/setting";
+import {parse} from "@/util/data/setting";
 
 export const revalidate = 0;
 
