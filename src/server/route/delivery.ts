@@ -153,7 +153,7 @@ const deliveryRouter = router({
                 sendManName: setting.name,
                 sendManMobile: setting.phone,
                 sendManPrintAddr: setting.address,
-                callBackUrl: setting.callback,
+                callBackUrl: process.env.CALLBACK_URL,
                 salt: process.env.APP_KEY,
                 cargo: setting.cargo
             }));

@@ -35,10 +35,10 @@ const SettingContainer = (props: Props) => {
                     }
                 }}
             >
-                <ProFormText name="name" label="姓名" rules={[{required: true}]}/>
+                <ProFormText name="name" label="发件人姓名" rules={[{required: true}]}/>
                 <ProFormText
                     name="phone"
-                    label="手机号"
+                    label="发件人手机号"
                     rules={[
                         {
                             required: true
@@ -49,9 +49,8 @@ const SettingContainer = (props: Props) => {
                         }
                     ]}
                 />
-                <ProFormTextArea name="address" label="地址" rules={[{required: true}]}/>
+                <ProFormTextArea name="address" label="发货地址" rules={[{required: true}]}/>
                 <ProFormText name="cargo" label="默认商品类型" rules={[{required: true}]}/>
-                <ProFormText name="callback" label="回调URL" rules={[{required: true}, {type: "url"}]}/>
                 <ProFormText name="label" label="标签机抬头" rules={[{required: true}]}/>
             </ProForm>
         </PageContainer>

@@ -5,7 +5,6 @@ export const settingSchema = object({
     name: string().default(""),
     phone: string().default(""),
     label: string().default(""),
-    callback: string().default(""),
     cargo: string().default("")
 })
 

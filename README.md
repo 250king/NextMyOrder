@@ -32,6 +32,7 @@ docker run -d \
   -e API_KEY="your_fast_express_api_key" \
   -e EXPRESS_KEY="your_fast_express_api_secret" \
   -e EXPRESS_SECRET="https://api.fast-express.com" \
+  -e CALLBACK_URL="https://example.com/api/v1.0/webhook/delivery" \
   250king/nextmyorder:beta
 ```
 
@@ -39,6 +40,7 @@ docker run -d \
 - `DATABASE_URL`: 用于配置Prisma与数据库连接，详情请参考[Prisma文档](https://www.prisma.io/docs/orm/reference/connection-urls)。
 - `API_KEY`: 应用加密密钥，请使用`openssl rand -base64 64 | tr -d '\n'`生成随机密钥
 - `EXPRESS_KEY` `EXPRESS_SECRET`: 快递100 API密钥，请在[快递100官网](https://api.kuaidi100.com/manager/v2/myinfo/enterprise)申请。
+- `CALLBACK_URL`: 快递100 API回调地址，需配置为您的服务器地址。
 
 ### 访问
 访问`http://localhost:3000`即可访问系统。请注意，首次访问请在设置页面完成应用配置。
