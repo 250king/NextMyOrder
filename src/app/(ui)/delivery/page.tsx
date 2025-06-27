@@ -4,8 +4,8 @@ import trpc from "@/server/client";
 import Link from "next/link";
 import {ActionType, ProColumns, ProTable} from "@ant-design/pro-table";
 import {CloseOutlined, DeleteOutlined, EditOutlined, MessageOutlined} from "@ant-design/icons";
-import {DeliveryData, DeliverySchema, methodMap, statusMap} from "@/type/delivery";
 import {ModalForm, ProFormText, ProFormTextArea} from "@ant-design/pro-form";
+import {DeliverySchema, methodMap, statusMap} from "@/type/delivery";
 import {App, Avatar, Button, Form, Popconfirm, Popover} from "antd";
 import {PageContainer} from "@ant-design/pro-layout";
 import {CheckCard} from "@ant-design/pro-card";
@@ -14,7 +14,7 @@ import {TRPCClientError} from "@trpc/client";
 const Page = () => {
     const message = App.useApp().message;
     const table = React.useRef<ActionType>(null);
-    const columns: ProColumns<DeliveryData>[] = [
+    const columns: ProColumns[] = [
         {
             title: "ID",
             dataIndex: "id",
@@ -194,7 +194,7 @@ const Page = () => {
 
     return (
         <PageContainer>
-            <ProTable<DeliveryData>
+            <ProTable
                 rowKey="id"
                 rowSelection={{}}
                 actionRef={table}

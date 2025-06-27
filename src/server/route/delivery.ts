@@ -18,18 +18,19 @@ const deliveryRouter = router({
     create: publicProcedure.input(deliverySchema.omit({
         id: true
     })).mutation(async ({ctx, input}) => {
+        const {orderIds, ...data} = input;
         return await ctx.database.delivery.create({
             data: {
-                ...input,
+                ...data,
                 orders: {
-                    connect: input.orders.map((id: number) => ({id}))
+                    connect: orderIds.map((id: number) => ({id}))
                 }
             }
         });
     }),
 
     update: publicProcedure.input(deliverySchema.omit({
-        orders: true,
+        orderIds: true,
         status: true
     })).mutation(async ({ctx, input}) => {
         const {id, ...data} = input;

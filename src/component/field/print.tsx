@@ -23,11 +23,11 @@ const PrintField = (props: Props) => {
         <Space size="large" direction="vertical">
             {
                 props.image === ""? (
-                    <div style={{width: 420, height: 200}}>
+                    <div style={{width: 420, height: 200, display: "flex", alignItems: "center", justifyContent: "center"}}>
                         <Spin/>
                     </div>
                 ): (
-                    <Image src={`data:image/jpeg;base64,${props.image}`} alt=""/>
+                    <Image src={`data:image/jpeg;base64,${props.image}`} alt="" preview={false}/>
                 )
             }
             <Button

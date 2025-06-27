@@ -11,10 +11,12 @@ const userRouter = router({
             "qq",
             "name",
             "email"
-        ]);
+        ])
         return {
             items: await ctx.database.user.findMany(query),
-            total: await ctx.database.user.count({where: query.where})
+            total: await ctx.database.user.count({
+                where: query.where
+            })
         };
     }),
 

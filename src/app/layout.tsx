@@ -2,7 +2,6 @@ import React from "react";
 import {AntdRegistry} from "@ant-design/nextjs-registry";
 import {Metadata} from "next";
 import {App} from "antd";
-import '@ant-design/v5-patch-for-react-19';
 
 interface Props {
     children: React.ReactNode;

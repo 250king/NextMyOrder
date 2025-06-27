@@ -1,7 +1,4 @@
 import {number, object, string, infer as zInfer} from "zod";
-import {DeliverySchema} from "@/type/delivery";
-import {UserSchema} from "@/type/user";
-import {ItemSchema} from "@/type/item";
 
 export const statusMap = {
     pending: {
@@ -32,11 +29,5 @@ export const orderSchema = object({
     status: string(),
     comment: string().nullable().default(null)
 })
-
-export type OrderData = OrderSchema & {
-    item: ItemSchema,
-    user: UserSchema,
-    delivery: Omit<DeliverySchema, "orders"> | null
-}
 
 export type OrderSchema = zInfer<typeof orderSchema>

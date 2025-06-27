@@ -1,10 +1,11 @@
 "use client";
 import React from "react";
-import DeliveryTable from "@/component/table/delivery";
+import OrderTable from "@/component/table/order";
 import PrintField from "@/component/field/print";
+import UserTable from "@/component/table/user";
 import printLabel from "@/util/print/label";
 import trpc from "@/server/client";
-import {ProFormText, ProFormTextArea} from "@ant-design/pro-form";
+import {ProFormInstance, ProFormText, ProFormTextArea} from "@ant-design/pro-form";
 import {DeliverySchema, methodMap} from "@/type/delivery";
 import {PageContainer} from "@ant-design/pro-layout";
 import {StepsForm} from "@ant-design/pro-components";
@@ -12,16 +13,19 @@ import {CheckCard} from "@ant-design/pro-card";
 import {labelSdk} from "@/util/print/sdk";
 import {useRouter} from "next/navigation";
 import {App, Avatar, Form} from "antd";
-import {UserSchema} from "@/type/user";
 
 const Page = () => {
     const message = App.useApp().message;
     const router = useRouter();
+    const info = React.useRef<ProFormInstance>(null);
+    const user = React.useRef<ProFormInstance>(null);
     const [step, setStep] = React.useState(0);
-    const [user, setUser] = React.useState<UserSchema[]>([]);
     const [data, setData] = React.useState<Record<string, unknown>>();
-    const [connect, setConnect] = React.useState("");
+    const [image, setImage] = React.useState("");
     React.useEffect(() => {
+        if (step !== 3) {
+            return;
+        }
         const init = async () => {
             await labelSdk.connect()
             const painters = JSON.parse((await labelSdk.getAllPrinters()).info as string)
@@ -29,32 +33,27 @@ const Page = () => {
             await labelSdk.initSdk()
             await labelSdk.setPrinterAutoShutDownTime(4)
         }
-        if (step !== 2) return;
         init().then(async () => {
             const result = JSON.parse((await printLabel(data!))?.info as string)
-            setConnect(result.ImageData)
+            setImage(result.ImageData)
         }).catch((err) => {
             message.error(err.message);
         });
         return () => {
             labelSdk.disconnect()
-            setConnect("");
+            setImage("");
         };
     }, [data, step, message])
 
     return (
         <PageContainer>
             <StepsForm
-                containerStyle={step === 0 ? {width: "100%"} : {}}
+                containerStyle={step === 0 || step === 1 ? {width: "100%"} : {}}
                 onCurrentChange={(current) => setStep(current)}
-                onFormFinish={(name, info) => {
-                    if (name === "select") {
-                        info.forms.info.setFieldsValue(user[0]);
-                    }
-                }}
                 onFinish={async (values) => {
                     try {
-                        delete values.print
+                        delete values.userId;
+                        delete values.label;
                         await trpc.delivery.create.mutate(values as DeliverySchema);
                         message.success("创建成功")
                         router.back()
@@ -64,9 +63,27 @@ const Page = () => {
                     return false
                 }}
             >
-                <StepsForm.StepForm title="选择订单" name="select">
+                <StepsForm.StepForm title="选择用户" name="select" formRef={user}>
                     <Form.Item
-                        name="orders"
+                        name="userId"
+                        rules={[
+                            {
+                                message: "请选择用户",
+                                validator: async (_, value: number) => {
+                                    if (!value) {
+                                        return Promise.reject();
+                                    }
+                                    return Promise.resolve();
+                                }
+                            }
+                        ]}
+                    >
+                        <UserTable form={info.current}/>
+                    </Form.Item>
+                </StepsForm.StepForm>
+                <StepsForm.StepForm title="选择订单" name="choice">
+                    <Form.Item
+                        name="orderIds"
                         rules={[
                             {
                                 message: "请选择订单",
@@ -79,12 +96,13 @@ const Page = () => {
                             }
                         ]}
                     >
-                        <DeliveryTable callback={setUser}/>
+                        <OrderTable form={user.current}/>
                     </Form.Item>
                 </StepsForm.StepForm>
                 <StepsForm.StepForm
                     title="生成运单"
                     name="info"
+                    formRef={info}
                     onFinish={async (values) => {
                         try {
                             values.label = (await trpc.setting.get.query()).label;
@@ -117,8 +135,13 @@ const Page = () => {
                         name="phone"
                         label="电话号码"
                         rules={[
-                            {pattern: /^1\d{10}$/, message: "手机号格式有误"},
-                            {required: true}
+                            {
+                                pattern: /^1\d{10}$/,
+                                message: "手机号格式有误"
+                            },
+                            {
+                                required: true
+                            }
                         ]}
                     />
                     <ProFormTextArea name="address" label="地址" rules={[{required: true}]}/>
@@ -138,7 +161,7 @@ const Page = () => {
                             }
                         ]}
                     >
-                        <PrintField data={data} image={connect}/>
+                        <PrintField data={data} image={image}/>
                     </Form.Item>
                 </StepsForm.StepForm>
             </StepsForm>

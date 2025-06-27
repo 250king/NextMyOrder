@@ -13,7 +13,7 @@ interface Props {
 
 const UserForm = (props: Props) => {
     const message = App.useApp().message;
-    const form = React.useRef<ProFormInstance>(undefined);
+    const form = React.useRef<ProFormInstance>(null);
     const [loading, setLoading] = React.useState(false);
 
     return (
