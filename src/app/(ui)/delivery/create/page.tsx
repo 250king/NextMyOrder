@@ -78,7 +78,7 @@ const Page = () => {
                             }
                         ]}
                     >
-                        <UserTable form={info.current}/>
+                        <UserTable form={info}/>
                     </Form.Item>
                 </StepsForm.StepForm>
                 <StepsForm.StepForm title="选择订单" name="choice">
@@ -96,7 +96,7 @@ const Page = () => {
                             }
                         ]}
                     >
-                        <OrderTable form={user.current}/>
+                        <OrderTable form={user}/>
                     </Form.Item>
                 </StepsForm.StepForm>
                 <StepsForm.StepForm

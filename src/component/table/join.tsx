@@ -1,21 +1,22 @@
 "use client";
 import React from "react";
-import JoinForm from "@/component/form/join";
+import StatusWeight from "@/component/weight/status";
 import trpc from "@/server/client";
 import Link from "next/link";
 import {ActionType, ProColumns, ProTable} from "@ant-design/pro-table";
-import {Avatar, Button, Space, Typography} from "antd";
+import {App, Avatar, Button, Space, Typography} from "antd";
 import {SettingOutlined} from "@ant-design/icons";
 import {SortOrder} from "antd/es/table/interface";
-import {GroupData, JoinData} from "@/type/group";
+import {GroupData} from "@/type/group";
 
 interface Props {
     data: GroupData
 }
 
 const JoinTable = (props: Props) => {
-    const table = React.useRef<ActionType>(undefined);
-    const columns: ProColumns<JoinData>[] = [
+    const message = App.useApp().message;
+    const table = React.useRef<ActionType>(null);
+    const columns: ProColumns[] = [
         {
             title: "ID",
             dataIndex: "userId",
@@ -68,10 +69,11 @@ const JoinTable = (props: Props) => {
     ];
 
     return (
-        <ProTable<JoinData>
+        <ProTable
             rowKey="userId"
             actionRef={table}
             columns={columns}
+            rowSelection={{}}
             search={{
                 filterType: "light"
             }}
@@ -80,17 +82,23 @@ const JoinTable = (props: Props) => {
                     allowClear: true
                 }
             }}
-            toolBarRender={() => [
-                <JoinForm key={"create"} table={table.current} data={props.data}/>
-            ]}
+            tableAlertOptionRender={({selectedRowKeys}) => (
+                <StatusWeight table={table} message={message} selected={selectedRowKeys} target={"user"}/>
+            )}
             request={async (params, sort) => {
-                const field: Record<string, SortOrder> = {"userId": "ascend"}
+                const field: Record<string, SortOrder> = {
+                    "userId": "ascend"
+                }
                 const res = await trpc.group.user.get.query({
                     params,
                     sort: Object.keys(sort).length === 0 ? field : sort,
                     groupId: props.data.id
                 });
-                return {data: res.items as never, success: true, total: res.total}
+                return {
+                    data: res.items,
+                    success: true,
+                    total: res.total
+                }
             }}
         />
     );

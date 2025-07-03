@@ -114,7 +114,7 @@ const GroupContainer = (props: Props) => {
                         }
                     }}
                 >
-                    <Button color="danger" variant="solid">删除</Button>
+                    <Button color="danger" variant="solid" disabled={props.data.status !== "activated"}>删除</Button>
                 </Popconfirm>
             ]}
         >

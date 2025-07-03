@@ -7,8 +7,8 @@ import {ActionType, ProColumns, ProTable} from "@ant-design/pro-table";
 import {ItemSchema, statusMap} from "@/type/item";
 import {App, Button, Popconfirm} from "antd";
 import {TRPCClientError} from "@trpc/client";
-import {GroupData} from "@/type/group";
 import {cStd, mStd} from "@/util/string";
+import {GroupData} from "@/type/group";
 
 interface Props {
     data: GroupData

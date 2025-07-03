@@ -1,13 +1,12 @@
 "use client";
 import React from "react";
 import trpc from "@/server/client";
-import {useControlModel, WithControlPropsType} from "@ant-design/pro-form";
+import {ProFormInstance, useControlModel, WithControlPropsType} from "@ant-design/pro-form";
 import {ProColumns, ProTable} from "@ant-design/pro-table";
 import {Space, Avatar, Typography} from "antd";
-import {FormInstance} from "antd/lib";
 
 type Props = WithControlPropsType<{
-    form: FormInstance | null
+    form: React.RefObject<ProFormInstance | null>
 }>
 
 const UserTable = (props: Props) => {
@@ -59,8 +58,8 @@ const UserTable = (props: Props) => {
                 selectedRowKeys: model.value? [model.value] : [],
                 onChange: (selectedRowKeys, selectedRows) => {
                     model.onChange(selectedRowKeys[0]);
-                    console.log(props.form?.getFieldsValue());
-                    props.form?.setFieldsValue({
+                    console.log(props.form.current?.getFieldsValue());
+                    props.form.current?.setFieldsValue({
                         name: selectedRows[0].name,
                         phone: selectedRows[0].phone,
                         address: selectedRows[0].address
@@ -73,7 +72,8 @@ const UserTable = (props: Props) => {
                     params: {
                         orders: {
                             some: {
-                                status: "arrived"
+                                status: "arrived",
+                                deliveryId: null
                             }
                         },
                         ...params

@@ -100,21 +100,45 @@ const orderRouter = router({
     flow: publicProcedure.input(orderSchema.pick({
         status: true
     }).extend({
-        ids: number().array()
+        ids: number().array().optional(),
+        userIds: number().array().optional()
     })).mutation(async ({ctx, input}) => {
-        await ctx.database.order.updateMany({
-            where: {
-                id: {
-                    in: input.ids
+        if (input.ids?.length !== 0) {
+            await ctx.database.order.updateMany({
+                where: {
+                    id: {
+                        in: input.ids
+                    },
+                    status: {
+                        in: flow[input.status as keyof typeof statusMap],
+                    }
                 },
-                status: {
-                    in: flow[input.status as keyof typeof statusMap],
+                data: {
+                    status: input.status
                 }
-            },
-            data: {
-                status: input.status
-            }
-        })
+            })
+        }
+        else if (input.userIds?.length !== 0) {
+            await ctx.database.order.updateMany({
+                where: {
+                    userId: {
+                        in: input.userIds
+                    },
+                    status: {
+                        in: flow[input.status as keyof typeof statusMap],
+                    }
+                },
+                data: {
+                    status: input.status
+                }
+            })
+        }
+        else {
+            throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: "请至少提供一个订单ID或用户ID"
+            });
+        }
     }),
 
     push: publicProcedure.input(orderSchema.pick({

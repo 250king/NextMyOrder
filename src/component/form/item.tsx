@@ -21,7 +21,7 @@ interface Props {
 
 const ItemForm = (props: Props) => {
     const message = App.useApp().message;
-    const form = React.useRef<ProFormInstance>(undefined);
+    const form = React.useRef<ProFormInstance>(null);
     const [loading, setLoading] = React.useState(false);
 
     return (
@@ -45,7 +45,9 @@ const ItemForm = (props: Props) => {
                         type="primary"
                         loading={loading}
                         onClick={async () => {
-                            if (!form.current?.getFieldsValue().url) return;
+                            if (!form.current?.getFieldsValue().url) {
+                                return;
+                            }
                             setLoading(true);
                             try {
                                 const res = await trpc.item.getInfo.query({

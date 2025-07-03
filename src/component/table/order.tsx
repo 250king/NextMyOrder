@@ -2,21 +2,20 @@
 import React from "react";
 import GroupSelector from "@/component/field/group";
 import trpc from "@/server/client";
-import {useControlModel, WithControlPropsType} from "@ant-design/pro-form";
+import {ProFormInstance, useControlModel, WithControlPropsType} from "@ant-design/pro-form";
 import {ActionType, ProColumns, ProTable} from "@ant-design/pro-table";
 import {MessageOutlined} from "@ant-design/icons";
 import {Button, Popover, Typography} from "antd";
-import {FormInstance} from "antd/lib";
 import {cStd} from "@/util/string";
 
 type Props = WithControlPropsType<{
-    form: FormInstance | null
+    form: React.RefObject<ProFormInstance | null>
 }>
 
 const OrderTable = (props: Props) => {
     const table = React.useRef<ActionType>(null);
     const model = useControlModel(props);
-    const userId = props.form?.getFieldValue("userId");
+    const userId = props.form.current?.getFieldValue("userId");
     const columns: ProColumns[] = [
         {
             title: "ID",
@@ -96,7 +95,7 @@ const OrderTable = (props: Props) => {
                 }
             }}
             request={async (params, sort) => {
-                if (!props.form?.getFieldValue("userId")) {
+                if (!props.form.current?.getFieldValue("userId")) {
                     return {
                         data: [],
                         success: true,

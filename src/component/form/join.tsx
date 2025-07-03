@@ -6,7 +6,7 @@ import {ActionType} from "@ant-design/pro-table";
 import {GroupData} from "@/type/group";
 
 interface Props {
-    table?: ActionType
+    table: React.RefObject<ActionType | null>
     data: GroupData
 }
 
@@ -27,7 +27,7 @@ const JoinForm =(props: Props) => {
                         userId: values.userId
                     });
                     message.success("添加成功");
-                    props.table?.reload();
+                    props.table.current?.reload();
                     return true
                 }
                 catch {

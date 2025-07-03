@@ -12,6 +12,7 @@ import {TRPCClientError} from "@trpc/client";
 import {useRouter} from "next/navigation";
 import {JoinData} from "@/type/group";
 import {cStd} from "@/util/string";
+import StatusWeight from "@/component/weight/status";
 
 interface Props {
     data: JoinData
@@ -26,28 +27,6 @@ const JoinContainer = (props: Props) => {
     const router = useRouter();
     const message = App.useApp().message;
     const table = React.useRef<ActionType>(null);
-    const actions = [
-        {
-            status: "confirmed",
-            description: "您确定选中的订单没有错误？",
-            buttonText: "确认",
-        },
-        {
-            status: "arrived",
-            description: "您确定选中的订单的商品安然无恙？",
-            buttonText: "完成验货",
-        },
-        {
-            status: "finished",
-            description: "您确定选中的订单以面提方式交付？",
-            buttonText: "交付",
-        },
-        {
-            status: "failed",
-            description: "您确定作废选中的订单？",
-            buttonText: "作废",
-        },
-    ];
     const columns: ProColumns[] = [
         {
             title: "ID",
@@ -208,36 +187,9 @@ const JoinContainer = (props: Props) => {
                 columns={columns}
                 rowSelection={{}}
                 search={{filterType: "light"}}
-                tableAlertOptionRender={({selectedRowKeys}) => {
-                    const list = actions.map(({status, description, buttonText}) => (
-                        <Popconfirm
-                            key={status}
-                            title="提醒"
-                            description={description}
-                            onConfirm={async () => {
-                                try {
-                                    await trpc.order.flow.mutate({
-                                        ids: selectedRowKeys.map((id) => Number(id)),
-                                        status,
-                                    });
-                                    table.current?.clearSelected?.();
-                                    message.success("修改成功");
-                                    table.current?.reload();
-                                    return true;
-                                } catch {
-                                    message.error("发生错误，请稍后再试");
-                                    return false;
-                                }
-                            }}
-                        >
-                            <Button type="link">{buttonText}</Button>
-                        </Popconfirm>
-                    ))
-                    list.push(
-                        <Button key="cancle" type="link" onClick={() => table.current?.clearSelected?.()}>取消选择</Button>
-                    )
-                    return list;
-                }}
+                tableAlertOptionRender={({selectedRowKeys}) => (
+                    <StatusWeight table={table} message={message} selected={selectedRowKeys} target={"order"}/>
+                )}
                 toolBarRender={() => [
                     <OrderForm
                         key="create"
