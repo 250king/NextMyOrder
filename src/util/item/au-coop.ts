@@ -9,5 +9,6 @@ export const parse = async (url: URL) => {
     const $ = cheerio.load(http.data);
     const price = Number($("span.price").text().replace(/[^\d.]/g, ""));
     const name = jStd($("h1.product-meta__title.heading.h1").text());
-    return {name, price, url: url.toString()};
-}
+    const image = $("img.product-gallery__image").attr("src")?.split("?")[0];
+    return {name, price, url: url.toString(), image: `https:${image}`};
+};

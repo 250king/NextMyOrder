@@ -1,13 +1,19 @@
-import {number, object, string, infer as zInfer, coerce} from "zod";
+import {z} from "zod/v4";
 
-export const userSchema = object({
-    id: number(),
-    qq: string().regex(/^\d+$/),
-    name: string(),
-    email: string().email().nullable().default(null),
-    phone: string().regex(/^1\d{10}$/).nullable().default(null),
-    address: string().nullable().default(null),
-    createAt: coerce.date().default(new Date()),
-})
+export const userSchema = z.object({
+    id: z.number(),
+    name: z.string(),
+    qq: z.string().regex(/^\d+$/),
+    email: z.email().nullish().catch(null),
+    phone: z.string().regex(/^1\d{10}$/).nullish().catch(null),
+    address: z.string().nullish().catch(null),
+    createdAt: z.date().default(new Date()),
+});
 
-export type UserSchema = zInfer<typeof userSchema>
+export const userData = userSchema.omit({
+    createdAt: true,
+});
+
+export type UserSchema = z.infer<typeof userSchema>
+
+export type UserData = z.infer<typeof userData>;

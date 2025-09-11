@@ -3,12 +3,17 @@ import * as fs from "node:fs";
 import {fileURLToPath} from "url";
 
 type ItemParser = {
-    match: RegExp | RegExp[];
-    parse: (url: URL) => Promise<{name: string; price: number; url: string}>;
+    match: RegExp | RegExp[],
+    parse: (url: URL) => Promise<{
+        name: string,
+        price: number,
+        url: string,
+        image: string | null,
+    }>,
 };
 
 const parsers: ItemParser[] = [];
-const currentDir = path.dirname(fileURLToPath(import.meta.url)); // 当前路径 /lib/item
+const currentDir = path.dirname(fileURLToPath(import.meta.url));
 
 const loadParsers = async () => {
     const files = fs.readdirSync(currentDir);
@@ -21,17 +26,19 @@ const loadParsers = async () => {
             parsers.push({match: pattern, parse: mod.parse});
         }
     }
-}
+};
 
 const parseItem = async (url: string) => {
+    if (parsers.length === 0) {
+        await loadParsers();
+    }
     const parser = parsers.find(p => {
         if ("test" in p.match) {
+            p.match.lastIndex = 0;
             return p.match.test(url);
         }
-    })
+    });
     return parser?.parse(new URL(url));
-}
-
-await loadParsers();
+};
 
 export default parseItem;

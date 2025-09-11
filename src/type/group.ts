@@ -1,40 +1,37 @@
-import {number, object, string, infer as zInfer, coerce} from "zod";
-import {UserSchema} from "@/type/user";
+import {z} from "zod/v4";
 
 export const statusMap = {
-    activated: {
-        text: "进行中"
+    true: {
+        text: "已结束",
     },
-    stopped: {
-        text: "已截单"
+    false: {
+        text: "进行中",
     },
-    finished: {
-        text: "已结束"
-    }
-}
+};
 
-export const groupSchema = object({
-    id: number(),
-    qq: string().regex(/^\d+$/),
-    name: string(),
-    status: string()
-})
+export const confirmMap = {
+    true: {
+        text: "已确认",
+    },
+    false: {
+        text: "未确认",
+    },
+};
 
-export const joinSchema = object({
-    userId: number(),
-    groupId: number(),
-    createAt: coerce.date().default(new Date())
-})
+export const groupSchema = z.object({
+    id: z.number(),
+    name: z.string(),
+    qq: z.string().regex(/^\d+$/),
+    deadline: z.date().default(new Date()),
+    ended: z.boolean().default(false),
+    createdAt: z.date().default(new Date()),
+});
 
-export type GroupData = GroupSchema & {
-    status: string
-}
+export const groupData = groupSchema.omit({
+    ended: true,
+    createdAt: true,
+});
 
-export type JoinData = JoinSchema & {
-    user: UserSchema,
-    group: GroupSchema
-}
+export type GroupSchema = z.infer<typeof groupSchema>;
 
-export type GroupSchema = zInfer<typeof groupSchema>
-
-export type JoinSchema = zInfer<typeof joinSchema>
+export type GroupData = z.infer<typeof groupData>;

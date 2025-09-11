@@ -1,18 +1,18 @@
 import userRouter from "@/server/route/user";
 import groupRouter from "@/server/route/group";
-import deliveryRouter from "@/server/route/delivery";
+import listRouter from "@/server/route/list";
 import itemRouter from "@/server/route/item";
 import orderRouter from "@/server/route/order";
-import settingRouter from "@/server/route/setting";
-import {router} from "@/server/loader";
+import shippingRouter from "@/server/route/shipping";
+import {router} from "@/server/server";
 
 const appRouter = router({
-    user: userRouter,
-    group: groupRouter,
-    item: itemRouter,
-    order: orderRouter,
-    delivery: deliveryRouter,
-    setting: settingRouter
-})
+    ...userRouter,
+    ...groupRouter,
+    ...listRouter,
+    ...itemRouter,
+    ...orderRouter,
+    ...shippingRouter,
+});
 
 export default appRouter;

@@ -1,175 +1,270 @@
-import {publicProcedure, router} from "@/server/loader";
-import {queryParams, queryParser} from "@/util/query";
-import {orderSchema, statusMap} from "@/type/order";
+import {queryDsl, SafeRule, whereBuilder} from "@/util/query";
+import {procedure} from "@/server/server";
+import {orderSchema} from "@/type/order";
 import {TRPCError} from "@trpc/server";
-import {number} from "zod";
+import {z} from "zod/v4";
 
-const flow = {
-    failed: ["pushed", "confirmed"],
-    finished: ["arrived"],
-    confirmed: ["pending"],
-    arrived: ["pushed"],
-    pending: [],
-    pushed: []
-};
-
-const orderRouter = router({
-    get: publicProcedure.input(queryParams).query(async ({ctx, input}) => {
-        const query = queryParser(input, []);
+const orderRouter = {
+    orderGetAll: procedure.input(queryDsl).query(async ({ctx, input}) => {
+        const rule: SafeRule = {
+            filter: [
+                {
+                    field: "id",
+                    operator: ["eq"],
+                },
+                {
+                    field: "userId",
+                    operator: ["eq"],
+                },
+                {
+                    field: "itemId",
+                    operator: ["eq"],
+                },
+                {
+                    field: "groupId",
+                    operator: ["eq"],
+                },
+                {
+                    field: "status",
+                    operator: ["eq"],
+                },
+            ],
+            sort: ["id", "userId", "name", "count", "status", "createdAt"],
+        };
+        const [data, total] = await Promise.all([
+            ctx.db.order.findMany(whereBuilder(input, rule)),
+            ctx.db.order.count(whereBuilder(input, rule, true)),
+        ]);
         return {
-            items: await ctx.database.order.findMany({
-                ...query,
-                include: {
-                    user: true,
-                    delivery: true,
-                    item: {
-                        include: {
-                            group: true,
-                        }
-                    }
-                }
-            }),
-            total: await ctx.database.order.count({where: query.where})
+            items: data,
+            total: total,
         };
     }),
 
-    create: publicProcedure.input(orderSchema.pick({
+    userSummary: procedure.input(queryDsl).query(async ({ctx, input}) => {
+        const rule : SafeRule = {
+            filter: [
+                {
+                    field: "id",
+                    operator: ["eq"],
+                },
+                {
+                    field: "groupId",
+                    operator: ["eq"],
+                },
+            ],
+            sort: ["id", "qq", "total"],
+            search: ["name", "qq"],
+        };
+        const [data, total] = await Promise.all([
+            ctx.db.userSummary.findMany(whereBuilder(input, rule)),
+            ctx.db.userSummary.count(whereBuilder(input, rule, true)),
+        ]);
+        return {
+            items: data,
+            total: total,
+        };
+    }),
+
+    taxSummary: procedure.input(queryDsl).query(async ({ctx, input}) => {
+        const rule : SafeRule = {
+            filter: [
+                {
+                    field: "id",
+                    operator: ["eq"],
+                },
+                {
+                    field: "shippingId",
+                    operator: ["eq"],
+                },
+            ],
+            sort: ["id", "name", "total"],
+            search: ["name", "qq"],
+        };
+        const [data, total] = await Promise.all([
+            ctx.db.taxSummary.findMany(whereBuilder(input, rule)),
+            ctx.db.taxSummary.count(whereBuilder(input, rule, true)),
+        ]);
+        return {
+            items: data,
+            total: total,
+        };
+    }),
+
+    weightSummary: procedure.input(queryDsl).query(async ({ctx, input}) => {
+        const rule : SafeRule = {
+            filter: [
+                {
+                    field: "id",
+                    operator: ["eq"],
+                },
+                {
+                    field: "shippingId",
+                    operator: ["eq"],
+                },
+            ],
+            sort: ["id", "name", "total"],
+            search: ["name", "qq"],
+        };
+        const [data, total] = await Promise.all([
+            ctx.db.weightSummary.findMany(whereBuilder(input, rule)),
+            ctx.db.weightSummary.count(whereBuilder(input, rule, true)),
+        ]);
+        return {
+            items: data,
+            total: total,
+        };
+    }),
+
+    orderCreateAll: procedure.input(orderSchema.pick({
+        userId: true,
         count: true,
         comment: true,
-        userId: true
     }).extend({
-        itemIds: number().array()
+        itemIds: z.number().array(),
     })).mutation(async ({ctx, input}) => {
-        const {itemIds, ...data} = input;
-        return await ctx.database.order.createMany({
-            data: itemIds.map(itemId => ({
-                ...data,
-                itemId: itemId,
-                userId: input.userId,
-                status: "pending"
-            }))
-        });
+        let result = 0;
+        for (const i of input.itemIds) {
+            if (await ctx.db.order.findFirst({
+                where: {
+                    userId: input.userId,
+                    itemId: i,
+                },
+            })) {
+                continue;
+            }
+            if (!await ctx.db.item.findUnique({
+                where: {
+                    id: i,
+                    allowed: true,
+                },
+            })) {
+                continue;
+            }
+            await ctx.db.order.create({
+                data: {
+                    userId: input.userId,
+                    itemId: i,
+                    count: input.count,
+                },
+            });
+            result++;
+        }
+        if (result !== 0) {
+            await ctx.db.list.updateMany({
+                where: {
+                    userId: input.userId,
+                    group: {
+                        items: {
+                            some: {
+                                id: {
+                                    in: input.itemIds,
+                                },
+                            },
+                        },
+                    },
+                },
+                data: {
+                    confirmed: false,
+                },
+            });
+        }
+        return {
+            total: result,
+        };
     }),
 
-    update: publicProcedure.input(orderSchema.omit({
-        userId: true,
-        itemId: true,
-        status: true
+    orderUpdate: procedure.input(orderSchema.pick({
+        id: true,
+        count: true,
+        comment: true,
     })).mutation(async ({ctx, input}) => {
         const {id, ...data} = input;
-        if (!await ctx.database.order.findUnique({
+        const order = await ctx.db.order.findUnique({
             where: {
                 id: id,
-                status: "pending"
-            }
-        })) {
-            throw new TRPCError({
-                code: "CONFLICT",
-                message: "该订单已确认不允许修改"
-            });
-        }
-        return await ctx.database.order.update({
-            data: data,
-            where: {
-                id: id
-            }
-        });
-    }),
-
-    delete: publicProcedure.input(orderSchema.pick({
-        id: true
-    })).mutation(async ({ctx, input}) => {
-        if (!await ctx.database.order.findUnique({
-            where: {
-                id: input.id,
-                status: "pending"
-            }
-        })) {
-            throw new TRPCError({
-                code: "CONFLICT",
-                message: "该订单已确认不允许取消"
-            });
-        }
-        await ctx.database.order.delete({
-            where: {
-                id: input.id
-            }
-        });
-    }),
-
-    flow: publicProcedure.input(orderSchema.pick({
-        status: true
-    }).extend({
-        ids: number().array().optional(),
-        userIds: number().array().optional()
-    })).mutation(async ({ctx, input}) => {
-        if (input.ids?.length !== 0) {
-            await ctx.database.order.updateMany({
-                where: {
-                    id: {
-                        in: input.ids
-                    },
-                    status: {
-                        in: flow[input.status as keyof typeof statusMap],
-                    }
-                },
-                data: {
-                    status: input.status
-                }
-            })
-        }
-        else if (input.userIds?.length !== 0) {
-            await ctx.database.order.updateMany({
-                where: {
-                    userId: {
-                        in: input.userIds
-                    },
-                    status: {
-                        in: flow[input.status as keyof typeof statusMap],
-                    }
-                },
-                data: {
-                    status: input.status
-                }
-            })
-        }
-        else {
-            throw new TRPCError({
-                code: "BAD_REQUEST",
-                message: "请至少提供一个订单ID或用户ID"
-            });
-        }
-    }),
-
-    push: publicProcedure.input(orderSchema.pick({
-        itemId: true,
-        count: true
-    })).mutation(async ({ctx, input}) => {
-        const items = await ctx.database.order.findMany({
-            where: {
-                status: "confirmed",
-                item: {
-                    id: input.itemId,
-                    group: {
-                        status: {
-                            not: "finished"
-                        }
-                    }
-                }
             },
-            take: input.count
-        })
-        await ctx.database.order.updateMany({
+            include: {
+                item: true,
+            },
+        });
+        if (!order) {
+            throw new TRPCError({
+                code: "NOT_FOUND",
+                message: "订单不存在",
+            });
+        }
+        if (order.count !== data.count) {
+            if (order.status === "pushed" || order.status === "delivered") {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "订单状态不允许修改",
+                });
+            }
+            if (order.status === "pending") {
+                await ctx.db.list.update({
+                    where: {
+                        userId_groupId: {
+                            userId: order.userId,
+                            groupId: order.item.groupId,
+                        },
+                    },
+                    data: {
+                        confirmed: false,
+                    },
+                });
+            }
+        }
+        return await ctx.db.order.update({
             where: {
-                id: {
-                    in: items.map(i => i.id)
-                }
+                id: id,
             },
             data: {
-                status: "pushed"
-            }
-        })
-    })
-});
+                ...data,
+            },
+        });
+    }),
+
+    orderDelete: procedure.input(orderSchema.pick({
+        id: true,
+    })).mutation(async ({ctx, input}) => {
+        const order = await ctx.db.order.findUnique({
+            where: {
+                id: input.id,
+            },
+            include: {
+                item: true,
+            },
+        });
+        if (!order) {
+            throw new TRPCError({
+                code: "NOT_FOUND",
+                message: "订单不存在",
+            });
+        }
+        if (order.status !== "pending") {
+            throw new TRPCError({
+                code: "FORBIDDEN",
+                message: "订单状态不允许删除",
+            });
+        }
+        await ctx.db.list.update({
+            where: {
+                userId_groupId: {
+                    userId: order.userId,
+                    groupId: order.item.groupId,
+                },
+            },
+            data: {
+                confirmed: false,
+            },
+        });
+        await ctx.db.order.delete({
+            where: {
+                id: input.id,
+            },
+        });
+    }),
+};
 
 export default orderRouter;

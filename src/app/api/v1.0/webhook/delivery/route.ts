@@ -1,23 +1,21 @@
-import {NextRequest, NextResponse} from "next/server";
-import crypto from "crypto";
 import database from "@/util/data/database";
+import crypto from "crypto";
+import {NextRequest, NextResponse} from "next/server";
 
-export async function POST(request: NextRequest) {
+export const POST = async (request: NextRequest) => {
     try {
         const body = await request.formData();
         const param = body.get("param") || "";
         const sign = body.get("sign") || "";
         const expectedSign = crypto.createHash("md5")
-            .update(param + process.env.APP_KEY!)
+            .update(param + process.env.EXPRESS_KEY!)
             .digest("hex")
             .toUpperCase();
         if (sign !== expectedSign) {
             return NextResponse.json({
-                result: false,
-                returnCode: "500",
-                message: "签名验证失败"
+                message: "签名验证失败",
             }, {
-                status: 401
+                status: 401,
             });
         }
         const delivery = await database.delivery.findUnique({
@@ -27,32 +25,24 @@ export async function POST(request: NextRequest) {
             include: {
                 orders: {
                     include: {
-                        item: true,
-                    }
-                }
-            }
+                        order: true,
+                    },
+                },
+            },
         });
         if (!delivery) {
             return NextResponse.json({
-                result: false,
-                returnCode: "404",
-                message: "未找到对应的快递记录"
+                message: "未找到对应的快递记录",
             }, {
-                status: 404
+                status: 404,
             });
         }
         const payload = JSON.parse(param.toString());
         const data: Record<string, unknown> = {};
-        data.comment = payload.message;
-        if (payload.kuaidinum) {
-            data.expressNumber = payload.kuaidinum;
-        }
-        if (payload.data.orderId) {
-            data.expressId = payload.data.orderId;
-        }
-        if (payload.data.pollToken) {
-            data.token = payload.data.pollToken;
-        }
+        data.comment = payload.data.status;
+        data.expressNumber = payload.kuaidinum ?? delivery.expressNumber;
+        data.expressId = payload.data.orderId ?? delivery.expressId;
+        data.token = payload.data.pollToken ?? delivery.queryToken;
         switch (payload.data.status) {
             case 0:
             case 1:
@@ -68,66 +58,56 @@ export async function POST(request: NextRequest) {
                 break;
             case 13:
                 data.status = "finished";
-                await database.order.updateMany({
+                await database.delivery.update({
                     where: {
-                        deliveryId: delivery.id
+                        id: delivery.id,
                     },
                     data: {
-                        status: "finished"
-                    }
+                        status: "finished",
+                    },
                 });
                 for (const order of delivery.orders) {
-                    if (await database.order.count({
+                    await database.order.updateMany({
                         where: {
-                            item: {
-                                groupId: order.item.groupId
+                            id: order.orderId,
+                            deliveries: {
+                                every: {
+                                    delivery: {
+                                        status: "finished",
+                                    },
+                                },
                             },
-                            status: {
-                                notIn: ["finished", "failed"]
-                            }
-                        }
-                    }) == 0) {
-                        await database.group.update({
-                            where: {
-                                id: order.item.groupId
-                            },
-                            data: {
-                                status: "finished"
-                            }
-                        })
-                    }
+                        },
+                        data: {
+                            status: "finished",
+                        },
+                    });
                 }
                 break;
-            case 11:
-            case 12:
-            case 14:
-            case 201:
-            case 155:
-                data.status = "warning";
+            case 9:
+            case 99:
+            case 610:
+                data.status = "failed";
                 break;
             default:
-                data.status = "failed";
+                data.status = "warning";
                 break;
         }
         await database.delivery.update({
             data,
             where: {
-                id: delivery.id
+                id: delivery.id,
             },
         });
         return NextResponse.json({
-            result: true,
-            returnCode: "200",
-            message: "处理成功"
+            message: "处理成功",
         });
     } catch (error) {
         console.error("Webhook处理错误:", error);
         return NextResponse.json({
-            result: false,
-            returnCode: "500",
-            message: "处理失败"
+            message: "处理失败",
         }, {
-            status: 500
+            status: 500,
         });
     }
-}
+};

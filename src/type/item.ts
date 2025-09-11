@@ -1,22 +1,26 @@
-import {boolean, number, object, string, infer as zInfer} from "zod";
+import {z} from "zod/v4";
 
 export const statusMap = {
     true: {
-        text: "已通过"
+        text: "已通过",
     },
     false: {
-        text: "未通过"
-    }
-}
+        text: "未通过",
+    },
+};
 
-export const itemSchema = object({
-    id: number(),
-    groupId: number(),
-    name: string(),
-    url: string().url(),
-    price: number(),
-    weight: number().nullable().default(null),
-    allowed: boolean().default(false)
-})
+export const itemSchema = z.object({
+    id: z.number(),
+    groupId: z.number(),
+    name: z.string(),
+    url: z.url(),
+    price: z.number(),
+    weight: z.number().nullish().catch(null),
+    image: z.url().nullish().catch(null),
+});
 
-export type ItemSchema = zInfer<typeof itemSchema>
+export const itemData = itemSchema;
+
+export type ItemSchema = z.infer<typeof itemSchema>
+
+export type ItemData = z.infer<typeof itemData>;

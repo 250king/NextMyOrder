@@ -1,33 +1,47 @@
-import {number, object, string, infer as zInfer} from "zod";
+
+import {z} from "zod/v4";
 
 export const statusMap = {
     pending: {
-        text: "待处理"
-    },
-    confirmed: {
-        text: "已确认"
+        text: "待处理",
     },
     pushed: {
-        text: "已下单"
+        text: "已下单",
     },
     arrived: {
-        text: "待发货"
+        text: "待发货",
+    },
+    delivered: {
+        text: "已发货",
     },
     finished: {
-        text: "已完成"
+        text: "已完成",
     },
     failed: {
-        text: "失败"
-    }
-}
+        text: "失败",
+    },
+};
 
-export const orderSchema = object({
-    id: number(),
-    userId: number(),
-    itemId: number(),
-    count: number().min(1).default(1),
-    status: string(),
-    comment: string().nullable().default(null)
-})
+export const orderSchema = z.object({
+    id: z.number(),
+    userId: z.number(),
+    itemId: z.number(),
+    deliveryId: z.number().nullish().catch(null),
+    count: z.number().min(1).default(1),
+    status: z.string(),
+    createdAt: z.date().default(new Date()),
+    comment: z.string().nullish().catch(null),
+});
 
-export type OrderSchema = zInfer<typeof orderSchema>
+export const orderData = orderSchema.pick({
+    id: true,
+    userId: true,
+    count: true,
+    createdAt: true,
+}).extend({
+    itemIds: z.number().array(),
+});
+
+export type OrderSchema = z.infer<typeof orderSchema>
+
+export type OrderData = z.infer<typeof orderData>;

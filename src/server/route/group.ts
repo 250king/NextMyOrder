@@ -1,138 +1,116 @@
-import {publicProcedure, router} from "@/server/loader";
-import {queryParams, queryParser} from "@/util/query";
-import {groupSchema, joinSchema} from "@/type/group";
+import napcat from "@/util/client/napcat";
+import {queryDsl, SafeRule, whereBuilder} from "@/util/query";
+import {procedure} from "@/server/server";
+import {groupData} from "@/type/group";
 import {TRPCError} from "@trpc/server";
-import {number, object} from "zod";
 
-const user = router({
-    get: publicProcedure.input(object({
-        groupId: number(),
-        ...queryParams.shape
-    })).query(async ({ctx, input}) => {
-        const query = queryParser(input, ["user.name", "user.qq", "user.email"], {
-            groupId: input.groupId
+const groupRouter = {
+    groupGetNick: procedure.input(groupData.pick({
+        qq: true,
+    })).query(async ({input}) => {
+        const res = await napcat.post(`/get_group_info`, {
+            group_id: input.qq,
         });
-        return {
-            items: await ctx.database.join.findMany({
-                ...query,
-                include: {
-                    user: true
-                }
-            }),
-            total: await ctx.database.join.count({
-                where: query.where
-            })
-        }
-    }),
-
-    add: publicProcedure.input(joinSchema).mutation(async ({ctx, input}) => {
-        return await ctx.database.join.create({
-            data: {
-                userId: input.userId,
-                groupId: input.groupId
-            }
-        });
-    }),
-
-    delete: publicProcedure.input(joinSchema.pick({
-        groupId: true,
-        userId: true
-    })).mutation(async ({ctx, input}) => {
-        if (await ctx.database.order.count({
-            where: {
-                item: {
-                    groupId: input.groupId
-                },
-                userId: input.userId,
-                status: {
-                    not: "failed"
-                }
-            }
-        }) != 0) {
+        if (!res.data.data.groupName) {
             throw new TRPCError({
-                code: "CONFLICT",
-                message: "该用户存在订单且在正常状态不得移除"
-            })
+                code: "NOT_FOUND",
+                message: "无法自动获得昵称",
+            });
         }
-        await ctx.database.join.delete({
-            where: {
-                userId_groupId: {
-                    userId: input.userId,
-                    groupId: input.groupId
-                }
-            }
-        });
-    })
-});
-
-const groupRouter = router({
-    get: publicProcedure.input(queryParams).query(async ({ctx, input}) => {
-        const query = queryParser(input, ["qq", "name"])
         return {
-            items: await ctx.database.group.findMany(query),
-            total: await ctx.database.group.count({
-                where: query.where
-            })
+            name: res.data.data.groupName,
         };
     }),
 
-    create: publicProcedure.input(groupSchema.omit({
+    groupGetAll: procedure.input(queryDsl).query(async ({ctx, input}) => {
+        const rule: SafeRule = {
+            filter: [
+                {
+                    field: "id",
+                    operator: ["eq"],
+                },
+                {
+                    field: "ended",
+                    operator: ["eq"],
+                },
+            ],
+            sort: ["id", "name", "createdAt", "deadline", "ended"],
+            search: ["name", "qq"],
+        };
+        const [data, total] = await Promise.all([
+            ctx.db.group.findMany(whereBuilder(input, rule)),
+            ctx.db.group.count(whereBuilder(input, rule, true)),
+        ]);
+        return {
+            items: data,
+            total: total,
+        };
+    }),
+
+    groupCreate: procedure.input(groupData.omit({
         id: true,
-        status: true
     })).mutation(async ({ctx, input}) => {
-        return await ctx.database.group.create({
-            data: {
-                ...input,
-                status: "activated"
-            }
-        });
-    }),
-
-    update: publicProcedure.input(groupSchema).mutation(async ({ctx, input}) => {
-        const {id, ...data} = input;
-        return await ctx.database.group.update({
-            data: data,
+        if (await ctx.db.group.findUnique({
             where: {
-                id: id
-            }
-        });
-    }),
-
-    delete: publicProcedure.input(groupSchema.pick({
-        id: true
-    })).mutation(async ({ctx, input}) => {
-        if (await ctx.database.join.count({
-            where: {
-                groupId: input.id
-            }
-        }) != 0) {
+                qq: input.qq,
+            },
+        })) {
             throw new TRPCError({
                 code: "CONFLICT",
-                message: "该群组存在用户不得删除"
+                message: "该用户已存在",
             });
         }
-        await ctx.database.group.delete({
-            where: {
-                id: input.id
-            }
+        return await ctx.db.group.create({
+            data: input,
         });
     }),
 
-    flow: publicProcedure.input(groupSchema.pick({
+    groupUpdate: procedure.input(groupData).mutation(async ({ctx, input}) => {
+        const {id, ...data} = input;
+        if (!await ctx.db.group.findUnique({
+            where: {
+                id: id,
+            },
+        })) {
+            throw new TRPCError({
+                code: "NOT_FOUND",
+                message: "用户不存在",
+            });
+        }
+        return await ctx.db.group.update({
+            where: {
+                id: id,
+            },
+            data: data,
+        });
+    }),
+
+    groupDelete: procedure.input(groupData.pick({
         id: true,
     })).mutation(async ({ctx, input}) => {
-        await ctx.database.group.update({
+        const group = await ctx.db.group.findUnique({
             where: {
                 id: input.id,
-                status: "activated"
             },
-            data: {
-                status: "stopped",
-            }
+        });
+        if (!group) {
+            throw new TRPCError({
+                code: "NOT_FOUND",
+                message: "团购不存在",
+            });
+        }
+        if (!group.ended) {
+            throw new TRPCError({
+                code: "FORBIDDEN",
+                message: "团购未完成，无法删除",
+            });
+        }
+        await ctx.db.group.delete({
+            where: {
+                id: input.id,
+            },
         });
     }),
-
-    user
-});
+};
 
 export default groupRouter;

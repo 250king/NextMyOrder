@@ -1,6 +1,11 @@
 generator client {
-  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
-  provider      = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["views"]
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+generator erd {
+  provider = "prisma-erd-generator"
 }
 
 datasource db {
@@ -9,86 +14,163 @@ datasource db {
 }
 
 model User {
-  id       Int      @id @default(autoincrement())
-  name     String   @unique
-  qq       String   @unique
-  email    String?  @unique
-  phone    String?
-  address  String?
-  createAt DateTime @default(now())
-
-  joined Join[]
-  orders Order[]
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  qq        String   @unique
+  email     String?  @unique
+  phone     String?
+  address   String?
+  createdAt DateTime @default(now())
+  lists     List[]
+  orders    Order[]
 }
 
 model Group {
-  id       Int      @id @default(autoincrement())
-  name     String   @unique
-  qq       String   @unique
-  status   String   @default("activated")
-  createAt DateTime @default(now())
-
-  users Join[]
-  items Item[]
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  qq        String   @unique
+  deadline  DateTime
+  ended     Boolean  @default(false)
+  createdAt DateTime @default(now())
+  lists     List[]
+  items     Item[]
 }
 
-model Join {
-  userId   Int
-  groupId  Int
-  createAt DateTime @default(now())
+model List {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  groupId   Int
+  createdAt DateTime @default(now())
+  confirmed Boolean  @default(false)
+  finished  Boolean  @default(false)
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
-
-  @@id([userId, groupId])
+  @@unique([userId, groupId])
 }
 
 model Item {
-  id      Int     @id @default(autoincrement())
-  groupId Int
-  name    String  @unique
-  url     String
-  price   Float
-  weight  Float?
-  allowed Boolean @default(false)
+  id         Int       @id @default(autoincrement())
+  groupId    Int
+  shippingId Int?
+  name       String
+  url        String
+  image      String?
+  price      Float
+  weight     Float?
+  allowed    Boolean   @default(false)
+  group      Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  shipping   Shipping? @relation(fields: [shippingId], references: [id])
+  orders     Order[]
 
-  group  Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  orders Order[]
+  @@unique([groupId, name, url, price])
+  @@unique([id, shippingId])
 }
 
-model Order {
-  id         Int      @id @default(autoincrement())
-  userId     Int
-  itemId     Int
-  deliveryId Int?
-  count      Int      @default(1)
-  status     String   @default("pending")
-  createAt   DateTime @default(now())
-  comment    String?
-
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  item     Item      @relation(fields: [itemId], references: [id], onDelete: Cascade)
-  delivery Delivery? @relation(fields: [deliveryId], references: [id], onDelete: SetNull)
+model Shipping {
+  id            Int      @id @default(autoincrement())
+  expressNumber String?  @unique
+  tax           Float    @default(0)
+  fee           Float    @default(0)
+  status        String   @default("unknown")
+  createdAt     DateTime @default(now())
+  comment       String?
+  items         Item[]
 }
 
 model Delivery {
-  id            Int      @id @default(autoincrement())
+  id            Int                  @id @default(autoincrement())
   name          String
   phone         String
-  method        String
   address       String
-  status        String   @default("pending")
-  createAt      DateTime @default(now())
+  company       String
+  status        String               @default("pending")
+  createdAt     DateTime             @default(now())
   comment       String?
-  taskId        String?  @unique
+  taskId        String?              @unique
   expressId     String?
   expressNumber String?
-  token         String?
+  queryToken    String?
+  orders        DeliveriesOnOrders[]
+}
 
-  orders Order[]
+model Order {
+  id         Int                  @id @default(autoincrement())
+  userId     Int
+  itemId     Int
+  count      Int                  @default(1)
+  status     String               @default("pending")
+  createdAt  DateTime             @default(now())
+  comment    String?
+  item       Item                 @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  user       User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deliveries DeliveriesOnOrders[]
+}
+
+model DeliveriesOnOrders {
+  deliveryId Int
+  orderId    Int
+  delivery   Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@id([deliveryId, orderId])
 }
 
 model Setting {
   key   String @unique
   value String
+}
+
+view ListView {
+  id        Int       @unique
+  groupId   Int
+  name      String
+  qq        String
+  email     String?
+  createdAt DateTime?
+  confirmed Boolean
+}
+
+view UserSummary {
+  id      Int    @unique
+  groupId Int
+  name    String
+  qq      String
+  total   Float
+  ratio   Float?
+}
+
+view ItemSummary {
+  id         Int     @unique
+  groupId    Int
+  shippingId Int?
+  name       String
+  url        String
+  image      String?
+  price      Float
+  count      Int
+  confirmed  Int
+  pending    Int
+  check      Int
+  total      Float
+}
+
+view TaxSummary {
+  id         Int    @unique
+  shippingId Int
+  name       String
+  qq         String
+  total      Float
+  ratio      Float
+  tax        Float
+}
+
+view WeightSummary {
+  id         Int    @unique
+  shippingId Int
+  name       String
+  qq         String
+  total      Float
+  ratio      Float
+  fee        Float
 }

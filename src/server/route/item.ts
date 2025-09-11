@@ -1,75 +1,345 @@
 import parseItem from "@/util/item";
-import {publicProcedure, router} from "@/server/loader";
-import {queryParams, queryParser} from "@/util/query";
-import {itemSchema} from "@/type/item";
+import {queryDsl, SafeRule, whereBuilder} from "@/util/query";
+import {procedure} from "@/server/server";
 import {TRPCError} from "@trpc/server";
-import {object, string} from "zod";
+import {itemData} from "@/type/item";
+import {z} from "zod/v4";
 
-const itemRouter = router({
-    getInfo: publicProcedure.input(object({
-        url: string().url()
+const itemRouter = {
+    itemGetAll: procedure.input(queryDsl).query(async ({ctx, input}) => {
+        const rule: SafeRule = {
+            filter: [
+                {field: "id", operator: ["eq"]},
+                {field: "groupId", operator: ["eq"]},
+                {field: "shippingId", operator: ["eq"]},
+                {field: "group.ended", operator: ["eq"]},
+                {field: "allowed", operator: ["eq"]},
+            ],
+            column: {
+                modal: "Item",
+                include: ["group"],
+            },
+            sort: ["id", "name", "price", "weight", "allowed"],
+            search: ["name", "url"],
+        };
+        const [data, total] = await Promise.all([
+            ctx.db.item.findMany(whereBuilder(input, rule)),
+            ctx.db.item.count(whereBuilder(input, rule, true)),
+        ]);
+        return {
+            items: data,
+            total: total,
+        };
+    }),
+
+    itemSummary: procedure.input(queryDsl).query(async ({ctx, input}) => {
+        const rule : SafeRule = {
+            filter: [
+                {
+                    field: "id",
+                    operator: ["eq"],
+                },
+                {
+                    field: "groupId",
+                    operator: ["eq"],
+                },
+                {
+                    field: "shippingId",
+                    operator: ["eq"],
+                },
+            ],
+            sort: ["id", "price", "count", "total"],
+            search: ["name", "url"],
+        };
+        const [data, total] = await Promise.all([
+            ctx.db.itemSummary.findMany(whereBuilder(input, rule)),
+            ctx.db.itemSummary.count(whereBuilder(input, rule, true)),
+        ]);
+        return {
+            items: data,
+            total: total,
+        };
+    }),
+
+    itemGetInfo: procedure.input(itemData.pick({
+        url: true,
     })).query(async ({input}) => {
         const result = await parseItem(input.url);
         if (!result) {
             throw new TRPCError({
-                code: "NOT_FOUND"
+                code: "NOT_FOUND",
             });
         }
         return result;
     }),
 
-    get: publicProcedure.input(queryParams).query(async ({ctx, input}) => {
-        const query = queryParser(input, ["name"]);
+    itemCreate: procedure.input(itemData.omit({
+        id: true,
+    })).mutation(async ({ctx, input}) => {
+        if (!await ctx.db.group.findUnique({
+            where: {
+                id: input.groupId,
+            },
+        })) {
+            throw new TRPCError({
+                code: "NOT_FOUND",
+                message: "团购不存在",
+            });
+        }
+        if (await ctx.db.item.findFirst({
+            where: {
+                groupId: input.groupId,
+                name: input.name,
+                url: input.url,
+                price: input.price,
+            },
+        })) {
+            throw new TRPCError({
+                code: "CONFLICT",
+                message: "该商品已存在",
+            });
+        }
+        return await ctx.db.item.create({
+            data: input,
+        });
+    }),
+
+    itemCreateAll: procedure.input(itemData.pick({
+        groupId: true,
+    }).extend({
+        urls: z.url().array().min(1),
+    })).mutation(async ({ctx, input}) => {
+        if (!await ctx.db.group.findUnique({
+            where: {
+                id: input.groupId,
+            },
+        })) {
+            throw new TRPCError({
+                code: "NOT_FOUND",
+                message: "团购不存在",
+            });
+        }
+        const items = [];
+        for (const i in input.urls) {
+            const url = input.urls[i];
+            const result = await parseItem(url);
+            if (!result) {
+                continue;
+            }
+            if (await ctx.db.item.findFirst({
+                where: {
+                    ...result,
+                    groupId: input.groupId,
+                },
+            })) {
+                continue;
+            }
+            items.push(await ctx.db.item.create({
+                data: {
+                    ...result,
+                    groupId: input.groupId,
+                    allowed: true,
+                },
+            }));
+        }
         return {
-            items: await ctx.database.item.findMany(query),
-            total: await ctx.database.item.count({
-                where: query.where
-            })
+            items: items,
+            total: items.length,
         };
     }),
 
-    create: publicProcedure.input(itemSchema.omit({
-        id: true
-    })).mutation(async ({ctx, input}) => {
-        return await ctx.database.item.create({
-            data: input
-        });
-    }),
-
-    update: publicProcedure.input(itemSchema.omit({
-        groupId: true
+    itemUpdate: procedure.input(itemData.omit({
+        groupId: true,
     })).mutation(async ({ctx, input}) => {
         const {id, ...data} = input;
-        return await ctx.database.item.update({
-            data: data,
+        const item = await ctx.db.item.findUnique({
             where: {
-                id: id
-            }
+                id: id,
+            },
+        });
+        if (!item) {
+            throw new TRPCError({
+                code: "NOT_FOUND",
+                message: "商品不存在",
+            });
+        }
+        if (item.url !== data.url || item.name !== data.name || item.price !== data.price) {
+            await ctx.db.list.updateMany({
+                where: {
+                    user: {
+                        orders: {
+                            some: {
+                                item: {
+                                    id: id,
+                                },
+                            },
+                        },
+                    },
+                },
+                data: {
+                    confirmed: false,
+                },
+            });
+        }
+        return await ctx.db.item.update({
+            where: {
+                id: id,
+            },
+            data: data,
         });
     }),
 
-    delete: publicProcedure.input(itemSchema.pick({
-        id: true
+    itemAllowAll: procedure.input(z.object({
+        ids: z.number().array(),
     })).mutation(async ({ctx, input}) => {
-        if (await ctx.database.order.count({
-            where: {
-                itemId: input.id,
-                status: {
-                    not: "failed"
-                }
+        return {
+            total: (await ctx.db.item.updateMany({
+                where: {
+                    id: {
+                        in: input.ids,
+                    },
+                },
+                data: {
+                    allowed: true,
+                },
+            })).count,
+        };
+    }),
+
+    itemDisallowAll: procedure.input(z.object({
+        ids: z.number().array(),
+    })).mutation(async ({ctx, input}) => {
+        return {
+            total: (await ctx.db.item.updateMany({
+                where: {
+                    id: {
+                        in: input.ids,
+                    },
+                },
+                data: {
+                    allowed: false,
+                },
+            })).count,
+        };
+    }),
+
+    itemPush: procedure.input(z.object({
+        items: itemData.pick({
+            id: true,
+        }).extend({
+            count: z.number().min(0),
+        }).array().min(1),
+    })).mutation(async ({ctx, input}) => {
+        let total = 0;
+        for (const i of input.items) {
+            if (i.count === 0 || !await ctx.db.item.findUnique({
+                where: {
+                    id: i.id,
+                },
+            })) {
+                continue;
             }
-        }) != 0) {
+            const orders = await ctx.db.order.findMany({
+                where: {
+                    itemId: i.id,
+                    status: "pending",
+                },
+                orderBy: [
+                    {createdAt: "asc"},
+                    {id: "asc"},
+                ],
+                take: i.count,
+            });
+            await ctx.db.order.updateMany({
+                where: {
+                    id: {
+                        in: orders.map(o => o.id),
+                    },
+                },
+                data: {
+                    status: "pushed",
+                },
+            });
+            total ++;
+        }
+        return {
+            total: total,
+        };
+    }),
+
+    itemCheck: procedure.input(z.object({
+        items: itemData.pick({
+            id: true,
+        }).extend({
+            count: z.number().min(0),
+        }).array().min(1),
+    })).mutation(async ({ctx, input}) => {
+        let total = 0;
+        for (const i of input.items) {
+            if (i.count === 0 || !await ctx.db.item.findUnique({
+                where: {
+                    id: i.id,
+                },
+            })) {
+                continue;
+            }
+            const orders = await ctx.db.order.findMany({
+                where: {
+                    itemId: i.id,
+                    status: "pushed",
+                },
+                orderBy: [
+                    {createdAt: "asc"},
+                    {id: "asc"},
+                ],
+                take: i.count,
+            });
+            await ctx.db.order.updateMany({
+                where: {
+                    id: {
+                        in: orders.map(o => o.id),
+                    },
+                },
+                data: {
+                    status: "arrived",
+                },
+            });
+            total ++;
+        }
+        return {
+            total: total,
+        };
+    }),
+
+    itemDelete: procedure.input(itemData.pick({
+        id: true,
+    })).mutation(async ({ctx, input}) => {
+        const item = await ctx.db.item.findUnique({
+            where: {
+                id: input.id,
+            },
+            include: {
+                orders: true,
+            },
+        });
+        if (!item) {
             throw new TRPCError({
-                code: "CONFLICT",
-                message: "该商品有相关联的订单且为正常状态不得删除"
+                code: "NOT_FOUND",
+                message: "商品不存在",
             });
         }
-        await ctx.database.item.delete({
+        if (item.orders.length !== 0) {
+            throw new TRPCError({
+                code: "FORBIDDEN",
+                message: "有订单引用该商品，无法删除",
+            });
+        }
+        await ctx.db.item.delete({
             where: {
-                id: input.id
-            }
+                id: item.id,
+            },
         });
-    })
-})
+    }),
+};
 
 export default itemRouter;

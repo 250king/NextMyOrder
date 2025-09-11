@@ -1,0 +1,133 @@
+"use client";
+import React from "react";
+import Link from "next/link";
+import {
+    MailOutlined,
+    PayCircleOutlined,
+    SettingOutlined,
+    ShoppingCartOutlined,
+    TruckOutlined,
+    UserOutlined,
+} from "@ant-design/icons";
+import {ProLayout} from "@ant-design/pro-layout";
+import {usePathname} from "next/navigation";
+import {ConfigProvider, theme} from "antd";
+
+const Layout = (props: React.PropsWithChildren) => {
+    const [isDark, setIsDark] = React.useState(false);
+    const pathname = usePathname();
+    React.useEffect(() => {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const handler = (e: MediaQueryListEvent) => setIsDark(e.matches);
+        setIsDark(mediaQuery.matches);
+        mediaQuery.addEventListener('change', handler);
+        return () => {
+            mediaQuery.removeEventListener('change', handler);
+        };
+    }, []);
+
+    return (
+        <ConfigProvider theme={{algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm}}>
+            <ProLayout
+                layout="top"
+                logo={null}
+                location={{pathname}}
+                title="NextMyOrder"
+                route={{
+                    path: "/",
+                    routes: [
+                        {
+                            path: "/group",
+                            name: "团购",
+                            icon: <ShoppingCartOutlined/>,
+                            children: [
+                                {
+                                    path: "/group/:groupId",
+                                    name: "团购管理",
+                                    hideInMenu: true,
+                                },
+                                {
+                                    path: "/group/:groupId/user/:userId",
+                                    name: "用户管理",
+                                    hideInMenu: true,
+                                },
+                                {
+                                    path: "/group/:groupId/purchase",
+                                    name: "采购汇总",
+                                    hideInMenu: true,
+                                },
+                            ],
+                        },
+                        {
+                            path: "/user",
+                            name: "用户",
+                            icon: <UserOutlined/>,
+                            children: [
+                                {
+                                    path: "/user/:userId",
+                                    name: "用户详情",
+                                    hideInMenu: true,
+                                },
+                            ],
+                        },
+                        {
+                            path: "/shipping",
+                            name: "运输",
+                            icon: <MailOutlined/>,
+                            children: [
+                                {
+                                    path: "/shipping/create",
+                                    name: "运输运单",
+                                    hideInMenu: true,
+                                },
+                                {
+                                    path: "/shipping/:shippingId",
+                                    name: "运单详情",
+                                    hideInMenu: true,
+                                },
+                                {
+                                    path: "/shipping/:shippingId/check",
+                                    name: "检查汇总",
+                                    hideInMenu: true,
+                                },
+                            ],
+                        },
+                        {
+                            path: "/delivery",
+                            name: "分发",
+                            icon: <TruckOutlined/>,
+                            children: [
+                                {
+                                    path: "/delivery/create",
+                                    name: "创建运单",
+                                    hideInMenu: true,
+                                },
+                            ],
+                        },
+                        {
+                            path: "/payment",
+                            name: "账单",
+                            icon: <PayCircleOutlined/>,
+                        },
+                        {
+                            path: "/setting",
+                            name: "设置",
+                            icon: <SettingOutlined/>,
+                        },
+                    ],
+                }}
+                breadcrumbRender={(routes = []) => routes}
+                itemRender={(route) => <Link href={route.path!}>{route.title}</Link>}
+                menuItemRender={(item, defaultDom) => (
+                    <Link href={item.path || "/public"}>
+                        {defaultDom}
+                    </Link>
+                )}
+            >
+                {props.children}
+            </ProLayout>
+        </ConfigProvider>
+    );
+};
+
+export default Layout;
