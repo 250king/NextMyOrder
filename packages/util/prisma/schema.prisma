@@ -1,0 +1,172 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["views"]
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int        @id @default(autoincrement())
+  name       String     @unique
+  qq         String     @unique
+  email      String?    @unique
+  phone      String?
+  address    String?
+  createdAt  DateTime   @default(now())
+  lists      List[]
+  orders     Order[]
+  deliveries Delivery[]
+}
+
+model Group {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  qq        String   @unique
+  deadline  DateTime
+  ended     Boolean  @default(false)
+  createdAt DateTime @default(now())
+  lists     List[]
+  items     Item[]
+}
+
+model List {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  groupId   Int
+  createdAt DateTime @default(now())
+  confirmed Boolean  @default(false)
+  finished  Boolean  @default(false)
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, groupId])
+}
+
+model Item {
+  id      Int     @id @default(autoincrement())
+  groupId Int
+  name    String
+  url     String
+  image   String?
+  price   Float
+  weight  Float?
+  allowed Boolean @default(false)
+  group   Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  orders  Order[]
+
+  @@unique([groupId, name, url, price])
+}
+
+model Shipping {
+  id            Int      @id @default(autoincrement())
+  expressNumber String?  @unique
+  tax           Float    @default(0)
+  fee           Float    @default(0)
+  status        String   @default("unknown")
+  createdAt     DateTime @default(now())
+  comment       String?
+  orders        Order[]
+}
+
+model Delivery {
+  id            Int             @id @default(autoincrement())
+  userId        Int
+  name          String
+  phone         String?
+  address       String?
+  company       String?
+  status        String          @default("pending")
+  createdAt     DateTime        @default(now())
+  comment       String?
+  taskId        String?         @unique
+  expressId     String?
+  expressNumber String?
+  queryToken    String?
+  orders        DeliveryOrder[]
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Order {
+  id         Int             @id @default(autoincrement())
+  userId     Int
+  itemId     Int
+  shippingId Int?
+  count      Int             @default(1)
+  status     String          @default("pending")
+  createdAt  DateTime        @default(now())
+  comment    String?
+  item       Item            @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shipping   Shipping?       @relation(fields: [shippingId], references: [id])
+  deliveries DeliveryOrder[]
+}
+
+model DeliveryOrder {
+  deliveryId Int
+  orderId    Int
+  delivery   Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@id([deliveryId, orderId])
+}
+
+model Setting {
+  key   String  @id
+  value String?
+}
+
+view UserSummary {
+  id      Int    @unique
+  groupId Int
+  name    String
+  qq      String
+  total   Float
+}
+
+view CheckSummary {
+  id         Int     @unique
+  shippingId Int
+  name       String
+  url        String
+  image      String?
+  groupName  String
+  total      Int
+  check      Int
+}
+
+view ItemSummary {
+  id        Int     @unique
+  groupId   Int
+  name      String
+  url       String
+  image     String?
+  price     Float
+  count     Int
+  confirmed Int
+  pending   Int
+  total     Float
+}
+
+view TaxSummary {
+  id         Int    @unique
+  shippingId Int
+  name       String
+  qq         String
+  total      Float
+  ratio      Float
+  tax        Float
+}
+
+view WeightSummary {
+  id         Int    @unique
+  shippingId Int
+  name       String
+  qq         String
+  total      Float
+  ratio      Float
+  fee        Float
+}

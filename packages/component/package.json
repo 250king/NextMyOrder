@@ -1,0 +1,21 @@
+{
+  "name": "@repo/component",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./icon/*": "./src/icon/*.tsx",
+    "./base/*": "./src/base/*.tsx",
+    "./template/email/*": "./src/template/email/*.tsx"
+  },
+  "devDependencies": {
+    "@repo/config": "*"
+  },
+  "dependencies": {
+    "@ant-design/pro-components": "^2.8.10",
+    "@react-email/components": "^0.5.3",
+    "antd": "^5.27.3",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  }
+}

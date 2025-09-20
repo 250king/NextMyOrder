@@ -1,49 +1,24 @@
 {
-  "name": "order",
-  "version": "0.1.0",
+  "name": "nextmyorder",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "@ant-design/nextjs-registry": "^1.0.2",
-    "@ant-design/pro-components": "^2.8.10",
-    "@ant-design/v5-patch-for-react-19": "^1.0.3",
-    "@prisma/client": "^6.14.0",
-    "@react-email/components": "0.4.0",
-    "@trpc/react-query": "^11.4.3",
-    "@trpc/server": "^11.1.2",
-    "antd": "^5.27.1",
-    "axios": "^1.9.0",
-    "cheerio": "^1.0.0",
-    "jose": "^6.0.12",
-    "lodash": "^4.17.21",
-    "next": "15.4.7",
-    "node-schedule": "^2.1.1",
-    "nodemailer": "^7.0.5",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "react-pdf": "^10.1.0",
-    "zod": "^3.24.4"
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "check-types": "turbo run check-types"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@mermaid-js/mermaid-cli": "^11.9.0",
-    "@stylistic/eslint-plugin": "^5.2.2",
-    "@types/lodash": "^4.17.16",
-    "@types/node": "^20",
-    "@types/node-schedule": "^2.1.7",
-    "@types/nodemailer": "^6.4.17",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "15.3.1",
-    "prisma": "^6.14.0",
-    "prisma-erd-generator": "^2.0.4",
-    "puppeteer": "^23.11.1",
-    "typescript": "^5"
-  }
+    "prettier": "^3.6.2",
+    "turbo": "^2.5.6",
+    "typescript": "5.9.2"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "npm@10.9.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
 }

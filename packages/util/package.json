@@ -1,0 +1,31 @@
+{
+  "name": "@repo/util",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "prisma:generate": "prisma generate"
+  },
+  "exports": {
+    "./client/*": "./src/client/*.ts",
+    "./data/*": "./src/data/*.ts",
+    "./item/*": "./src/item/*.ts",
+    "./security/*": "./src/security/*.ts"
+  },
+  "devDependencies": {
+    "@repo/config": "*",
+    "@types/node": "^22.15.3",
+    "@types/nodemailer": "^7.0.1",
+    "prisma": "^6.16.2"
+  },
+  "dependencies": {
+    "@repo/schema": "*",
+    "@prisma/client": "^6.16.2",
+    "@trpc/server": "^11.5.1",
+    "axios": "^1.12.1",
+    "cheerio": "^1.1.2",
+    "jose": "^6.1.0",
+    "nodemailer": "^7.0.6",
+    "zod": "^3.24.4"
+  }
+}
