@@ -1,0 +1,39 @@
+{
+  "name": "admin",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3000",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint --max-warnings 0",
+    "check-types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@repo/config": "*",
+    "@types/lodash": "^4.17.20",
+    "@types/node": "^22.15.3",
+    "@types/react": "19.1.0",
+    "@types/react-dom": "19.1.1"
+  },
+  "dependencies": {
+    "@ant-design/icons": "^6.0.2",
+    "@ant-design/nextjs-registry": "^1.1.0",
+    "@ant-design/pro-components": "^2.8.10",
+    "@ant-design/v5-patch-for-react-19": "^1.0.3",
+    "@react-email/render": "^1.2.3",
+    "@repo/schema": "*",
+    "@repo/component": "*",
+    "@repo/util": "*",
+    "@trpc/client": "^11.5.1",
+    "@trpc/server": "^11.5.1",
+    "antd": "^5.27.3",
+    "lodash": "^4.17.21",
+    "next": "^15.5.0",
+    "path-to-regexp": "^8.3.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zod": "^3.24.4"
+  }
+}
