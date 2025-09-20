@@ -12,4 +12,4 @@ export const parse = async (url: URL) => {
         .replace(/[^\d.]/g, ""));
     const name = jStd($("h1.product-name.my-3.my-md-4.opacity-9").text());
     return {name, price, url: url.toString()};
-}
+};

@@ -10,4 +10,4 @@ export const parse = async (url: URL) => {
     const price = Number($("span.text-price-detail.price-buy").text().replace(/[^\d.]/g, ""));
     const name = jStd($("#item_title").text());
     return {name, price, url: normalizedUrl};
-}
+};

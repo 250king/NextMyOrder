@@ -1,7 +1,7 @@
 export const cStd = (value: number) => {
     return Intl.NumberFormat("zh-CN", {
         style: "currency",
-        currency: "JPY"
+        currency: "JPY",
     }).format(Number(value));
 }
 
