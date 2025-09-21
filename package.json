@@ -1,41 +1,24 @@
 {
-  "name": "order",
-  "version": "0.1.0",
+  "name": "nextmyorder",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start --turbopack",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "@ant-design/nextjs-registry": "^1.0.2",
-    "@ant-design/pro-components": "^2.8.7",
-    "@ant-design/v5-patch-for-react-19": "^1.0.3",
-    "@prisma/client": "^6.8.2",
-    "@tanstack/react-query": "^5.76.0",
-    "@trpc/react-query": "^11.1.2",
-    "@trpc/server": "^11.1.2",
-    "axios": "^1.9.0",
-    "cheerio": "^1.0.0",
-    "dexie": "^4.0.11",
-    "dexie-react-hooks": "^1.1.7",
-    "lodash": "^4.17.21",
-    "next": "15.3.1",
-    "rc-resize-observer": "^1.4.3",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "zod": "^3.24.4"
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "check-types": "turbo run check-types"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@types/lodash": "^4.17.16",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "15.3.1",
-    "prisma": "^6.8.2",
-    "typescript": "^5"
-  }
+    "prettier": "^3.6.2",
+    "turbo": "^2.5.6",
+    "typescript": "5.9.2"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "npm@10.9.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
 }

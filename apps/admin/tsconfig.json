@@ -1,0 +1,19 @@
+{
+  "extends": "@repo/config/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    }
+  },
+  "include": [
+    "src",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}
