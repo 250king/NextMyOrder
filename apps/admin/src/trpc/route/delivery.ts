@@ -9,8 +9,23 @@ import {setTimeout} from 'timers/promises';
 import {render} from "@react-email/render";
 import {procedure} from "@/trpc/server";
 import {TRPCError} from "@trpc/server";
+import common from "@repo/util/client/common";
 
 const deliveryRouter = {
+    deliveryGetCity: procedure.input(deliveryData.pick({
+        address: true,
+    })).query(async ({input}) => {
+        const res = await common.get("https://restapi.amap.com/v3/geocode/geo", {
+            params: {
+                key: process.env.AMAP_KEY,
+                address: input.address,
+            },
+        });
+        return {
+            result: res.data?.geocodes?.[0]?.city || "",
+        };
+    }),
+
     deliveryGetById: procedure.input(deliveryData.pick({
         id: true,
     })).query(async ({ctx, input}) => {

@@ -5,23 +5,28 @@ import GroupSelector from "@/component/form/filter/group";
 import ItemSelector from "@/component/form/filter/item";
 import BaseModalForm from "@repo/component/base/modal";
 import BaseTable from "@repo/component/base/table";
+import printLabel from "@repo/util/client/printer";
 import trpc from "@/trpc/client";
 import {ActionType, PageContainer, ProDescriptions} from "@ant-design/pro-components";
 import {companyMap, statusMap, DeliverySchema} from "@repo/schema/delivery";
 import {DeleteOutlined, LinkOutlined} from "@ant-design/icons";
 import {App, Button, Form, Popconfirm, Typography} from "antd";
+import {labelSdk} from "@repo/util/printer/niimbot";
+import {ShippingData} from "@repo/schema/shipping";
+import {SettingSchema} from "@repo/schema/setting";
 import {ProColumns} from "@ant-design/pro-table";
 import {TRPCClientError} from "@trpc/client";
 import {UserData} from "@repo/schema/user";
 import {useRouter} from "next/navigation";
-import {ShippingData} from "@repo/schema/shipping";
 
 const Container = (props: {
     data: DeliverySchema,
+    setting: SettingSchema,
 }) => {
+    const [loading, setLoading] = React.useState(false);
+    const table = React.useRef<ActionType>(null);
     const message = App.useApp().message;
     const router = useRouter();
-    const table = React.useRef<ActionType>(null);
     const columns: ProColumns[] = [
         {
             title: "ID",
@@ -97,6 +102,22 @@ const Container = (props: {
         },
     ];
 
+    React.useEffect(() => {
+        const init = async () => {
+            await labelSdk.connect();
+            const painters = JSON.parse((await labelSdk.getAllPrinters()).info as string);
+            await labelSdk.selectPrinter(Object.keys(painters)[0], Number(Object.values(painters)[0]));
+            await labelSdk.initSdk();
+            await labelSdk.setPrinterAutoShutDownTime(4);
+        };
+        init().catch((err) => {
+            message.error(err.message);
+        });
+        return () => {
+            labelSdk.disconnect();
+        };
+    }, []);
+
     return (
         <PageContainer
             content={
@@ -143,6 +164,41 @@ const Container = (props: {
                 </ProDescriptions>
             }
             extra={[
+                <Button
+                    key="print"
+                    type="primary"
+                    loading={loading}
+                    disabled={!props.data.address || !props.data.phone || !props.data.company || !props.setting.label}
+                    onClick={async () => {
+                        try {
+                            setLoading(true);
+                            const res = await trpc.deliveryGetCity.query({
+                                address: props.data.address,
+                            });
+                            await printLabel({
+                                id: props.data.id,
+                                name: props.data.name,
+                                phone: props.data.phone,
+                                company: props.data.company,
+                                label: props.setting.label,
+                                city: res.result,
+                            });
+                            message.success("打印成功");
+                            return true;
+                        } catch (e) {
+                            if (e instanceof TRPCClientError) {
+                                message.error(e.message);
+                            } else {
+                                message.error("发生未知错误");
+                            }
+                            return false;
+                        } finally {
+                            setLoading(false);
+                        }
+                    }}
+                >
+                    打印面单
+                </Button>,
                 <Popconfirm
                     key="remove"
                     title="提醒"

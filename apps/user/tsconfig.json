@@ -6,7 +6,8 @@
       "@/*": [
         "./src/*"
       ]
-    }
+    },
+    "strict": false
   },
   "include": [
     "src",

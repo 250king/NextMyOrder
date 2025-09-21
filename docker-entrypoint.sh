@@ -4,7 +4,7 @@ set -e
 APP=$1
 
 if [ -z "$APP" ]; then
-  echo "No application specified. Usage: ./start.sh <application>"
+  echo "No application specified. Please provide the application directory as an argument."
   exit 1
 fi
 

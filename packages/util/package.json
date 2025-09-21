@@ -10,7 +10,8 @@
     "./client/*": "./src/client/*.ts",
     "./data/*": "./src/data/*.ts",
     "./item/*": "./src/item/*.ts",
-    "./security/*": "./src/security/*.ts"
+    "./security/*": "./src/security/*.ts",
+    "./printer/*": "./src/printer/*.ts"
   },
   "devDependencies": {
     "@repo/config": "*",

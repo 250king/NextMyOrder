@@ -2,8 +2,7 @@ import React from "react";
 import Container from "@/app/delivery/[deliveryId]/container";
 import database from "@repo/util/data/database";
 import {notFound} from "next/navigation";
-
-export const revalidate = 0;
+import {getSetting} from "@repo/util/data/setting";
 
 const Page = async (props: {
     params: Promise<{
@@ -22,9 +21,10 @@ const Page = async (props: {
     if (!delivery) {
         return notFound();
     }
+    const setting = await getSetting();
 
     return (
-        <Container data={delivery}/>
+        <Container data={delivery} setting={setting}/>
     );
 };
 

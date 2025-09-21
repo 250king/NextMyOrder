@@ -3,15 +3,11 @@ import database from "@repo/util/data/database";
 import SummaryContainer from "@/app/group/[groupId]/purchase/container";
 import {notFound} from "next/navigation";
 
-interface Props {
+const Page = async (props: {
     params: Promise<{
         groupId: number,
     }>,
-}
-
-export const revalidate = 0;
-
-const Page = async (props: Props) => {
+}) => {
     const groupId = Number((await props.params).groupId);
     const group = await database.group.findUnique({
         where: {

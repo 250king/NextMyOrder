@@ -8,9 +8,9 @@ import trpc from "@/trpc/client";
 import {Avatar, Button, Popover, Space, Typography} from "antd";
 import {MessageOutlined} from "@ant-design/icons";
 import {ProColumns} from "@ant-design/pro-table";
-import {dc, sc, sd} from "@/component/match";
-import {usePathname} from "next/navigation";
+import {dc, dd, sc, sd} from "@/component/match";
 import {Filter} from "@repo/util/data/query";
+import {useParams, usePathname} from "next/navigation";
 
 const OrderCheckTable = (props: {
     value?: React.Key[],
@@ -19,6 +19,7 @@ const OrderCheckTable = (props: {
     userId?: number | null,
 }) => {
     const pathname = usePathname();
+    const routeParam = useParams();
     const columns: ProColumns[] = [
         {
             title: "ID",
@@ -109,6 +110,9 @@ const OrderCheckTable = (props: {
                 }
                 if (dc(pathname)) {
                     filter.push({field: "status", operator: "eq", value: "pushed"});
+                }
+                if (dd(pathname)) {
+                    filter.push({field: "deliveries.none.deliveryId", operator: "eq", value: Number(routeParam.deliveryId)});
                 }
                 const res = await trpc.orderGetAll.query({
                     filter: filter,

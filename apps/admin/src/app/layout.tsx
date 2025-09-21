@@ -14,6 +14,8 @@ import {
     UserOutlined,
 } from "@ant-design/icons";
 
+export const dynamic = "force-dynamic";
+
 export const generateMetadata = async () : Promise<Metadata> => {
     const setting = await getSetting();
     return {

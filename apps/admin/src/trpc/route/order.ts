@@ -14,6 +14,7 @@ const orderRouter = {
                 {field: "item.groupId", operator: ["eq"]},
                 {field: "item.group.ended", operator: ["eq"]},
                 {field: "deliveries.some.deliveryId", operator: ["eq"]},
+                {field: "deliveries.none.deliveryId", operator: ["eq"]},
                 {field: "status", operator: ["eq"]},
             ],
             column: {

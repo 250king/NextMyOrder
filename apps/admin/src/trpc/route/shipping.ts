@@ -81,8 +81,12 @@ const shippingRouter = {
         });
     }),
 
-    shippingUpdate: procedure.input(shippingData.omit({
-        expressNumber: true,
+    shippingUpdate: procedure.input(shippingData.pick({
+        id: true,
+        tax: true,
+        fee: true,
+        status: true,
+        comment: true,
     })).mutation(async ({ctx, input}) => {
         const {id, ...data} = input;
         const shipping = await ctx.db.shipping.findUnique({
