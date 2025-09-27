@@ -1,35 +1,26 @@
 import React from "react";
+import BaseModalForm from "@repo/component/base/modal";
 import trpc from "@/trpc/client";
-import {
-    ModalForm,
-    ProForm,
-    ProFormDigit,
-    ProFormInstance,
-    ProFormMoney,
-    ProFormText,
-} from "@ant-design/pro-form";
-import {App, Button, Space} from "antd";
+import {ProForm, ProFormDigit, ProFormInstance, ProFormMoney, ProFormText} from "@ant-design/pro-form";
 import {ItemSchema} from "@repo/schema/item";
+import {App, Button, Space} from "antd";
 
 const ItemForm = (props: {
     title: string,
     data?: ItemSchema,
     target: React.ReactElement,
-    onSubmit: (values: Record<string, never>) => Promise<boolean>,
+    onSubmit: (values: Record<string, any>) => Promise<boolean>,
 }) => {
     const message = App.useApp().message;
     const form = React.useRef<ProFormInstance>(null);
     const [loading, setLoading] = React.useState(false);
 
     return (
-        <ModalForm
+        <BaseModalForm
             formRef={form}
             title={props.title}
             trigger={props.target}
             onFinish={props.onSubmit}
-            modalProps={{
-                destroyOnHidden: true,
-            }}
             initialValues={props.data ?? {
                 allowed: true,
             }}
@@ -78,7 +69,7 @@ const ItemForm = (props: {
                 ]}
             />
             <ProFormDigit name="weight" label="重量" min={0} fieldProps={{precision: 0, suffix: "g"}}/>
-        </ModalForm>
+        </BaseModalForm>
     );
 };
 

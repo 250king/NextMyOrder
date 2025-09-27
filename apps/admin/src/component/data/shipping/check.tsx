@@ -109,10 +109,10 @@ const CheckTable = (props: {
                         try {
                             await trpc.itemPush.mutate({
                                 items: record.items.map((i: ItemData & {
-                                    pending: number,
+                                    check: number,
                                 }) => ({
                                     id: i.id,
-                                    count: i.pending,
+                                    count: i.check,
                                 })),
                             });
                             message.success("操作成功");

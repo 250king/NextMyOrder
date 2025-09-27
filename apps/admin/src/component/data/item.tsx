@@ -78,54 +78,56 @@ const ItemTable = (props: {
             width: 150,
             render: (_, record, _1, action) => [
                 <Button key="link" shape="circle" icon={<LinkOutlined/>} size="small" type="link" target="_blank" href={record.url}/>,
-                <ItemForm
-                    key="edit"
-                    title="修改商品"
-                    target={<Button size="small" type="link" icon={<EditOutlined/>}/>}
-                    data={record}
-                    onSubmit={async (values: Record<string, unknown>) => {
-                        try {
-                            values.id = record.id;
-                            await trpc.itemUpdate.mutate(values as ItemData);
-                            message.success("修改成功");
-                            table.current?.reload();
-                            return true;
-                        } catch (e) {
-                            if (e instanceof TRPCClientError) {
-                                message.error(e.message);
-                            } else {
-                                message.error("发生未知错误");
+                ...(props.data.ended ? [] : [
+                    <ItemForm
+                        key="edit"
+                        title="修改商品"
+                        target={<Button size="small" type="link" icon={<EditOutlined/>}/>}
+                        data={record}
+                        onSubmit={async (values: Record<string, unknown>) => {
+                            try {
+                                values.id = record.id;
+                                await trpc.itemUpdate.mutate(values as ItemData);
+                                message.success("修改成功");
+                                table.current?.reload();
+                                return true;
+                            } catch (e) {
+                                if (e instanceof TRPCClientError) {
+                                    message.error(e.message);
+                                } else {
+                                    message.error("发生未知错误");
+                                }
+                                return false;
                             }
-                            return false;
-                        }
-                    }}
-                />,
-                <Popconfirm
-                    key="remove"
-                    title="提醒"
-                    description="您确定删除该商品？"
-                    onConfirm={async () => {
-                        try {
-                            await trpc.itemDelete.mutate({
-                                id: record.id,
-                            });
-                            message.success("删除成功");
-                            action?.reload();
-                            return true;
-                        } catch (e) {
-                            if (e instanceof TRPCClientError) {
-                                message.error(e.message);
-                            } else {
-                                message.error("发生未知错误");
+                        }}
+                    />,
+                    <Popconfirm
+                        key="remove"
+                        title="提醒"
+                        description="您确定删除该商品？"
+                        onConfirm={async () => {
+                            try {
+                                await trpc.itemDelete.mutate({
+                                    id: record.id,
+                                });
+                                message.success("删除成功");
+                                action?.reload();
+                                return true;
+                            } catch (e) {
+                                if (e instanceof TRPCClientError) {
+                                    message.error(e.message);
+                                } else {
+                                    message.error("发生未知错误");
+                                }
+                                return false;
                             }
-                            return false;
-                        }
-                    }}
-                    okText="确定"
-                    cancelText="取消"
-                >
-                    <Button size="small" type="link" variant="link" color="danger" icon={<DeleteOutlined/>}/>
-                </Popconfirm>,
+                        }}
+                        okText="确定"
+                        cancelText="取消"
+                    >
+                        <Button size="small" type="link" variant="link" color="danger" icon={<DeleteOutlined/>}/>
+                    </Popconfirm>,
+                ]),
             ],
         },
     ];
@@ -148,7 +150,7 @@ const ItemTable = (props: {
                 <Popconfirm
                     key="allow"
                     title="提醒"
-                    description="您确定通过选中的商品？"
+                    description="您确定批准选中的商品？"
                     onConfirm={async () => {
                         try {
                             await trpc.itemAllowAll.mutate({
@@ -170,38 +172,11 @@ const ItemTable = (props: {
                     okText="确定"
                     cancelText="取消"
                 >
-                    <Button type="link">通过审核</Button>
-                </Popconfirm>,
-                <Popconfirm
-                    key="disallow"
-                    title="提醒"
-                    description="您确定驳回选中的商品？"
-                    onConfirm={async () => {
-                        try {
-                            await trpc.itemDisallowAll.mutate({
-                                ids: selectedRowKeys as number[],
-                            });
-                            message.success("操作成功");
-                            onCleanSelected();
-                            table.current?.reload();
-                            return true;
-                        } catch (e) {
-                            if (e instanceof TRPCClientError) {
-                                message.error(e.message);
-                            } else {
-                                message.error("发生未知错误");
-                            }
-                            return false;
-                        }
-                    }}
-                    okText="确定"
-                    cancelText="取消"
-                >
-                    <Button type="link">驳回</Button>
+                    <Button type="link">批准</Button>
                 </Popconfirm>,
                 <UnselectWeight key="unselect" action={onCleanSelected}/>,
             ]}
-            toolBarRender={() => [
+            toolBarRender={() => props.data.ended ? [] :[
                 <ItemForm
                     key="add"
                     title="添加商品"

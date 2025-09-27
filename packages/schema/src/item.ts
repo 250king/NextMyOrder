@@ -1,3 +1,4 @@
+import nullable from "@repo/util/data/type";
 import {z} from "zod/v4";
 
 export const statusMap = {
@@ -14,12 +15,19 @@ export const itemSchema = z.object({
     groupId: z.number(),
     name: z.string(),
     url: z.url(),
-    image: z.url().nullish().catch(null),
+    image: nullable(z.url()),
     price: z.number(),
     weight: z.number().nullish().catch(null),
 });
 
-export const itemData = itemSchema;
+export const itemData = itemSchema.extend({
+    ids: z.number().array(),
+    urls: z.url().array(),
+    items: z.object({
+        id: z.number(),
+        count: z.number(),
+    }).array(),
+});
 
 export type ItemSchema = z.infer<typeof itemSchema>
 

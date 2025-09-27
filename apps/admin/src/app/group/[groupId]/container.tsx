@@ -68,10 +68,37 @@ const Container = (props: {
                     }}
                 >
                     <ProDescriptions.Item dataIndex="id" title="ID" editable={false}/>
-                    <ProDescriptions.Item dataIndex="name" title="名称" formItemProps={{rules: [{required: true}]}}/>
-                    <ProDescriptions.Item dataIndex="qq" title="QQ" formItemProps={{rules: [{required: true}, {pattern: /^\d+$/}]}}/>
+                    <ProDescriptions.Item
+                        dataIndex="name"
+                        title="名称"
+                        editable={props.data.ended ? false : undefined}
+                        formItemProps={{
+                            rules: [{required: true}],
+                        }}
+                    />
+                    <ProDescriptions.Item
+                        dataIndex="qq"
+                        title="QQ"
+                        editable={props.data.ended ? false : undefined}
+                        formItemProps={{
+                            rules: [
+                                {required: true},
+                                {pattern: /^\d+$/, message: "QQ格式不正确"},
+                            ],
+                        }}
+                    />
                     <ProDescriptions.Item dataIndex="createdAt" title="创建时间" valueType="dateTime" editable={false}/>
-                    <ProDescriptions.Item dataIndex="deadline" title="截止时间" valueType="dateTime" formItemProps={{rules: [{required: true}]}}/>
+                    <ProDescriptions.Item
+                        dataIndex="deadline"
+                        title="截止时间"
+                        valueType="dateTime"
+                        editable={props.data.ended ? false : undefined}
+                        formItemProps={{
+                            rules: [
+                                {required: true},
+                            ],
+                        }}
+                    />
                     <ProDescriptions.Item dataIndex="ended" title="状态" valueType="select" valueEnum={statusMap} editable={false}/>
                 </ProDescriptions>
             }
@@ -79,30 +106,32 @@ const Container = (props: {
                 <Link key="purchase" href={`/group/${props.data.id}/purchase`} passHref>
                     <Button color="primary" variant="solid">采购汇总</Button>
                 </Link>,
-                <Popconfirm
-                    key="remove"
-                    title="提醒"
-                    description="您确定删除该团购？"
-                    onConfirm={async () => {
-                        try {
-                            await trpc.groupDelete.mutate({
-                                id: props.data.id,
-                            });
-                            message.success("删除成功");
-                            router.replace("/group");
-                            return true;
-                        } catch (e) {
-                            if (e instanceof TRPCClientError) {
-                                message.error(e.message);
-                            } else {
-                                message.error("发生未知错误");
+                props.data.ended? null : (
+                    <Popconfirm
+                        key="remove"
+                        title="提醒"
+                        description="您确定删除该团购？"
+                        onConfirm={async () => {
+                            try {
+                                await trpc.groupDelete.mutate({
+                                    id: props.data.id,
+                                });
+                                message.success("删除成功");
+                                router.replace("/group");
+                                return true;
+                            } catch (e) {
+                                if (e instanceof TRPCClientError) {
+                                    message.error(e.message);
+                                } else {
+                                    message.error("发生未知错误");
+                                }
+                                return false;
                             }
-                            return false;
-                        }
-                    }}
-                >
-                    <Button color="danger" variant="solid">删除</Button>
-                </Popconfirm>,
+                        }}
+                    >
+                        <Button color="danger" variant="solid">删除</Button>
+                    </Popconfirm>
+                ),
             ]}
         >
             {

@@ -266,36 +266,41 @@ const deliveryRouter = {
         const url = "https://order.kuaidi100.com/order/corderapi.do";
         let error = false;
         for (const item of items) {
-            const payload = new URLSearchParams();
-            payload.set("param", JSON.stringify({
-                kuaidicom: item.company,
-                recManName: item.name,
-                recManMobile: item.phone,
-                recManPrintAddr: item.address,
-                sendManName: setting.name,
-                sendManMobile: setting.phone,
-                sendManPrintAddr: setting.address,
-                callBackUrl: process.env.CALLBACK_URL,
-                salt: process.env.APP_KEY,
-                cargo: setting.cargo,
-            }));
-            payload.set("method", "cOrder");
-            const res = await $.post(url, payload);
-            if (!res.data.result) {
-                error = true;
-                continue;
+            try {
+                const payload = new URLSearchParams();
+                payload.set("param", JSON.stringify({
+                    kuaidicom: item.company,
+                    recManName: item.name,
+                    recManMobile: item.phone,
+                    recManPrintAddr: item.address,
+                    sendManName: setting.name,
+                    sendManMobile: setting.phone,
+                    sendManPrintAddr: setting.address,
+                    callBackUrl: process.env.EXPRESS_CALLBACK,
+                    salt: process.env.EXPRESS_KEY,
+                    cargo: setting.cargo,
+                }));
+                payload.set("method", "cOrder");
+                const res = await $.post(url, payload);
+                if (!res.data.result) {
+                    console.log(res.data);
+                    error = true;
+                    continue;
+                }
+                await ctx.db.delivery.update({
+                    where: {
+                        id: item.id,
+                    },
+                    data: {
+                        status: "pushed",
+                        taskId: res.data.data?.taskId ?? null,
+                        expressId: res.data.data?.orderId ?? null,
+                        expressNumber: res.data.data?.kuaidinum ?? null,
+                    },
+                });
+            } catch (e) {
+                console.log(e);
             }
-            await ctx.db.delivery.update({
-                where: {
-                    id: item.id,
-                },
-                data: {
-                    status: "pushed",
-                    taskId: res.data.data?.taskId ?? null,
-                    expressId: res.data.data?.orderId ?? null,
-                    expressNumber: res.data.data?.kuaidinum ?? null,
-                },
-            });
         }
         if (error) {
             throw new TRPCError({

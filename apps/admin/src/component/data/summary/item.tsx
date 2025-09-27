@@ -100,7 +100,7 @@ const ItemTable = (props: {
             rowKey="id"
             columns={columns}
             actionRef={table}
-            rowSelection={{
+            rowSelection={props.data.ended ? false : {
                 onChange: (_selectedRowKeys, selectedRows) => {
                     setItems(selectedRows);
                 },

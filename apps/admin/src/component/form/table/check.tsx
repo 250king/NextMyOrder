@@ -1,8 +1,6 @@
 import React from "react";
 import {EditableProTable, EditableProTableProps, ProColumns} from "@ant-design/pro-components";
 import {ItemSchema} from "@repo/schema/item";
-import {cStd} from "@repo/util/data/string";
-import {Typography} from "antd";
 
 const CheckTable = (props: EditableProTableProps<ItemSchema & {
     check: number,
@@ -22,14 +20,6 @@ const CheckTable = (props: EditableProTableProps<ItemSchema & {
             sorter: true,
             search: false,
             editable: false,
-            render: (_, record) => (
-                <div>
-                    <Typography>{record.name}</Typography>
-                    <Typography style={{fontSize: 12}}>
-                        {cStd(Number(record.price))}
-                    </Typography>
-                </div>
-            ),
         },
         {
             title: "上报数量",

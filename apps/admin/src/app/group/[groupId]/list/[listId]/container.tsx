@@ -3,7 +3,7 @@ import React from "react";
 import ItemSelector from "@/component/form/filter/item";
 import OrderForm from "@/component/form/modal/order";
 import trpc from "@/trpc/client";
-import {DeleteOutlined, EditOutlined, LinkOutlined, MessageOutlined} from "@ant-design/icons";
+import {CloseOutlined, EditOutlined, LinkOutlined, MessageOutlined} from "@ant-design/icons";
 import {App, Button, Popconfirm, Popover, Typography, Descriptions} from "antd";
 import {ActionType, ProColumns, ProTable} from "@ant-design/pro-table";
 import {PageContainer} from "@ant-design/pro-components";
@@ -15,6 +15,7 @@ import {cStd} from "@repo/util/data/string";
 
 const Container = (props: {
     data: ListSchema,
+    hidden: boolean,
 }) => {
     const router = useRouter();
     const message = App.useApp().message;
@@ -63,72 +64,77 @@ const Container = (props: {
             valueType: "option",
             width: 150,
             render: (_, record, _1, action) => [
-                <Button key="link" icon={<LinkOutlined/>} size="small" type="link" target="_blank" href={record.url}/>,
-                <Popover key="comment" content={record.comment}>
-                    <Button icon={<MessageOutlined/>} disabled={!record.comment} size="small" type="link"/>
-                </Popover>,
-                <OrderForm
-                    key={"edit"}
-                    edit={true}
-                    data={record}
-                    title="修改订单"
-                    target={
+                <Button key="link" icon={<LinkOutlined/>} size="small" type="link" target="_blank" href={record.item.url}/>,
+                ...(record.comment ? [
+                    <Popover key="comment" content={record.comment}>
+                        <Button icon={<MessageOutlined/>} size="small" type="link"/>
+                    </Popover>,
+                ]: []),
+                ...(record.status === "pending" ? [
+                    <OrderForm
+                        key="edit"
+                        edit={true}
+                        data={record}
+                        title="修改订单"
+                        target={
+                            <Button
+                                size="small"
+                                type="link"
+                                icon={<EditOutlined/>}
+                            />
+                        }
+                        onSubmit={async (values: Record<string, unknown>) => {
+                            try {
+                                values.id = record.id;
+                                await trpc.orderUpdate.mutate(values as OrderData);
+                                message.success("修改成功");
+                                table.current?.reload();
+                                return true;
+                            } catch (e) {
+                                if (e instanceof TRPCClientError) {
+                                    message.error(e.message);
+                                } else {
+                                    message.error("发生未知错误");
+                                }
+                                return false;
+                            }
+                        }}
+                    />,
+                ]: []),
+                ...(props.data.finished ? [] : [
+                    <Popconfirm
+                        key={1}
+                        title="提醒"
+                        description="您确定取消该订单？"
+                        onConfirm={async () => {
+                            try {
+                                await trpc.orderDelete.mutate({
+                                    id: record.id,
+                                });
+                                message.success("删除成功");
+                                action?.reload();
+                                return true;
+                            } catch (e) {
+                                if (e instanceof TRPCClientError) {
+                                    message.error(e.message);
+                                } else {
+                                    message.error("发生未知错误");
+                                }
+                                return false;
+                            }
+                        }}
+                        okText="确定"
+                        cancelText="取消"
+                    >
                         <Button
                             size="small"
                             type="link"
-                            icon={<EditOutlined/>}
-                            disabled={record.status !== "pending"}
+                            variant="link"
+                            color="danger"
+                            icon={<CloseOutlined/>}
                         />
-                    }
-                    onSubmit={async (values: Record<string, unknown>) => {
-                        try {
-                            values.id = record.id;
-                            await trpc.orderUpdate.mutate(values as OrderData);
-                            message.success("修改成功");
-                            table.current?.reload();
-                            return true;
-                        } catch (e) {
-                            if (e instanceof TRPCClientError) {
-                                message.error(e.message);
-                            } else {
-                                message.error("发生未知错误");
-                            }
-                            return false;
-                        }
-                    }}
-                />,
-                <Popconfirm
-                    key={1}
-                    title="提醒"
-                    description="您确定删除该订单？"
-                    onConfirm={async () => {
-                        try {
-                            await trpc.orderDelete.mutate({
-                                id: record.id,
-                            });
-                            message.success("删除成功");
-                            action?.reload();
-                            return true;
-                        } catch (e) {
-                            if (e instanceof TRPCClientError) {
-                                message.error(e.message);
-                            } else {
-                                message.error("发生未知错误");
-                            }
-                            return false;
-                        }
-                    }}
-                    okText="确定"
-                    cancelText="取消"
-                >
-                    <Button
-                        size="small"
-                        type="link"
-                        variant="link"
-                        color="danger"
-                        icon={<DeleteOutlined/>}
-                    />
-                </Popconfirm>,
+                    </Popconfirm>,
+                ]),
             ],
         },
     ];
@@ -139,12 +145,13 @@ const Container = (props: {
             content={
                 <Descriptions>
                     <Descriptions.Item label="QQ">{props.data.user.qq}</Descriptions.Item>
-                    <Descriptions.Item label="手机号">{props.data.user.phone}</Descriptions.Item>
-                    <Descriptions.Item label="地址">{props.data.user.address}</Descriptions.Item>
                     <Descriptions.Item label="加入时间">{props.data.createdAt.toLocaleString()}</Descriptions.Item>
+                    <Descriptions.Item label="发货信息已完善">{props.data.user.address && props.data.user.phone? "是": "否"}</Descriptions.Item>
+                    <Descriptions.Item label="确认状态">{props.data.confirmed? "已确认": "未确认"}</Descriptions.Item>
+                    <Descriptions.Item label="完成状态">{props.data.finished? "已完成": "未完成"}</Descriptions.Item>
                 </Descriptions>
             }
-            extra={[
+            extra={props.hidden ? [] : [
                 <Popconfirm
                     key="remove"
                     title="提醒"
@@ -177,7 +184,7 @@ const Container = (props: {
                 actionRef={table}
                 columns={columns}
                 search={{filterType: "light"}}
-                toolBarRender={() => [
+                toolBarRender={() => props.data.finished ? [] : [
                     <OrderForm
                         key="create"
                         edit={false}

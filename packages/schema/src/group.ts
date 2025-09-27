@@ -9,15 +9,6 @@ export const statusMap = {
     },
 };
 
-export const confirmMap = {
-    true: {
-        text: "已确认",
-    },
-    false: {
-        text: "未确认",
-    },
-};
-
 export const groupSchema = z.object({
     id: z.number(),
     name: z.string(),

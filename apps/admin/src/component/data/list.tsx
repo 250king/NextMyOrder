@@ -1,17 +1,16 @@
 "use client";
 import React from "react";
-import UnselectWeight from "@/component/weight/unselect";
-import UserTable from "@/component/form/table/user";
 import BaseModalForm from "@repo/component/base/modal";
+import UserTable from "@/component/form/table/user";
 import BaseTable from "@repo/component/base/table";
 import trpc from "@/trpc/client";
 import Link from "next/link";
 import {CheckOutlined, CloseOutlined, SettingOutlined} from "@ant-design/icons";
-import {App, Avatar, Button, Form, Popconfirm, Space, Typography} from "antd";
+import {App, Avatar, Button, Form, Space, Typography} from "antd";
+import {confirmMap, finishedMap, ListData} from "@repo/schema/list";
 import {ActionType, ProColumns} from "@ant-design/pro-table";
-import {confirmMap, GroupSchema} from "@repo/schema/group";
+import {GroupSchema} from "@repo/schema/group";
 import {TRPCClientError} from "@trpc/client";
-import {ListData} from "@repo/schema/list";
 
 const ListTable = (props: {
     data: GroupSchema,
@@ -47,13 +46,23 @@ const ListTable = (props: {
             search: false,
         },
         {
-            title: "订单确认",
+            title: "确认情况",
             dataIndex: "confirmed",
             sorter: true,
             valueType: "select",
             valueEnum: confirmMap,
             render: (_, record) => (
                 record.confirmed? <CheckOutlined/>: <CloseOutlined/>
+            ),
+        },
+        {
+            title: "完成情况",
+            dataIndex: "finished",
+            sorter: true,
+            valueType: "select",
+            valueEnum: finishedMap,
+            render: (_, record) => (
+                record.finished? <CheckOutlined/>: <CloseOutlined/>
             ),
         },
         {
@@ -72,37 +81,7 @@ const ListTable = (props: {
         <BaseTable
             actionRef={table}
             columns={columns}
-            rowSelection={{}}
-            tableAlertOptionRender={({selectedRowKeys, onCleanSelected}) => [
-                <Popconfirm
-                    key="confirm"
-                    title="提醒"
-                    description="您确定发送确认邮件？"
-                    onConfirm={async () => {
-                        try {
-                            await trpc.listSendConfirm.mutate({
-                                userIds: selectedRowKeys.map((id) => Number(id)),
-                                groupId: props.data.id,
-                            });
-                            message.success("发送成功");
-                            return true;
-                        } catch (e) {
-                            if (e instanceof TRPCClientError) {
-                                message.error(e.message);
-                            } else {
-                                message.error("发生未知错误");
-                            }
-                            return false;
-                        }
-                    }}
-                    okText="确定"
-                    cancelText="取消"
-                >
-                    <Button type="link">发送确认邮件</Button>
-                </Popconfirm>,
-                <UnselectWeight key="unselect" action={onCleanSelected}/>,
-            ]}
-            toolBarRender={() => [
+            toolBarRender={() => props.data.ended ? [] : [
                 <BaseModalForm
                     key="add"
                     title="添加用户"
@@ -139,6 +118,11 @@ const ListTable = (props: {
                             field: "confirmed",
                             operator: "eq" as const,
                             value: params.confirmed === "true",
+                        }] : []),
+                        ...(params.finished ? [{
+                            field: "finished",
+                            operator: "eq" as const,
+                            value: params.finished === "true",
                         }] : []),
                     ],
                     search: params.keyword ?? "",

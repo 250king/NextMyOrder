@@ -3,7 +3,6 @@ import {queryDsl, SafeRule, whereBuilder} from "@repo/util/data/query";
 import {itemData} from "@repo/schema/item";
 import {procedure} from "@/trpc/server";
 import {TRPCError} from "@trpc/server";
-import {z} from "zod/v4";
 
 const itemRouter = {
     itemGetAll: procedure.input(queryDsl).query(async ({ctx, input}) => {
@@ -45,8 +44,13 @@ const itemRouter = {
         return result;
     }),
 
-    itemCreate: procedure.input(itemData.omit({
-        id: true,
+    itemCreate: procedure.input(itemData.pick({
+        groupId: true,
+        name: true,
+        url: true,
+        image: true,
+        price: true,
+        weight: true,
     })).mutation(async ({ctx, input}) => {
         if (!await ctx.db.group.findUnique({
             where: {
@@ -58,12 +62,14 @@ const itemRouter = {
                 message: "团购不存在",
             });
         }
-        if (await ctx.db.item.findFirst({
+        if (await ctx.db.item.findUnique({
             where: {
-                groupId: input.groupId,
-                name: input.name,
-                url: input.url,
-                price: input.price,
+                groupId_name_url_price: {
+                    groupId: input.groupId,
+                    name: input.name,
+                    url: input.url,
+                    price: input.price,
+                },
             },
         })) {
             throw new TRPCError({
@@ -78,8 +84,7 @@ const itemRouter = {
 
     itemCreateAll: procedure.input(itemData.pick({
         groupId: true,
-    }).extend({
-        urls: z.url().array().min(1),
+        urls: true,
     })).mutation(async ({ctx, input}) => {
         if (!await ctx.db.group.findUnique({
             where: {
@@ -119,8 +124,13 @@ const itemRouter = {
         };
     }),
 
-    itemUpdate: procedure.input(itemData.omit({
-        groupId: true,
+    itemUpdate: procedure.input(itemData.pick({
+        id: true,
+        name: true,
+        url: true,
+        image: true,
+        price: true,
+        weight: true,
     })).mutation(async ({ctx, input}) => {
         const {id, ...data} = input;
         const item = await ctx.db.item.findUnique({
@@ -146,6 +156,7 @@ const itemRouter = {
                             },
                         },
                     },
+                    finished: false,
                 },
                 data: {
                     confirmed: false,
@@ -160,8 +171,8 @@ const itemRouter = {
         });
     }),
 
-    itemAllowAll: procedure.input(z.object({
-        ids: z.number().array(),
+    itemAllowAll: procedure.input(itemData.pick({
+        ids: true,
     })).mutation(async ({ctx, input}) => {
         return {
             total: (await ctx.db.item.updateMany({
@@ -177,29 +188,8 @@ const itemRouter = {
         };
     }),
 
-    itemDisallowAll: procedure.input(z.object({
-        ids: z.number().array(),
-    })).mutation(async ({ctx, input}) => {
-        return {
-            total: (await ctx.db.item.updateMany({
-                where: {
-                    id: {
-                        in: input.ids,
-                    },
-                },
-                data: {
-                    allowed: false,
-                },
-            })).count,
-        };
-    }),
-
-    itemPush: procedure.input(z.object({
-        items: itemData.pick({
-            id: true,
-        }).extend({
-            count: z.number().min(0),
-        }).array().min(1),
+    itemPush: procedure.input(itemData.pick({
+        items: true,
     })).mutation(async ({ctx, input}) => {
         let total = 0;
         for (const i of input.items) {
@@ -238,12 +228,8 @@ const itemRouter = {
         };
     }),
 
-    itemCheck: procedure.input(z.object({
-        items: itemData.pick({
-            id: true,
-        }).extend({
-            count: z.number().min(0),
-        }).array().min(1),
+    itemCheck: procedure.input(itemData.pick({
+        items: true,
     })).mutation(async ({ctx, input}) => {
         let total = 0;
         for (const i of input.items) {

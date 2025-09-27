@@ -13,18 +13,10 @@ const listRouter = {
     listGetAll: procedure.input(queryDsl).query(async ({ctx, input}) => {
         const rule: SafeRule = {
             filter: [
-                {
-                    field: "id",
-                    operator: ["eq"],
-                },
-                {
-                    field: "groupId",
-                    operator: ["eq"],
-                },
-                {
-                    field: "confirmed",
-                    operator: ["eq"],
-                },
+                {field: "id", operator: ["eq"]},
+                {field: "groupId", operator: ["eq"]},
+                {field: "confirmed", operator: ["eq"]},
+                {field: "finished", operator: ["eq"]},
             ],
             column: {
                 modal: "List",

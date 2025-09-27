@@ -11,14 +11,14 @@ const groupRouter = {
         const res = await napcat.post(`/get_group_info`, {
             group_id: input.qq,
         });
-        if (!res.data.data.groupName) {
+        if (!res.data.data.group_name) {
             throw new TRPCError({
                 code: "NOT_FOUND",
                 message: "无法自动获得昵称",
             });
         }
         return {
-            name: res.data.data.groupName,
+            name: res.data.data.group_name,
         };
     }),
 
