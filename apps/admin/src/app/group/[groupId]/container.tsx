@@ -12,6 +12,7 @@ import Link from "next/link";
 
 const Container = (props: {
     data: GroupSchema,
+    hidden: boolean,
 }) => {
     const [index, setIndex] = React.useState("list");
     const message = App.useApp().message;
@@ -136,7 +137,7 @@ const Container = (props: {
         >
             {
                 index === "list" ? (
-                    <ListTable data={props.data}/>
+                    <ListTable data={props.data} hidden={props.hidden}/>
                 ) : (
                     <ItemTable data={props.data}/>
                 )

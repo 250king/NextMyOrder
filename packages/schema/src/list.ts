@@ -32,6 +32,8 @@ export const listSchema = z.object({
 });
 
 export const listData = listSchema.pick({
+    id: true,
+    userId: true,
     groupId: true,
 }).extend({
     userIds: z.number().array(),

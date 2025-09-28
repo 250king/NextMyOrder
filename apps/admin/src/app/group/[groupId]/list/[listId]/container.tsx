@@ -17,6 +17,7 @@ const Container = (props: {
     data: ListSchema,
     hidden: boolean,
 }) => {
+    const [loading, setLoading] = React.useState(false);
     const router = useRouter();
     const message = App.useApp().message;
     const table = React.useRef<ActionType>(null);
@@ -64,25 +65,20 @@ const Container = (props: {
             valueType: "option",
             width: 150,
             render: (_, record, _1, action) => [
-                <Button key="link" icon={<LinkOutlined/>} size="small" type="link" target="_blank" href={record.item.url}/>,
-                ...(record.comment ? [
+                <Button key="link" icon={<LinkOutlined/>} size="small" type="link" target="_blank"
+                        href={record.item.url}/>,
+                record.comment ? (
                     <Popover key="comment" content={record.comment}>
                         <Button icon={<MessageOutlined/>} size="small" type="link"/>
-                    </Popover>,
-                ]: []),
-                ...(record.status === "pending" ? [
+                    </Popover>
+                ) : null,
+                record.status === "pending" ? (
                     <OrderForm
                         key="edit"
                         edit={true}
                         data={record}
                         title="修改订单"
-                        target={
-                            <Button
-                                size="small"
-                                type="link"
-                                icon={<EditOutlined/>}
-                            />
-                        }
+                        target={<Button size="small" type="link" icon={<EditOutlined/>}/>}
                         onSubmit={async (values: Record<string, unknown>) => {
                             try {
                                 values.id = record.id;
@@ -99,16 +95,16 @@ const Container = (props: {
                                 return false;
                             }
                         }}
-                    />,
-                ]: []),
-                ...(props.data.finished ? [] : [
+                    />
+                ) : null,
+                props.data.finished ? null : (
                     <Popconfirm
-                        key={1}
+                        key="cancel"
                         title="提醒"
                         description="您确定取消该订单？"
                         onConfirm={async () => {
                             try {
-                                await trpc.orderDelete.mutate({
+                                await trpc.orderCancel.mutate({
                                     id: record.id,
                                 });
                                 message.success("删除成功");
@@ -126,44 +122,67 @@ const Container = (props: {
                         okText="确定"
                         cancelText="取消"
                     >
-                        <Button
-                            size="small"
-                            type="link"
-                            variant="link"
-                            color="danger"
-                            icon={<CloseOutlined/>}
-                        />
-                    </Popconfirm>,
-                ]),
+                        <Button size="small" type="link" variant="link" color="danger" icon={<CloseOutlined/>}/>
+                    </Popconfirm>
+                ),
             ],
         },
     ];
 
     return (
         <PageContainer
-            title={props.data.user.name}
             content={
                 <Descriptions>
+                    <Descriptions.Item label="ID">{props.data.user.id}</Descriptions.Item>
+                    <Descriptions.Item label="用户名">{props.data.user.name}</Descriptions.Item>
                     <Descriptions.Item label="QQ">{props.data.user.qq}</Descriptions.Item>
                     <Descriptions.Item label="加入时间">{props.data.createdAt.toLocaleString()}</Descriptions.Item>
-                    <Descriptions.Item label="发货信息已完善">{props.data.user.address && props.data.user.phone? "是": "否"}</Descriptions.Item>
-                    <Descriptions.Item label="确认状态">{props.data.confirmed? "已确认": "未确认"}</Descriptions.Item>
-                    <Descriptions.Item label="完成状态">{props.data.finished? "已完成": "未完成"}</Descriptions.Item>
+                    <Descriptions.Item
+                        label="发货信息已完善">{props.data.user.address && props.data.user.phone ? "是" : "否"}</Descriptions.Item>
+                    <Descriptions.Item label="确认情况">{props.data.confirmed ? "已确认" : "未确认"}</Descriptions.Item>
+                    <Descriptions.Item label="完成情况">{props.data.finished ? "已完成" : "未完成"}</Descriptions.Item>
                 </Descriptions>
             }
-            extra={props.hidden ? [] : [
-                <Popconfirm
-                    key="remove"
-                    title="提醒"
-                    description="您确定移除该用户？"
-                    onConfirm={async () => {
+            extra={[
+                props.data.confirmed ? null : (
+                    <Popconfirm
+                        key="confirm"
+                        title="提醒"
+                        description="您确定发送确认邮件？"
+                        onConfirm={async () => {
+                            try {
+                                await trpc.listSendEmail.mutate({
+                                    id: props.data.id,
+                                });
+                                message.success("发送成功");
+                                return true;
+                            } catch (e) {
+                                if (e instanceof TRPCClientError) {
+                                    message.error(e.message);
+                                } else {
+                                    message.error("发生未知错误");
+                                }
+                                return false;
+                            }
+                        }}
+                        okText="确定"
+                        cancelText="取消"
+                    >
+                        <Button type="primary">发送邮件</Button>
+                    </Popconfirm>
+                ),
+                <Button
+                    key="copy"
+                    type="primary"
+                    loading={loading}
+                    onClick={async () => {
                         try {
-                            await trpc.listDelete.mutate({
-                                groupId: props.data.groupId,
-                                userId: props.data.user.id,
+                            setLoading(true);
+                            const res = await trpc.listGetLink.query({
+                                id: props.data.id,
                             });
-                            message.success("移除成功");
-                            router.replace(`/group/${props.data.groupId}`);
+                            await navigator.clipboard.writeText(res.result);
+                            message.success("复制成功");
                             return true;
                         } catch (e) {
                             if (e instanceof TRPCClientError) {
@@ -172,11 +191,40 @@ const Container = (props: {
                                 message.error("发生未知错误");
                             }
                             return false;
+                        } finally {
+                            setLoading(false);
                         }
                     }}
                 >
-                    <Button color="danger" variant="solid">移除</Button>
-                </Popconfirm>,
+                    复制链接
+                </Button>,
+                props.hidden ? null : (
+                    <Popconfirm
+                        key="remove"
+                        title="提醒"
+                        description="您确定移除该用户？"
+                        onConfirm={async () => {
+                            try {
+                                await trpc.listDelete.mutate({
+                                    groupId: props.data.groupId,
+                                    userId: props.data.user.id,
+                                });
+                                message.success("移除成功");
+                                router.replace(`/group/${props.data.groupId}`);
+                                return true;
+                            } catch (e) {
+                                if (e instanceof TRPCClientError) {
+                                    message.error(e.message);
+                                } else {
+                                    message.error("发生未知错误");
+                                }
+                                return false;
+                            }
+                        }}
+                    >
+                        <Button color="danger" variant="solid">移除</Button>
+                    </Popconfirm>
+                ),
             ]}
         >
             <ProTable
@@ -227,7 +275,7 @@ const Container = (props: {
                         ],
                         sort: {
                             field: Object.keys(sort).length > 0 ? Object.keys(sort)[0] : "id",
-                            order: Object.values(sort)[0] === "descend"? "desc" : "asc",
+                            order: Object.values(sort)[0] === "descend" ? "desc" : "asc",
                         },
                         page: {
                             size: params.pageSize,

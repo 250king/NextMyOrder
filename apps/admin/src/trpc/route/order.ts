@@ -260,7 +260,7 @@ const orderRouter = {
         });
     }),
 
-    orderDelete: procedure.input(orderData.pick({
+    orderCancel: procedure.input(orderData.pick({
         id: true,
     })).mutation(async ({ctx, input}) => {
         const order = await ctx.db.order.findUnique({

@@ -6,7 +6,7 @@ import BaseTable from "@repo/component/base/table";
 import trpc from "@/trpc/client";
 import Link from "next/link";
 import {CheckOutlined, CloseOutlined, SettingOutlined} from "@ant-design/icons";
-import {App, Avatar, Button, Form, Space, Typography} from "antd";
+import {App, Avatar, Button, Form, Popconfirm, Space, Typography} from "antd";
 import {confirmMap, finishedMap, ListData} from "@repo/schema/list";
 import {ActionType, ProColumns} from "@ant-design/pro-table";
 import {GroupSchema} from "@repo/schema/group";
@@ -14,6 +14,7 @@ import {TRPCClientError} from "@trpc/client";
 
 const ListTable = (props: {
     data: GroupSchema,
+    hidden: boolean,
 }) => {
     const message = App.useApp().message;
     const table = React.useRef<ActionType>(null);
@@ -82,6 +83,33 @@ const ListTable = (props: {
             actionRef={table}
             columns={columns}
             toolBarRender={() => props.data.ended ? [] : [
+                props.hidden ? null : (
+                    <Popconfirm
+                        key="confirm"
+                        title="提醒"
+                        description="您确定向全团人员发送确认邮件？"
+                        onConfirm={async () => {
+                            try {
+                                const res = await trpc.listSendEmailAll.mutate({
+                                    groupId: props.data.id,
+                                });
+                                message.success(`成功发送${res.total}封邮件`);
+                                return true;
+                            } catch (e) {
+                                if (e instanceof TRPCClientError) {
+                                    message.error(e.message);
+                                } else {
+                                    message.error("发生未知错误");
+                                }
+                                return false;
+                            }
+                        }}
+                        okText="确定"
+                        cancelText="取消"
+                    >
+                        <Button type="primary">发送邮件</Button>
+                    </Popconfirm>
+                ),
                 <BaseModalForm
                     key="add"
                     title="添加用户"
@@ -114,16 +142,8 @@ const ListTable = (props: {
                     filter: [
                         {field: "groupId", operator: "eq", value: props.data.id},
                         ...(params.id ? [{field: "id", operator: "eq" as const, value: Number(params.id)}] : []),
-                        ...(params.confirmed ? [{
-                            field: "confirmed",
-                            operator: "eq" as const,
-                            value: params.confirmed === "true",
-                        }] : []),
-                        ...(params.finished ? [{
-                            field: "finished",
-                            operator: "eq" as const,
-                            value: params.finished === "true",
-                        }] : []),
+                        ...(params.finished ? [{field: "finished", operator: "eq" as const, value: params.finished === "true"}] : []),
+                        ...(params.confirmed ? [{field: "confirmed", operator: "eq" as const, value: params.confirmed === "true"}] : []),
                     ],
                     search: params.keyword ?? "",
                     sort: {

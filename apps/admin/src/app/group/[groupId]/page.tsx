@@ -13,6 +13,13 @@ const Page = async (props: {
         where: {
             id: groupId,
         },
+        include: {
+            lists: {
+                where: {
+                    confirmed: false,
+                },
+            },
+        },
     });
 
     if (!group) {
@@ -20,7 +27,7 @@ const Page = async (props: {
     }
 
     return (
-        <Container data={group}/>
+        <Container data={group} hidden={group.lists.length === 0}/>
     );
 };
 

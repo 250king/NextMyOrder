@@ -42,7 +42,7 @@ const Layout = (props: React.PropsWithChildren) => {
                     },
                     {
                         path: "/group/:groupId/list/:userId",
-                        name: "用户管理",
+                        name: "需求单管理",
                         hideInMenu: true,
                     },
                     {

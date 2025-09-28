@@ -9,9 +9,9 @@ import {ModalForm, ProFormTextArea} from "@ant-design/pro-components";
 import {ActionType, ProColumns} from "@ant-design/pro-table";
 import {ItemData, statusMap} from "@repo/schema/item";
 import {App, Button, Image, Popconfirm} from "antd";
+import {cStd, mStd} from "@repo/util/data/string";
 import {GroupSchema} from "@repo/schema/group";
 import {TRPCClientError} from "@trpc/client";
-import {cStd, mStd} from "@repo/util/data/string";
 
 const ItemTable = (props: {
     data: GroupSchema,
@@ -137,7 +137,7 @@ const ItemTable = (props: {
             rowKey="id"
             actionRef={table}
             columns={columns}
-            rowSelection={{}}
+            rowSelection={props.data.ended ? false : {}}
             search={{
                 filterType: "light",
             }}
