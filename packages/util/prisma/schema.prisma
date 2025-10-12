@@ -20,6 +20,7 @@ model User {
   lists      List[]
   orders     Order[]
   deliveries Delivery[]
+  payments   Payment[]
 }
 
 model Group {
@@ -112,6 +113,22 @@ model DeliveryOrder {
   order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@id([deliveryId, orderId])
+}
+
+model Payment {
+  id           Int       @id @default(autoincrement())
+  userId       Int
+  objectId     Int?
+  type         String
+  amount       Float
+  payMethod    String
+  baseCurrency String
+  exchangeRate Float
+  createdAt    DateTime  @default(now())
+  paidAt       DateTime?
+  status       String    @default("pending")
+  comment      String?
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Setting {
