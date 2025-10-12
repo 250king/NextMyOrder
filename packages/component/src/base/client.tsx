@@ -26,6 +26,7 @@ const ClientLayout = (props: React.PropsWithChildren & {
     return (
         <ConfigProvider theme={{algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm}}>
             <ProLayout
+
                 layout="top"
                 logo={props.logo}
                 location={{pathname}}
@@ -33,7 +34,7 @@ const ClientLayout = (props: React.PropsWithChildren & {
                 route={props.route}
                 breadcrumbRender={(routes = []) => routes}
                 itemRender={(route) => <Link href={route.path!}>{route.title}</Link>}
-                menuItemRender={(item, defaultDom) => (
+                menuItemRender={( item, defaultDom) => (
                     <Link href={item.path!}>
                         {defaultDom}
                     </Link>
