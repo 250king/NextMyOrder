@@ -10,6 +10,7 @@ import BaseTable from "@repo/component/base/table";
 import Link from "next/link";
 import fakeData from "./fakeData";
 import { mcStd } from "@repo/util/data/string";
+import trpc from "@/trpc/client";
 function Payment(){
   const message = App.useApp().message;
   const table = React.useRef<ActionType>(null);
@@ -127,12 +128,29 @@ function Payment(){
                 <Button type="primary">批量添加</Button>
             </Link>,
         ]}
-        request = {async () => {
-          return Promise.resolve({
-            data: fakeData,
-            success: true,
-            total: fakeData.length
+        request = {async (params, sort) => {
+          const res = await trpc.paymentGetAll.query({
+            filter:[
+              ...(params.id ? [{field: "id", operator: "eq" as const, value: Number(params.id)}] : []),
+              ...(params.payMethod ? [{field: "payMethod", operator: "eq" as const, value: params.payMethod}] : []),
+              ...(params.status ? [{field: "status", operator: "eq" as const, value: params.status}] : []),
+            ],
+            search: params.keyword ?? "",
+            sort: {
+              field: Object.keys(sort).length > 0 ? Object.keys(sort)[0] : "id",
+              order: Object.values(sort)[0] === "descend"? "desc" : "asc",
+            },
+            page: {
+              size: params.pageSize,
+              current: params.current,
+            },
           });
+          console.log(res);
+          return {
+            data: res.items,
+            success: true,
+            total: res.total,
+          };
         }}
       />
     </PageContainer>

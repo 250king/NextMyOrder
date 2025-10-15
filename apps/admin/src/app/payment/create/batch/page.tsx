@@ -6,6 +6,9 @@ import ShippingTable from "@/component/form/table/shipping";
 import { PageContainer } from "@ant-design/pro-components";
 import { ProFormText } from "@ant-design/pro-components";
 import { useRouter } from "next/navigation";
+import trpc from "@/trpc/client";
+import {TRPCClientError} from "@trpc/client";
+import { PaymentData } from "@repo/schema/payment";
 const Page = () => {
   const [step, setStep] = React.useState(0);
   const [user, setUser] = React.useState();
@@ -13,20 +16,23 @@ const Page = () => {
   const router = useRouter();
   const message = App.useApp().message;
 
-  function enumConvertToOptions(value: {[name:string]:{text:string}} ){
-    let res = [];
-    for(let key in value){
-      let newItem = {value: "", label: ""};
-      newItem.value = key;
-      newItem.label = value[key].text;
-      res.push(newItem);
+  async function handleFormFinish(values: any){
+    try{
+      values.objectId = values.objectId[0];
+      values.exchangeRate = Number(values.exchangeRate);
+      
+      console.log(values);
+      await trpc.paymentCreateAll.mutate(values as PaymentData);
+      message.success("批量生成订单成功")
+      //router.back();
+    }catch(e){
+      if (e instanceof TRPCClientError) {
+        message.error(e.message);
+      } else {
+        message.error("发生未知错误");
+      }
+      return false;
     }
-    return res;
-  }
-  function handleFormFinish(values: any){
-    console.log(values);
-    message.success("批量生成订单成功")
-    router.back();
   }
   return(
     <PageContainer style={{display:"flex", flexDirection: "column"}}>

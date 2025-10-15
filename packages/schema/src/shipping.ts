@@ -16,13 +16,16 @@ export const statusMap = {
     failed: {
         text: "失败",
     },
+    unknown: {
+        text: "未知",
+    },
 };
 
 export const shippingSchema = z.object({
     id: z.number(),
     expressNumber: z.string().nullish().catch(null),
-    tax: z.number().min(0),
-    fee: z.number().min(0),
+    tax: z.number().min(0).default(0),
+    fee: z.number().min(0).default(0),
     status: z.string().default("pending"),
     createdAt: z.date().default(new Date()),
     comment: z.string().nullish().catch(null),

@@ -14,14 +14,18 @@
     "./printer/*": "./src/printer/*.ts"
   },
   "devDependencies": {
+    "@mermaid-js/mermaid-cli": "^11.12.0",
     "@repo/config": "*",
     "@types/node": "^22.15.3",
     "@types/nodemailer": "^7.0.1",
-    "prisma": "^6.16.2"
+    "mmdc": "^0.0.1",
+    "prisma": "^6.16.2",
+    "prisma-erd-generator": "^2.1.0",
+    "puppeteer": "^23.11.1"
   },
   "dependencies": {
-    "@repo/schema": "*",
     "@prisma/client": "^6.16.2",
+    "@repo/schema": "*",
     "@trpc/server": "^11.5.1",
     "axios": "^1.12.1",
     "cheerio": "^1.1.2",

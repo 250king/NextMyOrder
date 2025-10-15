@@ -7,6 +7,7 @@ import shippingRouter from "@/trpc/route/shipping";
 import deliveryRouter from "@/trpc/route/delivery";
 import settingRouter from "@/trpc/route/setting";
 import {router} from "@/trpc/server";
+import paymentRouter from "@/trpc/route/payment";
 
 const appRouter = router({
     ...userRouter,
@@ -17,6 +18,7 @@ const appRouter = router({
     ...shippingRouter,
     ...deliveryRouter,
     ...settingRouter,
+    ...paymentRouter,
 });
 
 export default appRouter;
