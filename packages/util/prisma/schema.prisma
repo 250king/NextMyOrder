@@ -138,7 +138,6 @@ model Setting {
 
 view UserSummary {
   id      Int    @unique
-  userId  Int
   groupId Int
   name    String
   qq      String
