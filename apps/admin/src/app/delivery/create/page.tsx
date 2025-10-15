@@ -11,7 +11,6 @@ import {CheckCard} from "@ant-design/pro-card";
 import {TRPCClientError} from "@trpc/client";
 import {useRouter} from "next/navigation";
 import {App, Avatar, Form} from "antd";
-
 const Page = () => {
     const router = useRouter();
     const message = App.useApp().message;
@@ -21,6 +20,7 @@ const Page = () => {
 
     return (
         <PageContainer>
+            
             <StepsForm
                 containerStyle={step === 2 ? {} : {width: "100%"}}
                 onCurrentChange={(current) => setStep(current)}

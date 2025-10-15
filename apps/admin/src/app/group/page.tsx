@@ -74,6 +74,7 @@ const Page = () => {
                 search={{
                     filterType: "light",
                 }}
+                
                 options={{
                     search: {
                         allowClear: true,
