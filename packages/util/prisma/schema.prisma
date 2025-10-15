@@ -121,8 +121,8 @@ model Payment {
   objectId     Int?
   type         String
   amount       Float
-  payMethod    String
-  baseCurrency String
+  payMethod    String?
+  baseCurrency String    @default("CNY")
   exchangeRate Float
   createdAt    DateTime  @default(now())
   paidAt       DateTime?
@@ -138,6 +138,7 @@ model Setting {
 
 view UserSummary {
   id      Int    @unique
+  userId  Int
   groupId Int
   name    String
   qq      String

@@ -51,8 +51,12 @@ const shippingRouter = {
         };
     }),
 
-    shippingCreate: procedure.input(shippingData.omit({
-        id: true,
+    shippingCreate: procedure.input(shippingData.pick({
+        orderIds: true,
+        expressNumber: true,
+        tax: true,
+        fee: true,
+        comment: true,
     })).mutation(async ({ctx, input}) => {
         const {orderIds, ...data} = input;
         if (input.expressNumber) {
