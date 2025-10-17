@@ -1,6 +1,6 @@
 ﻿"use client";
 import React from "react";
-import {App, Avatar, Button, Popconfirm, Space, Typography} from "antd";
+import {App, Avatar, Button, Space, Typography} from "antd";
 import {ActionType, ProColumns} from "@ant-design/pro-table";
 import UserSelector from "@/component/form/filter/user";
 import { statusMap, currencyMap, typeMap } from "@repo/schema/payment";
@@ -8,10 +8,9 @@ import {PageContainer} from "@ant-design/pro-layout";
 import {SettingOutlined} from "@ant-design/icons";
 import BaseTable from "@repo/component/base/table";
 import Link from "next/link";
-import fakeData from "./fakeData";
 import { mcStd } from "@repo/util/data/string";
 import trpc from "@/trpc/client";
-function Payment(){
+const Payment = () => {
   const message = App.useApp().message;
   const table = React.useRef<ActionType>(null);
   function typeToChinese(type: keyof typeof typeMap){

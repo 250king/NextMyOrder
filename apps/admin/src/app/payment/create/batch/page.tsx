@@ -1,5 +1,5 @@
 ﻿"use client";
-import {App, Avatar, Form, DatePicker, Radio, Select, Button} from "antd";
+import {App, Form, Radio, Button} from "antd";
 import React from "react";
 import GroupTable from "@/component/form/table/group";
 import ShippingTable from "@/component/form/table/shipping";
@@ -10,8 +10,6 @@ import trpc from "@/trpc/client";
 import {TRPCClientError} from "@trpc/client";
 import { PaymentData } from "@repo/schema/payment";
 const Page = () => {
-  const [step, setStep] = React.useState(0);
-  const [user, setUser] = React.useState();
   const [type, setType] = React.useState<string>("group");
   const router = useRouter();
   const message = App.useApp().message;
