@@ -111,6 +111,8 @@ const paymentRouter = {
                 }
                 return {
                     total: result,
+                    getInput: input, 
+                    lists: lists,
                 };
             }
             case "shipping_tax": {

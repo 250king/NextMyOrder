@@ -24,7 +24,7 @@ const Page = () => {
       console.log(values);
       await trpc.paymentCreateAll.mutate(values as PaymentData);
       message.success("批量生成订单成功")
-      //router.back();
+      router.back();
     }catch(e){
       if (e instanceof TRPCClientError) {
         message.error(e.message);
