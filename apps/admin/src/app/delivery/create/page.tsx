@@ -21,6 +21,7 @@ const Page = () => {
 
     return (
         <PageContainer>
+            
             <StepsForm
                 containerStyle={step === 2 ? {} : {width: "100%"}}
                 onCurrentChange={(current) => setStep(current)}

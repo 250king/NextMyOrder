@@ -17,6 +17,7 @@ const OrderCheckTable = (props: {
     onChange?: (value: React.Key[]) => void,
     isShow?: boolean,
     userId?: number | null,
+    isRadio?: boolean,
 }) => {
     const pathname = usePathname();
     const routeParam = useParams();
@@ -89,7 +90,7 @@ const OrderCheckTable = (props: {
         <BaseTable
             columns={columns}
             rowSelection={{
-                type: "checkbox",
+                type: props.isRadio ? "radio" : "checkbox",
                 preserveSelectedRowKeys: true,
                 selectedRowKeys: props.value? props.value : [],
                 onChange: (selectedRowKeys) => {

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Children } from "react";
 import '@ant-design/v5-patch-for-react-19';
 import BaseLayout from "@repo/component/base/layout";
 import {AntdRegistry} from "@ant-design/nextjs-registry";
@@ -13,6 +13,7 @@ import {
     TruckOutlined,
     UserOutlined,
 } from "@ant-design/icons";
+import path from "path";
 
 export const dynamic = "force-dynamic";
 
@@ -107,6 +108,18 @@ const Layout = (props: React.PropsWithChildren) => {
                 path: "/payment",
                 name: "账单",
                 icon: <PayCircleOutlined/>,
+                children:[
+                    {
+                        path: "/payment/create/",
+                        name: '添加账单',
+                        hideInMenu: true,
+                    },
+                    {
+                        path: "/payment/create/batch",
+                        name: '批量添加账单',
+                        hideInMenu: true,
+                    },
+                ]
             },
             {
                 path: "/setting",
