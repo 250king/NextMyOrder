@@ -1,7 +1,7 @@
-﻿function Container({data}){
-  console.log(data);
-  return(
-    <></>
-  )
-}
-export default Container
+﻿const Container = () => {
+    return (
+        <></>
+    );
+};
+
+export default Container;

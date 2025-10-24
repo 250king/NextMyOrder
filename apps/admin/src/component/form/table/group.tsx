@@ -1,22 +1,16 @@
 ﻿"use client";
 import React from "react";
-import GroupForm from "@/component/form/modal/group";
 import BaseTable from "@repo/component/base/table";
 import trpc from "@/trpc/client";
-import Link from "next/link";
 import {ActionType, ProColumns} from "@ant-design/pro-components";
-import {PageContainer} from "@ant-design/pro-components";
-import {GroupData, statusMap} from "@repo/schema/group";
-import {SettingOutlined} from "@ant-design/icons";
-import {Typography, Button, App} from "antd";
-import {TRPCClientError} from "@trpc/client";
+import {statusMap} from "@repo/schema/group";
+import {Typography} from "antd";
 
 const GroupTable = (props:{
     value?: React.Key[],
     onChange?: (value: React.Key[]) => void,
 
 }) => {
-    const message = App.useApp().message;
     const table = React.useRef<ActionType>(undefined);
     const columns: ProColumns[] = [
         {
@@ -75,7 +69,7 @@ const GroupTable = (props:{
             search={{
                 filterType: "light",
             }}
-            
+
             options={{
                 search: {
                     allowClear: true,

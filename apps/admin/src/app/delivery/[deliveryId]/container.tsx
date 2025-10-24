@@ -116,7 +116,7 @@ const Container = (props: {
         return () => {
             labelSdk.disconnect();
         };
-    }, []);
+    }, [message]);
 
     return (
         <PageContainer

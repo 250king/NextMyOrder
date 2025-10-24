@@ -19,7 +19,7 @@ const Page = async (props: {
     }
 
     return (
-        <Container data={payment}/>
+        <Container/>
     );
 };
 

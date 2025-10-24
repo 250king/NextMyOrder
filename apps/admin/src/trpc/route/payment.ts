@@ -111,7 +111,7 @@ const paymentRouter = {
                 }
                 return {
                     total: result,
-                    getInput: input, 
+                    getInput: input,
                     lists: lists,
                 };
             }

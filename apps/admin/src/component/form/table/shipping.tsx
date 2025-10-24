@@ -2,11 +2,8 @@
 import React from "react";
 import BaseTable from "@repo/component/base/table";
 import trpc from "@/trpc/client";
-import Link from "next/link";
-import {SettingOutlined} from "@ant-design/icons";
 import {ProColumns} from "@ant-design/pro-table";
 import {statusMap} from "@repo/schema/shipping";
-import {Button} from "antd";
 
 const ShippingTable = (props:{
     value?: React.Key[],
