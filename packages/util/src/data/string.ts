@@ -1,7 +1,7 @@
-export const cStd = (value: number) => {
+export const cStd = (value: number, currency = "JPY") => {
     return Intl.NumberFormat("zh-CN", {
         style: "currency",
-        currency: "JPY",
+        currency: currency,
     }).format(Number(value));
 };
 
@@ -22,11 +22,4 @@ export const rStd = (value: number) => {
 
 export const jStd = (value: string) => {
     return value.replace(/[\u3000\u00A0]/g, ' ').trim();
-};
-
-export const mcStd = (value: number, currency:string) => {
-    return Intl.NumberFormat("zh-CN", {
-        style: "currency",
-        currency,
-    }).format(Number(value));
 };

@@ -9,14 +9,14 @@ import {ActionType, ProColumns} from "@ant-design/pro-table";
 import {Avatar, Button, Space, Typography} from "antd";
 import {PageContainer} from "@ant-design/pro-layout";
 import {SettingOutlined} from "@ant-design/icons";
-import {mcStd} from "@repo/util/data/string";
+import {cStd} from "@repo/util/data/string";
 
 const Payment = () => {
     const table = React.useRef<ActionType>(null);
 
     const typeToChinese = (type: keyof typeof typeMap) => typeMap[type].text;
 
-    const exchangeRateCalculate = (value: number, exchangeRate: number) => mcStd(value * exchangeRate, "CNY");
+    const exchangeRateCalculate = (value: number, exchangeRate: number) => cStd(value * exchangeRate, "CNY");
 
     const columns: ProColumns[] = [
         {
@@ -56,7 +56,7 @@ const Payment = () => {
             render(_, record) {
                 return (
                     <div>
-                        {mcStd(record.amount, record.baseCurrency)}<br/>
+                        {cStd(record.amount, record.baseCurrency)}<br/>
                         <span style={{
                             fontSize: "0.8rem",
                             color: "grey",
