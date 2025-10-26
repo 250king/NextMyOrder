@@ -13,29 +13,40 @@ export const statusMap = {
         text: "已取消",
     },
 };
+export const methodMap = {
+    wechat: {
+        text: "微信支付",
+    },
+    alipay: {
+        text: "支付宝",
+    },
+    bank: {
+        text: "银行转账",
+    },
+    cash: {
+        text: "现金",
+    },
+};
 export const currencyMap = {
     JPY: {
         text: "日元",
     },
-    HKD: {
-        text: "港币",
-    },
     CNY: {
         text: "人民币",
-    },
-    USD: {
-        text: "美元",
     },
 };
 export const typeMap = {
     list: {
         text: "需求表",
     },
-    order: {
-        text: "订单",
-    },
-    delivery: {
+    delivery_fee: {
         text: "运单",
+    },
+    shipping_fee: {
+        text: "国际运费",
+    },
+    tax: {
+        text: "税费",
     },
 };
 

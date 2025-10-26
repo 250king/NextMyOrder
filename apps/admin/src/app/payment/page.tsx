@@ -4,7 +4,7 @@ import UserSelector from "@/component/form/filter/user";
 import BaseTable from "@repo/component/base/table";
 import Link from "next/link";
 import trpc from "@/trpc/client";
-import {statusMap, currencyMap, typeMap} from "@repo/schema/payment";
+import {currencyMap, methodMap, typeMap, statusMap} from "@repo/schema/payment";
 import {ActionType, ProColumns} from "@ant-design/pro-table";
 import {Avatar, Button, Space, Typography} from "antd";
 import {PageContainer} from "@ant-design/pro-layout";
@@ -69,6 +69,7 @@ const Payment = () => {
         {
             title: '支付方法',
             dataIndex: 'payMethod',
+            valueEnum: methodMap,
             sorter: false,
         },
         {

@@ -6,18 +6,17 @@ import UserFilter from "@/component/form/filter/user";
 import BaseTable from "@repo/component/base/table";
 import trpc from "@/trpc/client";
 import {Avatar, Button, Popover, Space, Typography} from "antd";
+import {useParams, usePathname} from "next/navigation";
+import {dc, dd, sc, sd, pcb} from "@/component/match";
 import {MessageOutlined} from "@ant-design/icons";
 import {ProColumns} from "@ant-design/pro-table";
-import {dc, dd, sc, sd} from "@/component/match";
 import {Filter} from "@repo/util/data/query";
-import {useParams, usePathname} from "next/navigation";
 
-const OrderCheckTable = (props: {
+const OrderSelectTable = (props: {
     value?: React.Key[],
     onChange?: (value: React.Key[]) => void,
     isShow?: boolean,
     userId?: number | null,
-    isRadio?: boolean,
 }) => {
     const pathname = usePathname();
     const routeParam = useParams();
@@ -90,7 +89,7 @@ const OrderCheckTable = (props: {
         <BaseTable
             columns={columns}
             rowSelection={{
-                type: props.isRadio ? "radio" : "checkbox",
+                type: pcb(pathname) ? "radio" : "checkbox",
                 preserveSelectedRowKeys: true,
                 selectedRowKeys: props.value? props.value : [],
                 onChange: (selectedRowKeys) => {
@@ -110,7 +109,7 @@ const OrderCheckTable = (props: {
                     filter.push({field: "shippingId", operator: "eq", value: null});
                 }
                 if (dc(pathname)) {
-                    filter.push({field: "status", operator: "eq", value: "pushed"});
+                    filter.push({field: "status", operator: "eq", value: "arrived"});
                 }
                 if (dd(pathname)) {
                     filter.push({field: "deliveries.none.deliveryId", operator: "eq", value: Number(routeParam.deliveryId)});
@@ -137,4 +136,4 @@ const OrderCheckTable = (props: {
     );
 };
 
-export default OrderCheckTable;
+export default OrderSelectTable;
