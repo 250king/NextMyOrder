@@ -39,3 +39,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# heroui-agents-md
+.heroui-docs/
+
+# IDEs and editors
+/.idea
+*.iml
+
+# Ovral generated files
+/src/api/generated
+/src/api/model
