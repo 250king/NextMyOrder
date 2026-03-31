@@ -3,7 +3,7 @@ import Script from "next/script";
 import { Toast } from "@heroui/react";
 import { Metadata } from "next";
 import "./globals.css";
-import { ThemeProvider } from "@/component/theme";
+import { ThemeProvider } from "@/component/layout/theme";
 
 const js = `(function() {
     function getTheme() {

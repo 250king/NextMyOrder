@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import * as client from 'openid-client';
 import { env } from "@/util/env";
 import { issuer } from "@/util/oauth2";
-import { get, has, setAll } from "@/util/session";
+import { getAll, setAll } from "@/util/session";
 
 const buildUrl = (path: string, base: string) => {
     if (path == "/") {
@@ -16,12 +16,13 @@ export const proxy = async (request: NextRequest) => {
     const {pathname, search} = request.nextUrl;
     const sid = request.cookies.get(env.SESSION_COOKIE)?.value || crypto.randomUUID();
     const params = new Headers(request.headers);
+    const session = await getAll(sid);
     let response: NextResponse | null = null
     params.set("x-sid", sid);
     if (!["/login", "/logout", "/callback"].some(path => pathname == path)) {
-        if (await has("expired_at") && await get("expired_at") < new Date().getTime()) {
+        if ("expired_at" in session && session.expired_at < new Date().getTime()) {
             try {
-                const res = await client.refreshTokenGrant(issuer, await get("refresh_token"), {
+                const res = await client.refreshTokenGrant(issuer, session.refresh_token, {
                     resource: env.RESOURCE_URI,
                 })
                 await setAll({
@@ -29,15 +30,15 @@ export const proxy = async (request: NextRequest) => {
                     refresh_token: res.refresh_token || null,
                     id_token: res.id_token || null,
                     expired_at: (res.expires_in || 0) * 1000 + new Date().getTime()
-                })
+                }, sid)
                 params.set("x-access-token", res.access_token);
-                params.set("x-user", atob(res.id_token?.split(".")[1] || ""));
+                params.set("x-user", res.id_token?.split(".")[1] || "");
             } catch {
                 response = NextResponse.redirect(buildUrl(`${pathname}${search}`, request.url));
             }
-        } else if (await has("access_token")) {
-            params.set("x-access-token", await get("access_token"));
-            params.set("x-user", atob((await get("id_token")).split(".")[1]));
+        } else if ("access_token" in session) {
+            params.set("x-access-token", session.access_token);
+            params.set("x-user", session.id_token.split(".")[1]);
         } else {
             response = NextResponse.redirect(buildUrl(`${pathname}${search}`, request.url));
         }

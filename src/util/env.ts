@@ -9,9 +9,9 @@ const envSchema = z.object({
     REDIRECT_URI: z.url(),
     RESOURCE_URI: z.url(),
     REDIS_URL: z.url(),
-    SESSION_PREFIX: z.string().default(""),
-    SESSION_COOKIE: z.string().default("myorder_sid"),
-    SESSION_TTL: z.int().default(60 * 60 * 24 * 7)
+    SESSION_PREFIX: z.string().nonempty().default("session"),
+    SESSION_COOKIE: z.string().nonempty().default("__sid"),
+    SESSION_TTL: z.int().default(60 * 60 * 24 * 7),
 });
 
 export const env = envSchema.parse(process.env);

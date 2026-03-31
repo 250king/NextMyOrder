@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import * as client from "openid-client";
-import { Error } from "@/component/error";
+import { LinkButton } from "@/component/navigation/button";
 import { env } from "@/util/env";
 import { issuer } from "@/util/oauth2";
 import { get, has, setAll } from "@/util/session";
@@ -11,10 +11,22 @@ interface PageProps {
     }>
 }
 
+const Error = ({ next }: { next?: string }) => {
+    return (
+        <div className="flex flex-1 flex-col items-center justify-center gap-4">
+            <div className="text-center">
+                <h1 className="mb-4 text-2xl font-bold">请求非法，请稍后再试</h1>
+                <LinkButton href={`/login${next ? `?next=${next}` : ""}`}>重新登录</LinkButton>
+            </div>
+        </div>
+    );
+};
+
 const Page = async ({ searchParams }: PageProps) => {
     const params = await searchParams;
+    const next = await get("next");
     if (!(await has("state")) || "error" in params || !("state" in params)) {
-        return <Error next={await get("next")} />;
+        return <Error next={next} />;
     }
     try {
         const url = new URL(env.REDIRECT_URI);
@@ -33,16 +45,15 @@ const Page = async ({ searchParams }: PageProps) => {
             id_token: res.id_token || null,
             expired_at: (res.expires_in || 0) * 1000 + new Date().getTime()
         })
-        if (await has("next")) {
-            redirect(decodeURIComponent(await get("next")));
-        }
-        redirect("/")
     } catch {
-        const next = await get("next");
         return (
             <Error next={next} />
         );
     }
+    if (next) {
+        redirect(decodeURIComponent(next));
+    }
+    redirect("/");
 };
 
 export default Page;
