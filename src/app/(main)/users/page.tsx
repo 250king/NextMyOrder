@@ -1,8 +1,18 @@
+import { getUserController } from "@/api/generated/user-controller/user-controller";
+import { FindAll4Params } from "@/api/model";
 import { LinkButton } from "@/component/navigation/button";
 import { getContext } from "@/util/context";
 
-const Page = async () => {
+interface PageProps {
+    searchParams: Promise<FindAll4Params>;
+}
+
+const Page = async ({ searchParams }: PageProps) => {
+    const params = await searchParams;
     const context = await getContext();
+    const user = await getUserController().findAll4({
+        order: params.order
+    })
     
     return context.isAdmin ? (
         <div className="container mx-auto p-6">

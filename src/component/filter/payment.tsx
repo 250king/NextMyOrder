@@ -2,15 +2,10 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Label, Tag, TagGroup } from "@heroui/react";
 import type { Selection } from "@react-types/shared";
-import { PaymentResponseMethod, PaymentResponseType } from "@/api/model";
+import { FindAll1Params, PaymentResponseMethod, PaymentResponseType } from "@/api/model";
 import { methodMap, typeMap } from "@/type/payment";
 
-interface FiltersProps {
-    type?: string;
-    method?: string;
-}
-
-export const PaymentFilters = ({ type, method }: FiltersProps) => {
+export const PaymentFilters = ({ type, method }: FindAll1Params) => {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();

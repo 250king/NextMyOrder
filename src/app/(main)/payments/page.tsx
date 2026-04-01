@@ -1,28 +1,22 @@
 import { getPaymentController } from "@/api/generated/payment-controller/payment-controller";
-import { PaymentResponseMethod, PaymentResponseType } from "@/api/model";
+import { FindAll1Params } from "@/api/model";
 import { PaymentCard } from "@/component/card/payment";
+import { Pagination } from "@/component/filter/pagination";
 import { PaymentFilters } from "@/component/filter/payment";
-import { Pagination } from "@/component/pagination";
 import { getConfig, getContext } from "@/util/context";
 
 interface PageProps {
-    searchParams: Promise<{
-        type?: string;
-        method?: string;
-        page?: string;
-    }>;
+    searchParams: Promise<FindAll1Params>;
 }
-
-export const dynamic = "force-dynamic";
 
 const Page = async ({ searchParams }: PageProps) => {
     const params = await searchParams;
     const context = await getContext();
     const payments = await getPaymentController().findAll1(
         {
-            type: params.type === "ALL" ? undefined : (params.type as PaymentResponseType),
-            method: params.method === "ALL" ? undefined : (params.method as PaymentResponseMethod),
-            page: params.page ? parseInt(params.page) : 1,
+            type: params.type,
+            method: params.method,
+            page: params.page ? Number(params.page) : 1,
         },
         getConfig(context)
     );
@@ -40,7 +34,7 @@ const Page = async ({ searchParams }: PageProps) => {
                         </div>
                     ))}
                 </div>
-                <Pagination total={payments.total} page={params.page}/>
+                <Pagination total={payments.total} page={Number(params.page)}/>
             </div>
         </div>
     );

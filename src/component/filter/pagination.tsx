@@ -4,7 +4,7 @@ import { Pagination as HeroPagination } from '@heroui/react';
 
 type PaginationProps = {
     total: number;
-    page?: string;
+    page?: number;
     size?: number;
 };
 
@@ -13,7 +13,7 @@ export const Pagination = ({ total, page, size = 10 }: PaginationProps) => {
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const pages = Math.ceil(total / size);
-    const current = page ? parseInt(page) : 1;
+    const current = page ? page : 1;
 
     const onChange = (page: number) => {
         const params = new URLSearchParams(searchParams.toString());
