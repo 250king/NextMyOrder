@@ -1,8 +1,10 @@
 "use client";
+import React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Pagination as HeroPagination } from "@heroui/react";
 
 type PaginationProps = {
+    startTransition: React.TransitionStartFunction;
     total: number;
     page?: number;
     size?: number;
@@ -15,19 +17,22 @@ const buildPageItems = (pages: number, current: number): PageItem[] => {
     if (pages <= 3) {
         return Array.from({ length: pages }, (_, i) => i + 1);
     }
-
     if (current <= 2) {
         return [1, 2, 3, "ellipsis-right", pages];
     }
-
     if (current >= pages - 1) {
         return [1, "ellipsis-left", pages - 2, pages - 1, pages];
     }
-
     return [1, "ellipsis-left", current, "ellipsis-right", pages];
 };
 
-export const Pagination = ({ total, page, size, center = true }: PaginationProps) => {
+export const Pagination = ({
+    startTransition,
+    total,
+    page,
+    size,
+    center = true,
+}: PaginationProps) => {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -37,6 +42,8 @@ export const Pagination = ({ total, page, size, center = true }: PaginationProps
     const pageRaw = typeof page === "number" ? page : Number(page);
     const current = Number.isFinite(pageRaw) ? Math.min(Math.max(1, pageRaw), pages) : 1;
     const pageItems = buildPageItems(pages, current);
+    const start = total === 0 ? 0 : (current - 1) * safeSize + 1;
+    const end = total === 0 ? 0 : Math.min(current * safeSize, total);
 
     const onChange = (nextPage: number) => {
         const clamped = Math.min(Math.max(1, nextPage), pages);
@@ -52,11 +59,14 @@ export const Pagination = ({ total, page, size, center = true }: PaginationProps
         } else {
             params.set("size", String(safeSize));
         }
-        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+        startTransition(() => {
+            router.push(`${pathname}?${params.toString()}`, { scroll: false });
+        });
     };
 
     return (
-        <HeroPagination className={`mx-auto w-full flex-row justify-${center ? "center" : "end"}`}>
+        <HeroPagination className={`mx-auto w-full flex-row ${center ? "justify-center" : ""}`}>
+            {!center && <HeroPagination.Summary>第 {start}-{end} 条/总共 {total} 条</HeroPagination.Summary>}
             <HeroPagination.Content>
                 <HeroPagination.Item>
                     <HeroPagination.Previous

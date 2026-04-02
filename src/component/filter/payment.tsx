@@ -1,11 +1,13 @@
 "use client";
+import React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Label, Tag, TagGroup } from "@heroui/react";
 import type { Selection } from "@react-types/shared";
 import { FindAll1Params, PaymentResponseMethod, PaymentResponseType } from "@/api/model";
+import { FiltersProps } from "@/type/filter";
 import { methodMap, typeMap } from "@/type/payment";
 
-export const PaymentFilters = ({ type, method }: FindAll1Params) => {
+export const PaymentFilters = ({ type, method, startTransition }: FiltersProps<FindAll1Params>) => {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -19,11 +21,13 @@ export const PaymentFilters = ({ type, method }: FindAll1Params) => {
             params.set(name, value.toString());
         }
         params.delete("page");
-        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+        startTransition(() => {
+            router.push(`${pathname}?${params.toString()}`, { scroll: false });
+        });
     };
 
     return (
-        <div className="flex flex-col gap-6 mb-4">
+        <div className="flex flex-col gap-4">
             <TagGroup
                 selectedKeys={[type || "ALL"]}
                 selectionMode="single"
