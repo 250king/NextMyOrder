@@ -1,51 +1,88 @@
 "use client";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Pagination as HeroPagination } from '@heroui/react';
+import { Pagination as HeroPagination } from "@heroui/react";
 
 type PaginationProps = {
     total: number;
     page?: number;
     size?: number;
+    center?: boolean;
 };
 
-export const Pagination = ({ total, page, size = 10 }: PaginationProps) => {
+type PageItem = number | "ellipsis-left" | "ellipsis-right";
+
+const buildPageItems = (pages: number, current: number): PageItem[] => {
+    if (pages <= 3) {
+        return Array.from({ length: pages }, (_, i) => i + 1);
+    }
+
+    if (current <= 2) {
+        return [1, 2, 3, "ellipsis-right", pages];
+    }
+
+    if (current >= pages - 1) {
+        return [1, "ellipsis-left", pages - 2, pages - 1, pages];
+    }
+
+    return [1, "ellipsis-left", current, "ellipsis-right", pages];
+};
+
+export const Pagination = ({ total, page, size, center = true }: PaginationProps) => {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
-    const pages = Math.ceil(total / size);
-    const current = page ? page : 1;
+    const safeSize = Number.isFinite(size) && (size ?? 0) > 0 ? (size as number) : 10;
+    const pagesRaw = Math.ceil(Math.max(0, total) / safeSize);
+    const pages = Math.max(1, Number.isFinite(pagesRaw) ? pagesRaw : 1);
+    const pageRaw = typeof page === "number" ? page : Number(page);
+    const current = Number.isFinite(pageRaw) ? Math.min(Math.max(1, pageRaw), pages) : 1;
+    const pageItems = buildPageItems(pages, current);
 
-    const onChange = (page: number) => {
+    const onChange = (nextPage: number) => {
+        const clamped = Math.min(Math.max(1, nextPage), pages);
+        if (clamped === current) return;
         const params = new URLSearchParams(searchParams.toString());
-        if (page === 1) {
+        if (clamped === 1) {
             params.delete("page");
         } else {
-            params.set("page", page.toString());
+            params.set("page", String(clamped));
+        }
+        if (safeSize === 10) {
+            params.delete("size");
+        } else {
+            params.set("size", String(safeSize));
         }
         router.push(`${pathname}?${params.toString()}`, { scroll: false });
-    }
+    };
 
-    return total === 0 ? null : (
-        <HeroPagination className="justify-center mx-auto w-full flex-row">
+    return (
+        <HeroPagination className={`mx-auto w-full flex-row justify-${center ? "center" : "end"}`}>
             <HeroPagination.Content>
                 <HeroPagination.Item>
                     <HeroPagination.Previous
-                        isDisabled={current === 1}
+                        isDisabled={current <= 1}
                         onPress={() => onChange(current - 1)}
                     >
                         <HeroPagination.PreviousIcon />
                     </HeroPagination.Previous>
                 </HeroPagination.Item>
-                {Array.from({ length: pages }, (_, i) => i + 1).map((p) => (
-                    <HeroPagination.Item key={p}>
-                        <HeroPagination.Link isActive={p === current} onPress={() => onChange(p)}>
-                            {p}
-                        </HeroPagination.Link>
+                {pageItems.map((item, index) => (
+                    <HeroPagination.Item key={`${item}-${index}`}>
+                        {typeof item === "number" ? (
+                            <HeroPagination.Link
+                                isActive={item === current}
+                                onPress={() => onChange(item)}
+                            >
+                                {item}
+                            </HeroPagination.Link>
+                        ) : (
+                            <HeroPagination.Ellipsis />
+                        )}
                     </HeroPagination.Item>
                 ))}
                 <HeroPagination.Item>
                     <HeroPagination.Next
-                        isDisabled={current === pages}
+                        isDisabled={current >= pages}
                         onPress={() => onChange(current + 1)}
                     >
                         <HeroPagination.NextIcon />

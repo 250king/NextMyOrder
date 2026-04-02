@@ -8,3 +8,7 @@ export const currency = (amount: number, type: string) => {
         currency: type,
     }).format(amount);
 }
+
+export const date = (current: string) => {
+    return new Date(current).toLocaleString("zh-CN");
+}
