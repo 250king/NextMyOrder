@@ -67,7 +67,7 @@ const columns = [
     }),
 ];
 
-export const UserTable = ({ items, total, page, sort, order }: TableProps) => {
+export const UserTable = ({ items, total, page, sort, order, keyword }: TableProps) => {
     const [isPending, startTransition] = React.useTransition();
     const router = useRouter();
     const pathname = usePathname();
@@ -82,7 +82,7 @@ export const UserTable = ({ items, total, page, sort, order }: TableProps) => {
     return (
         <div className="relative flex flex-col gap-4">
             {isPending && <Loading />}
-            <KeywordFilters startTransition={startTransition}/>
+            <KeywordFilters startTransition={startTransition} keyword={keyword}/>
             <Table>
                 <Table.ScrollContainer>
                     <TableContent

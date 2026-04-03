@@ -1,6 +1,7 @@
+import Link from "next/link";
+import { Button } from "@heroui/react";
 import { getUserController } from "@/api/generated/user-controller/user-controller";
 import { FindAll4Params } from "@/api/model";
-import { LinkButton } from "@/component/navigation/button";
 import { UserTable } from "@/component/table/user";
 import { getConfig, getContext } from "@/util/context";
 
@@ -15,18 +16,20 @@ const Page = async ({ searchParams }: PageProps) => {
             <div className="flex flex-1 flex-col items-center justify-center gap-4">
                 <div className="text-center">
                     <h1 className="mb-4 text-2xl font-bold">无权限，请返回首页</h1>
-                    <LinkButton href="/">返回首页</LinkButton>
+                    <Link href="/">
+                        <Button>返回首页</Button>
+                    </Link>
                 </div>
             </div>
         );
     }
-    const params = await searchParams;
+    const query = await searchParams;
     const user = await getUserController().findAll4(
         {
-            order: params.order,
-            sort: params.sort,
-            page: params.page,
-            keyword: params.keyword
+            order: query.order,
+            sort: query.sort,
+            page: query.page,
+            keyword: query.keyword
         },
         getConfig(context)
     );
@@ -38,10 +41,10 @@ const Page = async ({ searchParams }: PageProps) => {
                 <UserTable
                     items={user.items}
                     total={user.total}
-                    page={params.page}
-                    sort={params.sort}
-                    order={params.order}
-                    keyword={params.keyword}
+                    page={query.page}
+                    sort={query.sort}
+                    order={query.order}
+                    keyword={query.keyword}
                 />
             </div>
         </div>

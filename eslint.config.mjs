@@ -51,6 +51,7 @@ const eslintConfig = defineConfig([
             "no-func-assign": "error",
             "prefer-arrow-callback": ["error", { allowNamedFunctions: false }],
             "no-var": "error",
+            "@next/next/no-img-element": "off",
             "@typescript-eslint/no-unused-vars": "warn",
             "sort-class-members/sort-class-members": [
                 "error",

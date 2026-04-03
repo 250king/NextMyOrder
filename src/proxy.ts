@@ -19,7 +19,7 @@ export const proxy = async (request: NextRequest) => {
     const session = await getAll(sid);
     let response: NextResponse | null = null
     params.set("x-sid", sid);
-    if (!["/login", "/logout", "/callback"].some(path => pathname == path)) {
+    if (!["/login", "/callback"].some(path => pathname == path)) {
         if ("expired_at" in session && session.expired_at < new Date().getTime()) {
             try {
                 const res = await client.refreshTokenGrant(issuer, session.refresh_token, {

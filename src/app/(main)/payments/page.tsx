@@ -8,13 +8,13 @@ interface PageProps {
 }
 
 const Page = async ({ searchParams }: PageProps) => {
-    const params = await searchParams;
+    const query = await searchParams;
     const context = await getContext();
     const payments = await getPaymentController().findAll1(
         {
-            type: params.type,
-            method: params.method,
-            page: params.page,
+            type: query.type,
+            method: query.method,
+            page: query.page,
         },
         getConfig(context)
     );
@@ -24,9 +24,9 @@ const Page = async ({ searchParams }: PageProps) => {
             <div className="flex flex-col gap-4">
                 <h1 className="text-2xl font-bold">账单</h1>
                 <PaymentCard
-                    type={params.type}
-                    method={params.method}
-                    page={params.page}
+                    type={query.type}
+                    method={query.method}
+                    page={query.page}
                     items={payments.items}
                     total={payments.total}
                     isAdmin={context.isAdmin}

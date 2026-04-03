@@ -1,6 +1,7 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Button } from "@heroui/react";
 import * as client from "openid-client";
-import { LinkButton } from "@/component/navigation/button";
 import { env } from "@/util/env";
 import { issuer } from "@/util/oauth2";
 import { get, has, setAll } from "@/util/session";
@@ -16,7 +17,9 @@ const Error = ({ next }: { next?: string }) => {
         <div className="flex flex-1 flex-col items-center justify-center gap-4">
             <div className="text-center">
                 <h1 className="mb-4 text-2xl font-bold">请求非法，请稍后再试</h1>
-                <LinkButton href={`/login${next ? `?next=${next}` : ""}`}>重新登录</LinkButton>
+                <Link href={`/login${next ? `?next=${next}` : ""}`}>
+                    <Button>重新登录</Button>
+                </Link>
             </div>
         </div>
     );
