@@ -8,29 +8,15 @@ interface PageProps {
 }
 
 const Page = async ({ searchParams }: PageProps) => {
-    const query = await searchParams;
+    const data = await searchParams;
     const context = await getContext();
-    const payments = await getPaymentController().findAll1(
-        {
-            type: query.type,
-            method: query.method,
-            page: query.page,
-        },
-        getConfig(context)
-    );
+    const payments = await getPaymentController().findAll1(data, getConfig(context));
 
     return (
         <div className="container mx-auto p-6">
             <div className="flex flex-col gap-4">
                 <h1 className="text-2xl font-bold">账单</h1>
-                <PaymentCard
-                    type={query.type}
-                    method={query.method}
-                    page={query.page}
-                    items={payments.items}
-                    total={payments.total}
-                    isAdmin={context.isAdmin}
-                />
+                <PaymentCard {...data} {...payments} isAdmin={context.isAdmin} />
             </div>
         </div>
     );

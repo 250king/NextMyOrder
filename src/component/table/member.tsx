@@ -1,29 +1,28 @@
 "use client";
 import React from "react";
-import { Avatar } from "@heroui/react";
+import { Avatar, Button } from "@heroui/react";
 import { createColumnHelper } from "@tanstack/react-table";
-import { FindAll4Params, UserResponse } from "@/api/model";
+import { GetMembersParams, MemberResponse } from "@/api/model";
 import { KeywordFilters } from "@/component/filter/keyword";
 import { Loading } from "@/component/filter/loading";
-import { LinkButton } from "@/component/navigation/button";
 import { HeroTable } from "@/component/table/common";
 import { date } from "@/util/string";
 
-type TableProps = FindAll4Params & {
-    items: UserResponse[];
+type TableProps = GetMembersParams & {
+    items: MemberResponse[];
     total: number;
 };
 
-const columnHelper = createColumnHelper<UserResponse>();
+const columnHelper = createColumnHelper<MemberResponse>();
 
 const columns = [
-    columnHelper.accessor("id", {
+    columnHelper.accessor("user.id", {
         header: "ID",
         meta: {
             width: 80,
         },
     }),
-    columnHelper.accessor("name", {
+    columnHelper.accessor("user.name", {
         header: "用户名",
         meta: {
             width: 330,
@@ -31,30 +30,26 @@ const columns = [
         cell: ({ row }) => (
             <div className="flex items-center gap-3">
                 <Avatar size="sm">
-                    <Avatar.Image src={`https://q.qlogo.cn/g?b=qq&nk=${row.original.qq}&s=100`} />
+                    <Avatar.Image src={`https://q.qlogo.cn/g?b=qq&nk=${row.original.user.qq}&s=100`} />
                 </Avatar>
                 <div className="min-w-0">
-                    <div className="truncate font-medium">{row.original.name}</div>
-                    <div className="text-default-500 text-xs truncate">{row.original.qq}</div>
+                    <div className="truncate font-medium">{row.original.user.name}</div>
+                    <div className="text-default-500 text-xs truncate">{row.original.user.qq}</div>
                 </div>
             </div>
         ),
     }),
-    columnHelper.accessor("email", {
+    columnHelper.accessor("user.email", {
         header: "邮箱",
         meta: {
             width: 330,
         },
     }),
-    columnHelper.accessor("creditScore", {
+    columnHelper.accessor("user.creditScore", {
         header: "信用分",
     }),
     columnHelper.accessor("createdAt", {
-        header: "注册时间",
-        cell: ({ getValue }) => date(getValue()),
-    }),
-    columnHelper.accessor("updatedAt", {
-        header: "更新时间",
+        header: "加入时间",
         cell: ({ getValue }) => date(getValue()),
     }),
     columnHelper.display({
@@ -63,17 +58,17 @@ const columns = [
         meta: {
             width: 140,
         },
-        cell: ({ row }) => (
+        cell: () => (
             <div className="flex items-center gap-3">
-                <LinkButton href={`/users/${row.original.id}`} isIconOnly size="sm" variant="tertiary">
-                    <span className="icon-[ri--settings-3-fill]" />
-                </LinkButton>
+                <Button isIconOnly size="sm" variant="danger-soft">
+                    <span className="icon-[ri--delete-bin-6-line]" />
+                </Button>
             </div>
         ),
     }),
 ];
 
-export const UserTable = ({ items, total, page, sort, order, keyword }: TableProps) => {
+export const MemberTable = ({ items, total, page, sort, order, keyword }: TableProps) => {
     const [isPending, startTransition] = React.useTransition();
 
     return (

@@ -1,3 +1,4 @@
+import { forbidden, notFound, unauthorized } from "next/navigation";
 import axios, { type AxiosRequestConfig } from 'axios';
 import { env } from '@/util/env';
 
@@ -7,6 +8,13 @@ export const AXIOS_INSTANCE = axios.create({
 
 AXIOS_INSTANCE.interceptors.response.use(
     (res) => res,
+    (error) => {
+        const status = error?.response?.status;
+        if (status === 401) unauthorized();
+        if (status === 403) forbidden();
+        if (status === 404) notFound();
+        return Promise.reject(error);
+    }
 );
 
 export const customInstance = <T>(config: AxiosRequestConfig, options?: AxiosRequestConfig): Promise<T> => {

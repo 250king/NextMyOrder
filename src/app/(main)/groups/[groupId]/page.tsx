@@ -16,6 +16,20 @@ const Page = async ({ params }: PageProps) => {
     const query = await params;
     const context = await getContext();
     const group = await getGroupController().findById3(query.groupId, getConfig(context));
+    const addList = [
+        {
+            name: "组员管理",
+            path: `/groups/${group.id}/users`,
+            description: "查看/管理组员信息",
+            icon: "icon-[ri--group-fill]",
+        },
+        {
+            name: "采购汇总",
+            path: `/groups/${group.id}/summary`,
+            description: "汇总全团的采购信息",
+            icon: "icon-[ri--bar-chart-fill]",
+        },
+    ];
     const list = [
         {
             name: "商品选购",
@@ -29,18 +43,7 @@ const Page = async ({ params }: PageProps) => {
             description: "修改/确认您所选的商品信息",
             icon: "icon-[ri--file-list-2-line]",
         },
-        {
-            name: "组员管理",
-            path: `/groups/${group.id}/users`,
-            description: "查看/管理组员信息",
-            icon: "icon-[ri--group-fill]",
-        },
-        {
-            name: "采购汇总",
-            path: `/groups/${group.id}/summary`,
-            description: "汇总全团的采购信息",
-            icon: "icon-[ri--bar-chart-fill]",
-        },
+        ...(context.isAdmin ? addList : []),
     ];
 
     return (

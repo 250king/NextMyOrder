@@ -1,11 +1,11 @@
 "use client";
 import React from "react";
-import Link from "next/link";
-import { Avatar, Button, Card } from "@heroui/react";
+import { Avatar, Card } from "@heroui/react";
 import { FindAll1Params, PaymentResponse } from "@/api/model";
 import { Loading } from "@/component/filter/loading";
 import { Pagination } from "@/component/filter/pagination";
 import { PaymentFilters } from "@/component/filter/payment";
+import { LinkButton } from "@/component/navigation/button";
 import { CardProps } from "@/type/card";
 import { methodMap, typeMap } from "@/type/payment";
 import { currency } from "@/util/string";
@@ -57,19 +57,17 @@ export const PaymentCard = ({ items, total, isAdmin, page, method, type }: CardP
                             </Card.Content>
                             <Card.Footer className="mt-auto flex w-full justify-end gap-2">
                                 {item.paidAt ? (
-                                    <Link href={`/payments/${item.id}/receipt`}>
-                                        <Button>生成凭证</Button>
-                                    </Link>
+                                    <LinkButton href={`/payments/${item.id}/receipt`}>
+                                        生成凭证
+                                    </LinkButton>
                                 ) : (
                                     <>
                                         {!isAdmin && (
-                                            <Link href={`/payments/${item.id}/edit`}>
-                                                <Button variant="secondary">编辑</Button>
-                                            </Link>
+                                            <LinkButton href={`/payments/${item.id}/edit`} variant="secondary">
+                                                编辑
+                                            </LinkButton>
                                         )}
-                                        <Link href={`/payments/${item.id}/pay`}>
-                                            <Button>前往支付</Button>
-                                        </Link>
+                                        <LinkButton href={`/payments/${item.id}/pay`}>前往支付</LinkButton>
                                     </>
                                 )}
                             </Card.Footer>
