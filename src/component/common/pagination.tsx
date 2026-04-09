@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Pagination as HeroPagination } from "@heroui/react";
+import { useFilter } from "@/component/common/filter";
 
 type PaginationProps = {
     startTransition: React.TransitionStartFunction;
@@ -26,16 +26,8 @@ const buildPageItems = (pages: number, current: number): PageItem[] => {
     return [1, "ellipsis-left", current, "ellipsis-right", pages];
 };
 
-export const Pagination = ({
-    startTransition,
-    total,
-    page,
-    size,
-    center = true,
-}: PaginationProps) => {
-    const router = useRouter();
-    const pathname = usePathname();
-    const searchParams = useSearchParams();
+export const Pagination = ({ startTransition, total, page, size, center = true }: PaginationProps) => {
+    const { updateFilter } = useFilter(startTransition);
     const safeSize = Number.isFinite(size) && (size ?? 0) > 0 ? (size as number) : 10;
     const pagesRaw = Math.ceil(Math.max(0, total) / safeSize);
     const pages = Math.max(1, Number.isFinite(pagesRaw) ? pagesRaw : 1);
@@ -47,42 +39,32 @@ export const Pagination = ({
 
     const onChange = (nextPage: number) => {
         const clamped = Math.min(Math.max(1, nextPage), pages);
-        if (clamped === current) return;
-        const params = new URLSearchParams(searchParams.toString());
-        if (clamped === 1) {
-            params.delete("page");
-        } else {
-            params.set("page", String(clamped));
+        if (clamped === current) {
+            return;
         }
-        if (safeSize === 10) {
-            params.delete("size");
-        } else {
-            params.set("size", String(safeSize));
-        }
-        startTransition(() => {
-            router.push(`${pathname}?${params.toString()}`, { scroll: false });
+        updateFilter({
+            page: clamped === 1 ? null : String(clamped),
+            size: safeSize === 10 ? null : String(safeSize),
         });
     };
 
     return (
         <HeroPagination className={`mx-auto w-full flex-row ${center ? "justify-center" : ""}`}>
-            {!center && <HeroPagination.Summary>第 {start}-{end} 条/总共 {total} 条</HeroPagination.Summary>}
+            {!center && (
+                <HeroPagination.Summary>
+                    第 {start}-{end} 条/总共 {total} 条
+                </HeroPagination.Summary>
+            )}
             <HeroPagination.Content>
                 <HeroPagination.Item>
-                    <HeroPagination.Previous
-                        isDisabled={current <= 1}
-                        onPress={() => onChange(current - 1)}
-                    >
+                    <HeroPagination.Previous isDisabled={current <= 1} onPress={() => onChange(current - 1)}>
                         <HeroPagination.PreviousIcon />
                     </HeroPagination.Previous>
                 </HeroPagination.Item>
                 {pageItems.map((item, index) => (
                     <HeroPagination.Item key={`${item}-${index}`}>
                         {typeof item === "number" ? (
-                            <HeroPagination.Link
-                                isActive={item === current}
-                                onPress={() => onChange(item)}
-                            >
+                            <HeroPagination.Link isActive={item === current} onPress={() => onChange(item)}>
                                 {item}
                             </HeroPagination.Link>
                         ) : (
@@ -91,10 +73,7 @@ export const Pagination = ({
                     </HeroPagination.Item>
                 ))}
                 <HeroPagination.Item>
-                    <HeroPagination.Next
-                        isDisabled={current >= pages}
-                        onPress={() => onChange(current + 1)}
-                    >
+                    <HeroPagination.Next isDisabled={current >= pages} onPress={() => onChange(current + 1)}>
                         <HeroPagination.NextIcon />
                     </HeroPagination.Next>
                 </HeroPagination.Item>

@@ -5,7 +5,7 @@ import { FindAll2Params, GroupResponse } from "@/api/model";
 import {CardImage} from "@/component/card/image";
 import { EnumFilter, SearchFilter, useFilter } from "@/component/common/filter";
 import { Loading } from "@/component/common/loading";
-import { Pagination } from "@/component/filter/pagination";
+import { Pagination } from "@/component/common/pagination";
 import {LinkButton} from "@/component/navigation/button";
 import { CardProps } from "@/type/card";
 import { colorMap, statusMap } from "@/type/group";

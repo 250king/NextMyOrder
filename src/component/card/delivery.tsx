@@ -4,7 +4,7 @@ import { Avatar, Card, Chip } from "@heroui/react";
 import { DeliveryResponse, FindAll3Params } from "@/api/model";
 import { EnumFilter, SearchFilter, useFilter } from "@/component/common/filter";
 import { Loading } from "@/component/common/loading";
-import { Pagination } from "@/component/filter/pagination";
+import { Pagination } from "@/component/common/pagination";
 import { LinkButton } from "@/component/navigation/button";
 import { CardProps } from "@/type/card";
 import { colorMap, companyMap, iconMap, statusMap } from "@/type/delivery";
@@ -55,7 +55,7 @@ export const DeliveryCard = ({ items, total, company, status, keyword, page }: C
                                 </div>
                             </Card.Content>
                             <Card.Footer className="mt-auto flex w-full justify-end gap-2">
-                                <LinkButton href={`/payments/${item.id}`} variant="secondary">
+                                <LinkButton href={`/deliveries/${item.id}`} variant="secondary">
                                     进入管理
                                 </LinkButton>
                             </Card.Footer>

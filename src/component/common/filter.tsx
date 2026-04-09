@@ -30,7 +30,9 @@ export const useFilter = (startTransition: React.TransitionStartFunction) => {
                     params.set(name, value);
                 }
             });
-            params.delete("page");
+            if (!("page" in updates)) {
+                params.delete("page");
+            }
             startTransition(() => {
                 router.push(`${pathname}?${params.toString()}`, { scroll: false });
             });
@@ -65,7 +67,17 @@ export const SearchFilter = ({ label = "搜索", placeholder, initialValue = "",
 
 export const EnumFilter = ({ label, currentValue, options, onChange }: EnumFilterProps) => {
     return (
-        <TagGroup selectedKeys={[currentValue || "ALL"]} selectionMode="single" onSelectionChange={(keys) => onChange(Array.from(keys)[0] as string)}>
+        <TagGroup
+            selectedKeys={[currentValue || "ALL"]}
+            selectionMode="single"
+            onSelectionChange={(keys) => {
+                const selected = Array.from(keys)[0] as string;
+                if (!selected) {
+                    return;
+                }
+                onChange(selected);
+            }}
+        >
             <Label>{label}</Label>
             <TagGroup.List>
                 <Tag id="ALL">全部</Tag>

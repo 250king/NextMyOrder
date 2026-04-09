@@ -2,7 +2,7 @@ import React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { cn, Table, TableContent } from "@heroui/react";
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import { Pagination } from "@/component/filter/pagination";
+import { Pagination } from "@/component/common/pagination";
 import { ColumnMeta } from "@/type/table";
 import { onSortChange, sortDescriptor } from "@/util/table";
 

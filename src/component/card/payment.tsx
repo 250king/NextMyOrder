@@ -4,7 +4,7 @@ import { Avatar, Card, Chip } from "@heroui/react";
 import { FindAll1Params, PaymentResponse } from "@/api/model";
 import { EnumFilter, useFilter } from "@/component/common/filter";
 import { Loading } from "@/component/common/loading";
-import { Pagination } from "@/component/filter/pagination";
+import { Pagination } from "@/component/common/pagination";
 import { LinkButton } from "@/component/navigation/button";
 import { CardProps } from "@/type/card";
 import { colorMap, iconMap, methodMap, typeMap } from "@/type/payment";
