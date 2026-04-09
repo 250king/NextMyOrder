@@ -55,6 +55,9 @@ export const Navbar = ({ user, isAdmin }: Omit<Context, "accessToken">) => {
                                             <p className="text-primary whitespace-nowrap">{user.name}</p>
                                         </div>
                                     </Dropdown.Item>
+                                    <Dropdown.Item onClick={() => router.replace("/me")} key="me" className="whitespace-nowrap">
+                                        个人中心
+                                    </Dropdown.Item>
                                     <Dropdown.Item onClick={() => router.replace("/logout")} key="logout" className="text-danger whitespace-nowrap">
                                         退出登录
                                     </Dropdown.Item>

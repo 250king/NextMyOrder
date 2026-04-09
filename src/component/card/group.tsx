@@ -3,20 +3,22 @@ import React from "react";
 import { Card, Chip } from "@heroui/react";
 import { FindAll2Params, GroupResponse } from "@/api/model";
 import {CardImage} from "@/component/card/image";
-import { KeywordFilters } from "@/component/filter/keyword";
-import { Loading } from "@/component/filter/loading";
+import { EnumFilter, SearchFilter, useFilter } from "@/component/common/filter";
+import { Loading } from "@/component/common/loading";
 import { Pagination } from "@/component/filter/pagination";
 import {LinkButton} from "@/component/navigation/button";
 import { CardProps } from "@/type/card";
 import { colorMap, statusMap } from "@/type/group";
 
-export const GroupCard = ({ items, total, page, keyword }: CardProps<FindAll2Params, GroupResponse>) => {
+export const GroupCard = ({ items, total, status, page, keyword }: CardProps<FindAll2Params, GroupResponse>) => {
     const [isPending, startTransition] = React.useTransition();
+    const { updateFilter } = useFilter(startTransition);
 
     return (
         <div className="relative flex flex-col gap-4">
             {isPending && <Loading />}
-            <KeywordFilters startTransition={startTransition} keyword={keyword} />
+            <SearchFilter initialValue={keyword} onSearch={(val) => updateFilter({ keyword: val })} />
+            <EnumFilter label="订单状态" currentValue={status} options={statusMap} onChange={(val) => updateFilter({ status: val })} />
             <p className="text-default-500 text-sm">共找到{total}条记录</p>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 items-stretch">
                 {items.map((item) => (

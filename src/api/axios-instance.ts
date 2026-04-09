@@ -1,4 +1,4 @@
-import { forbidden, notFound, unauthorized } from "next/navigation";
+import { forbidden, notFound } from "next/navigation";
 import axios, { type AxiosRequestConfig } from 'axios';
 import { env } from '@/util/env';
 
@@ -10,9 +10,12 @@ AXIOS_INSTANCE.interceptors.response.use(
     (res) => res,
     (error) => {
         const status = error?.response?.status;
-        if (status === 401) unauthorized();
-        if (status === 403) forbidden();
-        if (status === 404) notFound();
+        if (status === 403) {
+            forbidden();
+        }
+        if (status === 404) {
+            notFound();
+        }
         return Promise.reject(error);
     }
 );

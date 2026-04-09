@@ -1,48 +1,65 @@
 "use client";
 import React from "react";
-import { Avatar, Card } from "@heroui/react";
+import { Avatar, Card, Chip } from "@heroui/react";
 import { DeliveryResponse, FindAll3Params } from "@/api/model";
-import { Loading } from "@/component/filter/loading";
+import { EnumFilter, SearchFilter, useFilter } from "@/component/common/filter";
+import { Loading } from "@/component/common/loading";
 import { Pagination } from "@/component/filter/pagination";
 import { LinkButton } from "@/component/navigation/button";
 import { CardProps } from "@/type/card";
+import { colorMap, companyMap, iconMap, statusMap } from "@/type/delivery";
 
-export const DeliveryCard = ({ items, total, isAdmin, page }: CardProps<FindAll3Params, DeliveryResponse>) => {
+export const DeliveryCard = ({ items, total, company, status, keyword, page }: CardProps<FindAll3Params, DeliveryResponse>) => {
     const [isPending, startTransition] = React.useTransition();
-    const [hidden, setHidden] = React.useState(true);
+    const { updateFilter } = useFilter(startTransition);
 
     return (
         <div className="relative flex flex-col gap-4">
             {isPending && <Loading />}
+            <SearchFilter initialValue={keyword} onSearch={(val) => updateFilter({ keyword: val })} />
+            <EnumFilter label="快递公司" currentValue={company} options={companyMap} onChange={(val) => updateFilter({ company: val })} />
+            <EnumFilter label="订单状态" currentValue={status} options={statusMap} onChange={(val) => updateFilter({ status: val })} />
             <p className="text-default-500 text-sm">共找到{total}条记录</p>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 items-stretch">
                 {items.map((item) => (
-                    <div className="mb-4 break-inside-avoid" key={item.id}>
-                        <div key={item.id} className="h-full">
-                            <Card className="h-full transition-shadow hover:shadow-lg">
-                                <Card.Header className="flex w-full flex-row items-start justify-between gap-3">
-                                    <Card.Title className="flex items-center gap-3 font-semibold">
-                                        <Avatar>
-                                            <Avatar.Image src={`https://q.qlogo.cn/g?b=qq&nk=${item.user.qq}&s=100`} />
-                                        </Avatar>
-                                        <div>{item.user.name}</div>
-                                    </Card.Title>
-                                    <span className="text-default-500 shrink-0 font-mono text-sm">#{item.id}</span>
-                                </Card.Header>
-                                <Card.Content className="flex flex-1 flex-col gap-2">
-                                    <div className="flex flex-1 flex-row gap-2 items-center">
-                                        <div className="text-default-500 text-lg font-bold">{item.name}</div>
-                                        <div className="text-default-500">{item.phone}</div>
+                    <div key={item.id} className="h-full">
+                        <Card className="h-full transition-shadow hover:shadow-lg">
+                            <Card.Header className="flex w-full flex-row items-start justify-between gap-3">
+                                <Card.Title className="flex items-center gap-3">
+                                    <Avatar>
+                                        <Avatar.Image src={`https://q.qlogo.cn/g?b=qq&nk=${item.user.qq}&s=100`} />
+                                    </Avatar>
+                                    <div className="min-w-0">
+                                        <div className="truncate font-semibold">{item.user.name}</div>
+                                        <div className="text-default-500 text-xs truncate">{item.user.qq}</div>
                                     </div>
-                                    <div className="text-default-500 text-sm">{item.address}</div>
-                                </Card.Content>
-                                <Card.Footer className="mt-auto flex w-full justify-end gap-2">
-                                    <LinkButton href={`/payments/${item.id}/edit`} variant="secondary">
-                                        编辑
-                                    </LinkButton>
-                                </Card.Footer>
-                            </Card>
-                        </div>
+                                </Card.Title>
+                                <span className="text-default-500 shrink-0 font-mono text-sm">#{item.id}</span>
+                            </Card.Header>
+                            <Card.Content className="flex flex-1 flex-col gap-2">
+                                <div className="flex flex-row gap-2 items-center">
+                                    {item.trackingNumber && (
+                                        <Chip variant="primary">
+                                            <span className={iconMap[item.company!]} />
+                                            <Chip.Label>{item.trackingNumber}</Chip.Label>
+                                        </Chip>
+                                    )}
+                                    <Chip variant="primary" color={colorMap[item.status]}>
+                                        {statusMap[item.status]}
+                                    </Chip>
+                                </div>
+                                <div className="text-default-500 text-sm">创建时间：{new Date(item.createdAt).toLocaleString()}</div>
+                                <div className="text-sm">
+                                    填写状态：
+                                    <span className="font-medium">{!item.address || !item.phone || !item.name ? "未填写完善" : "已完善"}</span>
+                                </div>
+                            </Card.Content>
+                            <Card.Footer className="mt-auto flex w-full justify-end gap-2">
+                                <LinkButton href={`/payments/${item.id}`} variant="secondary">
+                                    进入管理
+                                </LinkButton>
+                            </Card.Footer>
+                        </Card>
                     </div>
                 ))}
             </div>

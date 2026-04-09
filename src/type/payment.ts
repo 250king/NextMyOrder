@@ -14,3 +14,19 @@ export const typeMap: Record<PaymentResponseType, string> = {
     LIST: "需求单",
     SHIPPING: "国际运费",
 };
+
+export const iconMap: Record<PaymentResponseMethod, string> = {
+    ALIPAY: "icon-[ri--alipay-fill]",
+    WECHAT: "icon-[ri--wechat-pay-fill]",
+    JDPAY: "icon-[ri--jdpay-fill]",
+    UNIONPAY: "icon-[ri--unionpay-fill]",
+    CASH: "icon-[ri--cash-fill]",
+};
+
+export const colorMap: Record<PaymentResponseMethod, "default" | "success" | "danger" | "warning" | "accent"> = {
+    ALIPAY: "accent",
+    WECHAT: "success",
+    JDPAY: "danger",
+    UNIONPAY: "default",
+    CASH: "warning",
+};

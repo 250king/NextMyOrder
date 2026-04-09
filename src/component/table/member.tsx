@@ -3,9 +3,9 @@ import React from "react";
 import { Avatar, Button } from "@heroui/react";
 import { createColumnHelper } from "@tanstack/react-table";
 import { GetMembersParams, MemberResponse } from "@/api/model";
-import { KeywordFilters } from "@/component/filter/keyword";
-import { Loading } from "@/component/filter/loading";
-import { HeroTable } from "@/component/table/common";
+import { HeroTable } from "@/component/common/common";
+import { SearchFilter, useFilter } from "@/component/common/filter";
+import { Loading } from "@/component/common/loading";
 import { date } from "@/util/string";
 
 type TableProps = GetMembersParams & {
@@ -70,11 +70,12 @@ const columns = [
 
 export const MemberTable = ({ items, total, page, sort, order, keyword }: TableProps) => {
     const [isPending, startTransition] = React.useTransition();
+    const { updateFilter } = useFilter(startTransition);
 
     return (
         <div className="relative flex flex-col gap-4">
             {isPending && <Loading />}
-            <KeywordFilters startTransition={startTransition} keyword={keyword} />
+            <SearchFilter initialValue={keyword} onSearch={(val) => updateFilter({ keyword: val })} />
             <HeroTable
                 startTransition={startTransition}
                 columns={columns}

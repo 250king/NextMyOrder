@@ -3,10 +3,10 @@ import React from "react";
 import { Avatar } from "@heroui/react";
 import { createColumnHelper } from "@tanstack/react-table";
 import { FindAll4Params, UserResponse } from "@/api/model";
-import { KeywordFilters } from "@/component/filter/keyword";
-import { Loading } from "@/component/filter/loading";
+import { HeroTable } from "@/component/common/common";
+import { SearchFilter, useFilter } from "@/component/common/filter";
+import { Loading } from "@/component/common/loading";
 import { LinkButton } from "@/component/navigation/button";
-import { HeroTable } from "@/component/table/common";
 import { date } from "@/util/string";
 
 type TableProps = FindAll4Params & {
@@ -75,11 +75,12 @@ const columns = [
 
 export const UserTable = ({ items, total, page, sort, order, keyword }: TableProps) => {
     const [isPending, startTransition] = React.useTransition();
+    const { updateFilter } = useFilter(startTransition);
 
     return (
         <div className="relative flex flex-col gap-4">
             {isPending && <Loading />}
-            <KeywordFilters startTransition={startTransition} keyword={keyword} />
+            <SearchFilter initialValue={keyword} onSearch={(val) => updateFilter({ keyword: val })} />
             <HeroTable
                 startTransition={startTransition}
                 columns={columns}
