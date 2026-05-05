@@ -1,10 +1,10 @@
 import React from "react";
 import Link from "next/link";
 import { Alert, Card, Chip } from "@heroui/react";
-import { getGroupController } from "@/api/generated/group-controller/group-controller";
-import { colorMap, statusMap } from "@/type/group";
-import { getConfig, getContext } from "@/util/context";
-import { date } from "@/util/string";
+import { getGroupController } from "src/api/generated/group-controller/group-controller";
+import { colorMap, statusMap } from "src/type/group";
+import { getConfig, getContext } from "src/util/context";
+import { date } from "src/util/string";
 
 type PageProps = {
     params: Promise<{

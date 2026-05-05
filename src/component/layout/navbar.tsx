@@ -3,20 +3,19 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Avatar, Button, Drawer, Dropdown } from "@heroui/react";
-import { Context } from "@/type/context";
+import { Context } from "@/type/common";
 
-export const Navbar = ({ user, isAdmin }: Omit<Context, "accessToken">) => {
+export const Navbar = ({ user, isAdmin }: Omit<Context, "accessToken" | "uid">) => {
     const pathname = usePathname();
     const router = useRouter();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-    const navItems = [
+    const adminList = [
         { name: "首页", href: "/home" },
-        ...(isAdmin ? [{ name: "用户", href: "/users" }] : []),
+        { name: "用户", href: "/users" },
         { name: "团购", href: "/groups" },
         { name: "国际运输", href: "/shipping" },
-        { name: "分发", href: "/deliveries" },
-        { name: "账单", href: "/payments" },
     ];
+    const navItems = [...(isAdmin ? adminList : []), { name: "分发", href: "/deliveries" }, { name: "账单", href: "/payments" }];
 
     const getNavClassName = (href: string) => {
         const isActive = pathname === href || pathname?.startsWith(`${href}/`);

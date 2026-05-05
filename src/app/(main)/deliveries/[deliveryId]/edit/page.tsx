@@ -17,11 +17,22 @@ const Page = async ({params}: PageProps) => {
         <div className="container mx-auto p-6">
             <div className="flex flex-col gap-4">
                 <h1 className="text-2xl font-bold">修改信息 #{delivery.id}</h1>
-                <Tabs>
-                    <Tabs.ListContainer>
-
-                    </Tabs.ListContainer>
-                </Tabs>
+                <div className="flex justify-center">
+                    <Tabs className="w-full max-w-md">
+                        <Tabs.ListContainer>
+                            <Tabs.List aria-label="Options">
+                                <Tabs.Tab id="manual">
+                                    手动提交
+                                    <Tabs.Indicator />
+                                </Tabs.Tab>
+                                <Tabs.Tab id="address">
+                                    通过地址簿提交
+                                    <Tabs.Indicator />
+                                </Tabs.Tab>
+                            </Tabs.List>
+                        </Tabs.ListContainer>
+                    </Tabs>
+                </div>
             </div>
         </div>
     );

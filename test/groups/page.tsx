@@ -1,7 +1,7 @@
-import { getGroupController } from "@/api/generated/group-controller/group-controller";
-import { FindAll2Params } from "@/api/model";
-import { GroupCard } from "@/component/card/group";
-import { getConfig, getContext } from "@/util/context";
+import { getGroupController } from "src/api/generated/group-controller/group-controller";
+import { FindAll2Params } from "src/api/model";
+import { GroupCard } from "src/component/card/group";
+import { getConfig, getContext } from "src/util/context";
 
 type PageProps = {
     searchParams: Promise<FindAll2Params>;

@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
 import * as client from 'openid-client';
+import { db } from "@/service/db";
+import { user } from "@/service/db/schema";
+import { UserInfo } from "@/type/user";
 import { env } from "@/util/env";
 import { issuer } from "@/util/oauth2";
 import { getAll, setAll } from "@/util/session";
+import { toUtf8 } from "@/util/string";
 
 const buildUrl = (path: string, base: string) => {
     if (path == "/") {
@@ -10,6 +15,12 @@ const buildUrl = (path: string, base: string) => {
     } else {
         return new URL(`/login?next=${encodeURIComponent(path)}`, base);
     }
+}
+
+const getUid = async (idToken: string) => {
+    const ac = JSON.parse(toUtf8(idToken.split(".")[1])) as UserInfo;
+    const result = await db.query.user.findFirst({ where: eq(user.qq, ac.custom_data.qq) });
+    return result?.id;
 }
 
 export const proxy = async (request: NextRequest) => {
@@ -33,12 +44,14 @@ export const proxy = async (request: NextRequest) => {
                 }, sid)
                 params.set("x-access-token", res.access_token);
                 params.set("x-user", res.id_token?.split(".")[1] || "");
+                params.set("x-uid", String(await getUid(res.id_token!)));
             } catch {
                 response = NextResponse.redirect(buildUrl(`${pathname}${search}`, request.url));
             }
         } else if ("access_token" in session) {
             params.set("x-access-token", session.access_token);
             params.set("x-user", session.id_token.split(".")[1]);
+            params.set("x-uid", String(await getUid(session.id_token)));
         } else {
             response = NextResponse.redirect(buildUrl(`${pathname}${search}`, request.url));
         }

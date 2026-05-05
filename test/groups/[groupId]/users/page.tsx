@@ -1,8 +1,8 @@
 import React from "react";
-import { getGroupController } from "@/api/generated/group-controller/group-controller";
-import { GetMembersParams } from "@/api/model";
-import { MemberTable } from "@/component/table/member";
-import { getConfig, getContext } from "@/util/context";
+import { getGroupController } from "src/api/generated/group-controller/group-controller";
+import { GetMembersParams } from "src/api/model";
+import { MemberTable } from "src/component/table/member";
+import { getConfig, getContext } from "src/util/context";
 
 type PageProps = {
     searchParams: Promise<GetMembersParams>;

@@ -1,6 +1,5 @@
 import { headers } from "next/headers"
-import { AxiosRequestConfig } from "axios";
-import { Context } from "@/type/context";
+import { Context } from "@/type/common";
 import { UserInfo } from "@/type/user";
 import { toUtf8 } from "@/util/string";
 
@@ -10,6 +9,7 @@ export const getContext = async (): Promise<Context> => {
         return {
             accessToken: null,
             isAdmin: false,
+            uid: null,
             user: null
         };
     }
@@ -18,14 +18,7 @@ export const getContext = async (): Promise<Context> => {
     return {
         accessToken: header.get("x-access-token"),
         isAdmin: payload.scope.includes("admin:all"),
+        uid: Number(header.get("x-uid")),
         user,
     };
-}
-
-export const getConfig = (context: Context): AxiosRequestConfig => {
-    return {
-        headers: {
-            Authorization: `Bearer ${context.accessToken}`
-        }
-    }
 }

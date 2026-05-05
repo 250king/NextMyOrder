@@ -1,7 +1,7 @@
-import { getUserController } from "@/api/generated/user-controller/user-controller";
-import { FindAll4Params } from "@/api/model";
-import { UserTable } from "@/component/table/user";
-import { getConfig, getContext } from "@/util/context";
+import { getUserController } from "src/api/generated/user-controller/user-controller";
+import { FindAll4Params } from "src/api/model";
+import { UserTable } from "src/component/table/user";
+import { getConfig, getContext } from "src/util/context";
 
 interface PageProps {
     searchParams: Promise<FindAll4Params>;
