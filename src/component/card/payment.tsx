@@ -7,9 +7,9 @@ import { Pagination } from "@/component/common/pagination";
 import { LinkButton } from "@/component/navigation/button";
 import { CardProps } from "@/type/card";
 import { colorMap, iconMap, methodMap, PaymentQuery, PaymentResult, typeIconMap, typeMap } from "@/type/payment";
-import { currency } from "@/util/string";
+import { currency, date } from "@/util/string";
 
-export const PaymentCard = ({ items, total, isAdmin, page, method, type }: CardProps<PaymentQuery, PaymentResult>) => {
+export const PaymentCard = ({ items, total, page, method, type }: CardProps<PaymentQuery, PaymentResult>) => {
     const [isPending, startTransition] = React.useTransition();
     const { updateFilter } = useFilter(startTransition);
 
@@ -37,38 +37,33 @@ export const PaymentCard = ({ items, total, isAdmin, page, method, type }: CardP
                                 </Card.Title>
                                 <span className="text-default-500 shrink-0 font-mono text-sm">#{item.id}</span>
                             </Card.Header>
-                            <Card.Content className="flex min-w-0 flex-1 flex-col gap-2">
-                                <div className="flex min-w-0 flex-wrap items-center gap-2">
-                                    <Chip className="max-w-full" size="lg">
+                            <Card.Content className="flex flex-1 flex-col gap-2">
+                                <div className="flex flex-row gap-2 items-center">
+                                    <Chip>
                                         <span className={`shrink-0 ${typeIconMap[item.type]}`} />
-                                        <Chip.Label className="truncate">#{item.refId}</Chip.Label>
+                                        <Chip.Label className="truncate">
+                                            {typeMap[item.type]} #{item.refId}
+                                        </Chip.Label>
                                     </Chip>
-                                    <Chip className="max-w-full" size="lg">
-                                        <span className="icon-[ri--add-circle-fill] shrink-0" />
-                                        <Chip.Label className="truncate">{new Date(item.createdAt).toLocaleString()}</Chip.Label>
-                                    </Chip>
-                                    {item.paidAt && (
-                                        <Chip className="max-w-full" size="lg" variant="primary" color={colorMap[item.method!]}>
+                                    {item.paidAt ? (
+                                        <Chip variant="primary" color={colorMap[item.method!]}>
                                             <span className={`shrink-0 ${iconMap[item.method!]}`} />
-                                            <Chip.Label className="truncate">{new Date(item.paidAt).toLocaleString()}</Chip.Label>
+                                            <Chip.Label>{methodMap[item.method!]}</Chip.Label>
                                         </Chip>
+                                    ) : (
+                                        <Chip variant="primary" color="warning">待付款</Chip>
                                     )}
                                 </div>
+                                <div className="text-default-500 text-sm">创建时间：{date(item.createdAt)}</div>
+                                {item.paidAt && (
+                                    <div className="text-default-too text-sm">支付时间：{date(item.paidAt)}</div>
+                                )}
                                 <h3 className="text-xl font-bold">{currency(item.amount, item.currency)}</h3>
                             </Card.Content>
                             <Card.Footer className="mt-auto flex w-full justify-end gap-2">
-                                {item.paidAt ? (
-                                    <LinkButton href={`/payments/${item.id}/receipt`}>生成凭证</LinkButton>
-                                ) : (
-                                    <>
-                                        {isAdmin && (
-                                            <LinkButton href={`/payments/${item.id}/edit`} variant="secondary">
-                                                编辑
-                                            </LinkButton>
-                                        )}
-                                        <LinkButton href={`/payments/${item.id}/pay`}>前往支付</LinkButton>
-                                    </>
-                                )}
+                                <LinkButton href={`/payments/${item.id}`} variant="secondary">
+                                    详情
+                                </LinkButton>
                             </Card.Footer>
                         </Card>
                     </div>

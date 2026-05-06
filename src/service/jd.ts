@@ -11,8 +11,8 @@ client.interceptors.request.use((config) => {
     if (method !== "GET" && method !== "POST") {
         return config;
     }
-    const timestamp = Math.floor(Date.now() / 1000).toString();
-    const url = new URL(config.url!);
+    const timestamp = Date.now().toString();
+    const url = new URL(`${config.baseURL}${config.url}`);
     const path = url.pathname;
     let signStr = `secretKey=${env.JD_SECRET}&timestamp=${timestamp}&path=${path}`;
     if (method === "POST") {
@@ -23,6 +23,7 @@ client.interceptors.request.use((config) => {
     } else {
         config.headers = AxiosHeaders.from(config.headers);
     }
+    config.headers.set("Content-Type", "application/json");
     config.headers.set("accessKey", env.JD_KEY);
     config.headers.set("timestamp", timestamp);
     config.headers.set("token", createHash("sha1").update(signStr).digest("hex").toUpperCase());

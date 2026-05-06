@@ -605,6 +605,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp(3)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
         }
       },
       "indexes": {
@@ -688,8 +695,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "payMethod": {
-          "name": "payMethod",
+        "method": {
+          "name": "method",
           "type": "PaymentMethod",
           "typeSchema": "public",
           "primaryKey": false,
@@ -873,18 +880,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "phone": {
-          "name": "phone",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "address": {
-          "name": "address",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "createdAt": {
           "name": "createdAt",
           "type": "timestamp(3)",
@@ -944,6 +939,64 @@
         }
       },
       "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.Address": {
+      "name": "Address",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigserial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "userId": {
+          "name": "userId",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "recipient": {
+          "name": "recipient",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "phone": {
+          "name": "phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "address": {
+          "name": "address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "Address_userId_fkey": {
+          "name": "Address_userId_fkey",
+          "tableFrom": "Address",
+          "tableTo": "User",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "restrict"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {},
@@ -1046,10 +1099,9 @@
       "values": [
         "PENDING",
         "PUSHED",
-        "TRANSITING",
-        "DELIVERING",
+        "DELIVERED",
         "ARRIVED",
-        "CANCELLED"
+        "CANCELED"
       ],
       "schema": "public"
     },
@@ -1115,27 +1167,6 @@
   "roles": {},
   "policies": {},
   "views": {
-    "public.UserView": {
-      "name": "UserView",
-      "schema": "public",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "completed": {
-          "name": "completed",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "isExisting": false,
-      "definition": "SELECT id, CASE WHEN address IS NOT NULL AND phone IS NOT NULL THEN true ELSE false END AS completed FROM \"User\"",
-      "materialized": false
-    },
     "public.GroupView": {
       "name": "GroupView",
       "schema": "public",

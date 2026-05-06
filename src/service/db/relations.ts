@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { group, list, user, item, order, transit, delivery, payment, refundRequest, deliveryToOrder } from "./schema";
+import { group, list, user, item, order, transit, delivery, payment, refundRequest, address, deliveryToOrder } from "./schema";
 
 export const listRelations = relations(list, ({one}) => ({
 	group: one(group, {
@@ -22,6 +22,7 @@ export const userRelations = relations(user, ({many}) => ({
 	orders: many(order),
 	deliveries: many(delivery),
 	payments: many(payment),
+	addresses: many(address),
 }));
 
 export const itemRelations = relations(item, ({one, many}) => ({
@@ -72,6 +73,13 @@ export const refundRequestRelations = relations(refundRequest, ({one}) => ({
 	payment: one(payment, {
 		fields: [refundRequest.paymentId],
 		references: [payment.id]
+	}),
+}));
+
+export const addressRelations = relations(address, ({one}) => ({
+	user: one(user, {
+		fields: [address.userId],
+		references: [user.id]
 	}),
 }));
 

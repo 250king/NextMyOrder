@@ -1,10 +1,10 @@
 import { and, eq, type SQL } from "drizzle-orm";
 import { PaymentCard } from "@/component/card/payment";
+import { db } from "@/service/db";
+import { payment } from "@/service/db/schema";
 import { PaymentQuery } from "@/type/payment";
 import { getContext } from "@/util/context";
 import { getPagination } from "@/util/query";
-import { db } from "../../../service/db";
-import { payment } from "../../../service/db/schema";
 
 interface PageProps {
     searchParams: Promise<PaymentQuery>;
@@ -13,6 +13,7 @@ interface PageProps {
 const Page = async ({ searchParams }: PageProps) => {
     const query = await searchParams;
     const context = await getContext();
+    const pagination = getPagination(query);
     const filters: SQL[] = [];
     if (!context.isAdmin) {
         filters.push(eq(payment.userId, context.uid!));
@@ -25,11 +26,9 @@ const Page = async ({ searchParams }: PageProps) => {
     if (query.type) {
         filters.push(eq(payment.type, query.type));
     }
-    const where = filters.length > 0 ? and(...filters) : undefined;
-    const pagination = getPagination(query);
     const [items, total] = await Promise.all([
         await db.query.payment.findMany({
-            where,
+            where: and(...filters),
             with: {
                 user: true,
             },

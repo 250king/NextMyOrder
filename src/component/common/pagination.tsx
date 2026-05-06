@@ -43,7 +43,7 @@ export const Pagination = ({ startTransition, total, page, size, center = true }
             return;
         }
         updateFilter({
-            page: clamped === 1 ? null : String(clamped),
+            page: String(clamped),
             size: safeSize === 10 ? null : String(safeSize),
         });
     };

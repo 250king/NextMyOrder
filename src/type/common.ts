@@ -10,9 +10,6 @@ export type Context = {
 export type Query<T> = T & {
     page?: number;
     size?: number;
+    keyword?: string;
+    id?: number;
 };
-
-export type Result<T> = {
-    items: T[];
-    total: number;
-}

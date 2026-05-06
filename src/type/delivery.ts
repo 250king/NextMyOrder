@@ -1,20 +1,36 @@
-import { DeliveryResponseCompany, DeliveryResponseStatus } from "@/api/model";
+import { delivery, deliveryCompany, deliveryStatus } from "@/service/db/schema";
+import { Query } from "@/type/common";
+import { UserResult } from "@/type/user";
 
-export const iconMap: Record<DeliveryResponseCompany, string> = {
-    SF: "icon-[express--sf]",
-    ZTO: "icon-[express--zto]",
-    YTO: "icon-[express--yto]",
-    JD: "icon-[express--jd]"
+export type DeliveryCompany = (typeof deliveryCompany.enumValues)[number]
+
+export type DeliveryStatus = (typeof deliveryStatus.enumValues)[number]
+
+export type DeliveryQuery = Query<{
+    company?: DeliveryCompany
+    status?: DeliveryStatus;
+    userId?: number;
+}>;
+
+export type DeliveryResult = typeof delivery.$inferSelect & {
+    user: UserResult
+}
+
+export const iconMap: Record<DeliveryCompany, string> = {
+    SF: "icon-[custom--sf]",
+    ZTO: "icon-[custom--zto]",
+    YTO: "icon-[custom--yto]",
+    JD: "icon-[custom--jd]"
 };
 
-export const companyMap: Record<DeliveryResponseCompany, string> = {
+export const companyMap: Record<DeliveryCompany, string> = {
     SF: "顺丰",
     ZTO: "中通",
     YTO: "圆通",
     JD: "京东"
 };
 
-export const statusMap: Record<DeliveryResponseStatus, string> = {
+export const statusMap: Record<DeliveryStatus, string> = {
     PENDING: "待推送",
     PUSHED: "已推送",
     DELIVERED: "已发出",
@@ -22,7 +38,7 @@ export const statusMap: Record<DeliveryResponseStatus, string> = {
     CANCELED: "已取消"
 }
 
-export const colorMap: Record<DeliveryResponseStatus, "default" | "success" | "warning" | "accent"> = {
+export const colorMap: Record<DeliveryStatus, "default" | "success" | "warning" | "accent"> = {
     PENDING: "warning",
     PUSHED: "accent",
     DELIVERED: "accent",

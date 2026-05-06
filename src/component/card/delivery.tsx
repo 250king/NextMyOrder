@@ -1,15 +1,14 @@
 "use client";
 import React from "react";
 import { Avatar, Card, Chip } from "@heroui/react";
-import { DeliveryResponse, FindAll3Params } from "@/api/model";
 import { EnumFilter, SearchFilter, useFilter } from "@/component/common/filter";
 import { Loading } from "@/component/common/loading";
 import { Pagination } from "@/component/common/pagination";
 import { LinkButton } from "@/component/navigation/button";
 import { CardProps } from "@/type/card";
-import { colorMap, companyMap, iconMap, statusMap } from "@/type/delivery";
+import { colorMap, companyMap, DeliveryQuery, DeliveryResult, iconMap, statusMap } from "@/type/delivery";
 
-export const DeliveryCard = ({ items, total, company, status, keyword, page }: CardProps<FindAll3Params, DeliveryResponse>) => {
+export const DeliveryCard = ({ items, total, company, status, keyword, page }: CardProps<DeliveryQuery, DeliveryResult>) => {
     const [isPending, startTransition] = React.useTransition();
     const { updateFilter } = useFilter(startTransition);
 
@@ -38,10 +37,11 @@ export const DeliveryCard = ({ items, total, company, status, keyword, page }: C
                             </Card.Header>
                             <Card.Content className="flex flex-1 flex-col gap-2">
                                 <div className="flex flex-row gap-2 items-center">
-                                    {item.trackingNumber && (
+                                    {(!item.address || !item.phone || !item.recipient) && <Chip variant="primary" color="warning">物流信息未完善</Chip>}
+                                    {item.ticketNum && (
                                         <Chip variant="primary">
                                             <span className={iconMap[item.company!]} />
-                                            <Chip.Label>{item.trackingNumber}</Chip.Label>
+                                            <Chip.Label>{companyMap[item.company!]}</Chip.Label>
                                         </Chip>
                                     )}
                                     <Chip variant="primary" color={colorMap[item.status]}>
@@ -49,10 +49,6 @@ export const DeliveryCard = ({ items, total, company, status, keyword, page }: C
                                     </Chip>
                                 </div>
                                 <div className="text-default-500 text-sm">创建时间：{new Date(item.createdAt).toLocaleString()}</div>
-                                <div className="text-sm">
-                                    填写状态：
-                                    <span className="font-medium">{!item.address || !item.phone || !item.name ? "未填写完善" : "已完善"}</span>
-                                </div>
                             </Card.Content>
                             <Card.Footer className="mt-auto flex w-full justify-end gap-2">
                                 <LinkButton href={`/deliveries/${item.id}`} variant="secondary">

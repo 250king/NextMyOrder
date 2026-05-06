@@ -1,8 +1,8 @@
+import { pgTable, text, uniqueIndex, serial, timestamp, boolean, foreignKey, integer, doublePrecision, bigserial, bigint, index, primaryKey, pgView, pgEnum } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
-import { pgTable, text, uniqueIndex, serial, timestamp, boolean, foreignKey, integer, doublePrecision, index, primaryKey, pgView, pgEnum } from "drizzle-orm/pg-core"
 
 export const deliveryCompany = pgEnum("DeliveryCompany", ['SF', 'YTO', 'ZTO', 'JD'])
-export const deliveryStatus = pgEnum("DeliveryStatus", ['PENDING', 'PUSHED', 'TRANSITING', 'DELIVERING', 'ARRIVED', 'CANCELLED'])
+export const deliveryStatus = pgEnum("DeliveryStatus", ['PENDING', 'PUSHED', 'DELIVERED', 'ARRIVED', 'CANCELED'])
 export const orderStatus = pgEnum("OrderStatus", ['PENDING', 'CONFIRMED', 'PURCHASED', 'TRANSITING', 'ARRIVED', 'DELIVERING', 'COMPLETED', 'CANCELLED'])
 export const paymentMethod = pgEnum("PaymentMethod", ['WECHAT', 'ALIPAY', 'JDPAY', 'UNIONPAY', 'CASH'])
 export const paymentType = pgEnum("PaymentType", ['LIST', 'TAX', 'TRANSIT', 'DELIVERY'])
@@ -119,6 +119,7 @@ export const delivery = pgTable("Delivery", {
 	ticketId: text(),
 	ticketNum: text(),
 	queryToken: text(),
+	updatedAt: timestamp({ precision: 3, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 }, (table) => [
 	uniqueIndex("Delivery_taskId_key").using("btree", table.taskId.asc().nullsLast().op("text_ops")),
 	foreignKey({
@@ -177,6 +178,21 @@ export const user = pgTable("User", {
 	uniqueIndex("User_qq_key").using("btree", table.qq.asc().nullsLast().op("text_ops")),
 ]);
 
+export const address = pgTable("Address", {
+	id: bigserial({ mode: "bigint" }).primaryKey().notNull(),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	userId: bigint({ mode: "number" }).notNull(),
+	recipient: text().notNull(),
+	phone: text().notNull(),
+	address: text().notNull(),
+}, (table) => [
+	foreignKey({
+			columns: [table.userId],
+			foreignColumns: [user.id],
+			name: "Address_userId_fkey"
+		}).onUpdate("restrict").onDelete("cascade"),
+]);
+
 export const deliveryToOrder = pgTable("_DeliveryToOrder", {
 	a: integer("A").notNull(),
 	b: integer("B").notNull(),
@@ -194,10 +210,6 @@ export const deliveryToOrder = pgTable("_DeliveryToOrder", {
 		}).onUpdate("cascade").onDelete("cascade"),
 	primaryKey({ columns: [table.b, table.a], name: "_DeliveryToOrder_AB_pkey"}),
 ]);
-export const userView = pgView("UserView", {	id: integer(),
-	completed: boolean(),
-}).as(sql`SELECT id, CASE WHEN address IS NOT NULL AND phone IS NOT NULL THEN true ELSE false END AS completed FROM "User"`);
-
 export const groupView = pgView("GroupView", {	id: integer(),
 	completed: boolean(),
 }).as(sql`SELECT id, CASE WHEN NOT (EXISTS ( SELECT 1 FROM "Item" i JOIN "Order" o ON o."itemId" = i.id WHERE i."groupId" = g.id AND o.status <> 'COMPLETED'::"OrderStatus")) AND (EXISTS ( SELECT 1 FROM "Item" i JOIN "Order" o ON o."itemId" = i.id WHERE i."groupId" = g.id)) THEN true ELSE false END AS completed FROM "Group" g`);

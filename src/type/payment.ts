@@ -1,6 +1,6 @@
+import { payment, paymentMethod, paymentType } from "@/service/db/schema";
 import { Query } from "@/type/common";
 import { UserResult } from "@/type/user";
-import { payment, paymentMethod, paymentType } from "../service/db/schema";
 
 export type PaymentMethod = (typeof paymentMethod.enumValues)[number]
 
@@ -41,8 +41,8 @@ export const typeIconMap: Record<PaymentType, string> = {
 export const iconMap: Record<PaymentMethod, string> = {
     ALIPAY: "icon-[ri--alipay-fill]",
     WECHAT: "icon-[ri--wechat-pay-fill]",
-    JDPAY: "icon-[ri--jdpay-fill]",
-    UNIONPAY: "icon-[ri--unionpay-fill]",
+    JDPAY: "icon-[custom--jdpay]",
+    UNIONPAY: "icon-[custom--unipay]",
     CASH: "icon-[ri--cash-fill]",
 };
 
