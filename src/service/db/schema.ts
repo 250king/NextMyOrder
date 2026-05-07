@@ -4,7 +4,6 @@ import {
     bigserial,
     boolean,
     decimal,
-    doublePrecision,
     foreignKey,
     index,
     integer,
@@ -49,13 +48,17 @@ export const setting = pgTable("Setting", {
 export const group = pgTable(
     "Group",
     {
-        id: bigserial({ mode: "bigint" }).primaryKey().notNull(),
+        id: bigserial({ mode: "number" }).primaryKey().notNull(),
         name: text().notNull(),
         qq: text().notNull(),
         deadline: timestamp({ mode: "date" }).notNull(),
         ended: boolean().default(false).notNull(),
         createdAt: timestamp({ mode: "date" })
             .default(sql`CURRENT_TIMESTAMP`)
+            .notNull(),
+        updatedAt: timestamp({ mode: "date" })
+            .default(sql`CURRENT_TIMESTAMP`)
+            .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
             .notNull(),
     },
     (table) => [
@@ -67,8 +70,8 @@ export const group = pgTable(
 export const list = pgTable(
     "List",
     {
-        userId: bigint({ mode: "bigint" }).notNull(),
-        groupId: bigint({ mode: "bigint" }).notNull(),
+        userId: bigint({ mode: "number" }).notNull(),
+        groupId: bigint({ mode: "number" }).notNull(),
         joinedAt: timestamp({ mode: "date" })
             .default(sql`CURRENT_TIMESTAMP`)
             .notNull(),
@@ -99,14 +102,21 @@ export const list = pgTable(
 export const item = pgTable(
     "Item",
     {
-        id: bigserial({ mode: "bigint" }).primaryKey().notNull(),
-        groupId: bigint({ mode: "bigint" }).notNull(),
+        id: bigserial({ mode: "number" }).primaryKey().notNull(),
+        groupId: bigint({ mode: "number" }).notNull(),
         name: text().notNull(),
         url: text().notNull(),
         image: text(),
-        price: doublePrecision().notNull(),
-        weight: doublePrecision(),
+        price: decimal({ mode: "number" }).notNull(),
+        weight: decimal({ mode: "number" }),
         allowed: boolean().default(false).notNull(),
+        createdAt: timestamp({ mode: "date" })
+            .default(sql`CURRENT_TIMESTAMP`)
+            .notNull(),
+        updatedAt: timestamp({ mode: "date" })
+            .default(sql`CURRENT_TIMESTAMP`)
+            .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
+            .notNull(),
     },
     (table) => [
         uniqueIndex("Item_groupId_url_key").using(
@@ -127,14 +137,18 @@ export const item = pgTable(
 export const order = pgTable(
     "Order",
     {
-        id: bigserial({ mode: "bigint" }).primaryKey().notNull(),
-        userId: bigint({ mode: "bigint" }).notNull(),
-        itemId: bigint({ mode: "bigint" }).notNull(),
-        transitId: bigint({ mode: "bigint" }),
+        id: bigserial({ mode: "number" }).primaryKey().notNull(),
+        userId: bigint({ mode: "number" }).notNull(),
+        itemId: bigint({ mode: "number" }).notNull(),
+        transitId: bigint({ mode: "number" }),
         count: integer().default(1).notNull(),
         status: orderStatus().default("PENDING").notNull(),
         createdAt: timestamp({ mode: "date" })
             .default(sql`CURRENT_TIMESTAMP`)
+            .notNull(),
+        updatedAt: timestamp({ mode: "date" })
+            .default(sql`CURRENT_TIMESTAMP`)
+            .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
             .notNull(),
         comment: text(),
     },
@@ -171,15 +185,19 @@ export const order = pgTable(
 export const transit = pgTable(
     "Transit",
     {
-        id: bigserial({ mode: "bigint" }).primaryKey().notNull(),
+        id: bigserial({ mode: "number" }).primaryKey().notNull(),
         type: transitType().default("LOGISTICS").notNull(),
         ticketNum: text(),
         carrier: text().notNull(),
-        tax: doublePrecision(),
-        fee: doublePrecision(),
+        tax: decimal({ mode: "number" }),
+        fee: decimal({ mode: "number" }),
         status: transitStatus().default("PENDING").notNull(),
         createdAt: timestamp({ mode: "date" })
             .default(sql`CURRENT_TIMESTAMP`)
+            .notNull(),
+        updatedAt: timestamp({ mode: "date" })
+            .default(sql`CURRENT_TIMESTAMP`)
+            .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
             .notNull(),
         comment: text(),
     },
@@ -189,14 +207,14 @@ export const transit = pgTable(
 export const delivery = pgTable(
     "Delivery",
     {
-        id: bigserial({ mode: "bigint" }).primaryKey().notNull(),
-        userId: bigint({ mode: "bigint" }).notNull(),
+        id: bigserial({ mode: "number" }).primaryKey().notNull(),
+        userId: bigint({ mode: "number" }).notNull(),
         recipient: text().notNull(),
         phone: text(),
         address: text(),
         company: deliveryCompany(),
         status: deliveryStatus().default("PENDING").notNull(),
-        createdAt: timestamp({ mode: "string" })
+        createdAt: timestamp({ mode: "date" })
             .default(sql`CURRENT_TIMESTAMP`)
             .notNull(),
         comment: text(),
@@ -204,7 +222,7 @@ export const delivery = pgTable(
         ticketId: text(),
         ticketNum: text(),
         queryToken: text(),
-        updatedAt: timestamp({ mode: "string" })
+        updatedAt: timestamp({ mode: "date" })
             .default(sql`CURRENT_TIMESTAMP`)
             .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
             .notNull(),
@@ -224,19 +242,19 @@ export const delivery = pgTable(
 export const payment = pgTable(
     "Payment",
     {
-        id: bigserial({ mode: "bigint" }).primaryKey().notNull(),
-        userId: bigint({ mode: "bigint" }).notNull(),
+        id: bigserial({ mode: "number" }).primaryKey().notNull(),
+        userId: bigint({ mode: "number" }).notNull(),
         requestId: text(),
-        refId: bigint({ mode: "bigint" }).notNull(),
+        refId: bigint({ mode: "number" }).notNull(),
         type: paymentType().notNull(),
         amount: decimal({ mode: "number" }).notNull(),
         method: paymentMethod(),
         currency: text().default("CNY").notNull(),
         currencyRate: decimal({ mode: "number" }).default(1).notNull(),
-        createdAt: timestamp({ mode: "string" })
+        createdAt: timestamp({ mode: "date" })
             .default(sql`CURRENT_TIMESTAMP`)
             .notNull(),
-        paidAt: timestamp({ mode: "string" }),
+        paidAt: timestamp({ mode: "date" }),
         comment: text(),
     },
     (table) => [
@@ -257,7 +275,7 @@ export const refundRequest = pgTable(
         id: bigserial({ mode: "bigint" }).primaryKey().notNull(),
         paymentId: bigint({ mode: "bigint" }).notNull(),
         requestId: text().notNull(),
-        amount: doublePrecision().notNull(),
+        amount: decimal({ mode: "number" }).notNull(),
         createdAt: timestamp({ mode: "date" })
             .default(sql`CURRENT_TIMESTAMP`)
             .notNull(),
@@ -283,6 +301,10 @@ export const user = pgTable(
         email: text(),
         createdAt: timestamp({ mode: "date" })
             .default(sql`CURRENT_TIMESTAMP`)
+            .notNull(),
+        updatedAt: timestamp({ mode: "date" })
+            .default(sql`CURRENT_TIMESTAMP`)
+            .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
             .notNull(),
     },
     (table) => [
@@ -322,8 +344,8 @@ export const address = pgTable(
 export const deliveryToOrder = pgTable(
     "_DeliveryToOrder",
     {
-        a: integer("A").notNull(),
-        b: integer("B").notNull(),
+        a: bigint("A", { mode: "number" }).notNull(),
+        b: bigint("B", { mode: "number" }).notNull(),
     },
     (table) => [
         index().using("btree", table.b.asc().nullsLast().op("int4_ops")),
