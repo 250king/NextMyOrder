@@ -1,4 +1,4 @@
-import { user } from "../service/db/schema";
+import { user } from "@/service/db/schema";
 
 export type UserInfo = {
     username?: string,

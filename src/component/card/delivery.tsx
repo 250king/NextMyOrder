@@ -7,6 +7,7 @@ import { Pagination } from "@/component/common/pagination";
 import { LinkButton } from "@/component/navigation/button";
 import { CardProps } from "@/type/card";
 import { colorMap, companyMap, DeliveryQuery, DeliveryResult, iconMap, statusMap } from "@/type/delivery";
+import { date } from "@/util/string";
 
 export const DeliveryCard = ({ items, total, company, status, keyword, page }: CardProps<DeliveryQuery, DeliveryResult>) => {
     const [isPending, startTransition] = React.useTransition();
@@ -48,7 +49,7 @@ export const DeliveryCard = ({ items, total, company, status, keyword, page }: C
                                         {statusMap[item.status]}
                                     </Chip>
                                 </div>
-                                <div className="text-default-500 text-sm">创建时间：{new Date(item.createdAt).toLocaleString()}</div>
+                                <div className="text-default-500 text-sm">创建时间：{date(item.createdAt)}</div>
                             </Card.Content>
                             <Card.Footer className="mt-auto flex w-full justify-end gap-2">
                                 <LinkButton href={`/deliveries/${item.id}`} variant="secondary">

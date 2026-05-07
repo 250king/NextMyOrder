@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
-import QRCode from "react-qr-code";
 import notFound from "@/app/not-found";
 import { LinkButton } from "@/component/navigation/button";
+import { PaymentWeight } from "@/component/weight/payment";
 import { db } from "@/service/db";
 import { payment } from "@/service/db/schema";
 import { cancelOrder, generateUrl } from "@/service/jd";
@@ -14,18 +14,14 @@ type PageProps = {
     }>;
 };
 
-const queryResult = async (paymentId: number) => {
-    const context = await getContext();
-    return db.query.payment.findFirst({
-        where: and(eq(payment.id, paymentId), ...(context.isAdmin ? [] : [eq(payment.userId, context.uid!)])),
-    });
-}
-
 const Page = async ({ params }: PageProps) => {
     const query = await params;
     const context = await getContext();
     const data = await db.query.payment.findFirst({
-        where: and(eq(payment.id, query.paymentId), ...(context.isAdmin ? []: [eq(payment.userId, context.uid!)])),
+        where: and(
+            eq(payment.id, BigInt(query.paymentId)),
+            ...(context.isAdmin ? [] : [eq(payment.userId, BigInt(context.uid))])
+        ),
     });
     if (!data) {
         return notFound();
@@ -35,7 +31,7 @@ const Page = async ({ params }: PageProps) => {
             <div className="flex flex-1 flex-col items-center justify-center gap-4">
                 <div className="text-center">
                     <h1 className="mb-4 text-2xl font-bold">该账单已完成支付，请勿重复支付</h1>
-                    <LinkButton href={`/payments/${query.paymentId}`}>返回</LinkButton>
+                    <LinkButton back>返回</LinkButton>
                 </div>
             </div>
         );
@@ -45,10 +41,13 @@ const Page = async ({ params }: PageProps) => {
     }
     const requestNum = genReqNum(data.id);
     const amount = (data.amount * data.currencyRate * 1.0038).toFixed(2);
-    const res = await generateUrl(requestNum, amount)
-    await db.update(payment).set({
-        requestId: requestNum,
-    }).where(eq(payment.id, data.id));
+    const res = await generateUrl(requestNum, amount);
+    await db
+        .update(payment)
+        .set({
+            requestId: requestNum,
+        })
+        .where(eq(payment.id, data.id));
 
     return (
         <div className="container mx-auto flex flex-1 flex-col p-6">
@@ -62,7 +61,7 @@ const Page = async ({ params }: PageProps) => {
                         <span className="icon-[custom--jdpay]" />
                         <span className="icon-[custom--unipay]" />
                     </div>
-                    <QRCode value={res.data.data.url} />
+                    <PaymentWeight url={res.data.data.url} data={data} />
                 </div>
             </div>
         </div>

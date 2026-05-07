@@ -16,8 +16,18 @@ export const PaymentCard = ({ items, total, page, method, type }: CardProps<Paym
     return (
         <div className="relative flex flex-col gap-4">
             {isPending && <Loading />}
-            <EnumFilter label="收款项" currentValue={type} options={typeMap} onChange={(val) => updateFilter({ type: val })} />
-            <EnumFilter label="支付方式" currentValue={method} options={methodMap} onChange={(val) => updateFilter({ method: val })} />
+            <EnumFilter
+                label="收款项"
+                currentValue={type}
+                options={typeMap}
+                onChange={(val) => updateFilter({ type: val })}
+            />
+            <EnumFilter
+                label="支付方式"
+                currentValue={method}
+                options={methodMap}
+                onChange={(val) => updateFilter({ method: val })}
+            />
             <p className="text-default-500 text-sm">共找到{total}条记录</p>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 items-stretch">
                 {items.map((item) => (
@@ -51,14 +61,23 @@ export const PaymentCard = ({ items, total, page, method, type }: CardProps<Paym
                                             <Chip.Label>{methodMap[item.method!]}</Chip.Label>
                                         </Chip>
                                     ) : (
-                                        <Chip variant="primary" color="warning">待付款</Chip>
+                                        <Chip variant="primary" color="warning">
+                                            待付款
+                                        </Chip>
                                     )}
                                 </div>
                                 <div className="text-default-500 text-sm">创建时间：{date(item.createdAt)}</div>
                                 {item.paidAt && (
                                     <div className="text-default-too text-sm">支付时间：{date(item.paidAt)}</div>
                                 )}
-                                <h3 className="text-xl font-bold">{currency(item.amount, item.currency)}</h3>
+                                <div className="text-xl font-bold">
+                                    {currency(item.amount, item.currency)}
+                                    {item.currency != "CNY" && (
+                                        <span className="px-1 align-baseline text-xs font-medium text-muted">
+                                            ≈ {currency(item.amount * item.currencyRate, "CNY")}
+                                        </span>
+                                    )}
+                                </div>
                             </Card.Content>
                             <Card.Footer className="mt-auto flex w-full justify-end gap-2">
                                 <LinkButton href={`/payments/${item.id}`} variant="secondary">

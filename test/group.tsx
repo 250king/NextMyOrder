@@ -1,14 +1,14 @@
 "use client";
 import React from "react";
 import { Card, Chip } from "@heroui/react";
+import { EnumFilter, SearchFilter, useFilter } from "src/component/common/filter";
+import { Loading } from "src/component/common/loading";
+import { Pagination } from "src/component/common/pagination";
+import {LinkButton} from "src/component/navigation/button";
+import { CardProps } from "src/type/card";
+import { colorMap, statusMap } from "src/type/group";
+import {CardImage} from "test/image";
 import { FindAll2Params, GroupResponse } from "@/api/model";
-import {CardImage} from "@/component/card/image";
-import { EnumFilter, SearchFilter, useFilter } from "@/component/common/filter";
-import { Loading } from "@/component/common/loading";
-import { Pagination } from "@/component/common/pagination";
-import {LinkButton} from "@/component/navigation/button";
-import { CardProps } from "@/type/card";
-import { colorMap, statusMap } from "@/type/group";
 
 export const GroupCard = ({ items, total, status, page, keyword }: CardProps<FindAll2Params, GroupResponse>) => {
     const [isPending, startTransition] = React.useTransition();

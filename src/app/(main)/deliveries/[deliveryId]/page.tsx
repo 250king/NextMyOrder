@@ -8,6 +8,7 @@ import { db } from "@/service/db";
 import { delivery } from "@/service/db/schema";
 import { colorMap, companyMap, iconMap, statusMap } from "@/type/delivery";
 import { getContext } from "@/util/context";
+import { date } from "@/util/string";
 
 type PageProps = {
     params: Promise<{
@@ -20,10 +21,13 @@ type PageProps = {
 
 const Page = async ({ params, searchParams }: PageProps) => {
     const query = await params;
-    const context = await getContext();
     const search = await searchParams;
+    const context = await getContext();
     const data = await db.query.delivery.findFirst({
-        where: and(eq(delivery.id, query.deliveryId), ...(context.isAdmin ? [] : [eq(delivery.userId, context.uid!)])),
+        where: and(
+            eq(delivery.id, BigInt(query.deliveryId)),
+            ...(context.isAdmin ? [] : [eq(delivery.userId, BigInt(context.uid))])
+        ),
     });
     if (!data) {
         return notFound();
@@ -60,7 +64,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
                 <Surface className="rounded-3xl p-4 shadow-sm">
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         <h2 className="text-base font-semibold">基础信息</h2>
-                        <DeliveryModal data={data}/>
+                        {data.status === "PENDING" && <DeliveryModal data={data} />}
                     </div>
                     <div className="mt-4 grid gap-4 text-sm md:grid-cols-3">
                         <div className="min-w-0">
@@ -81,11 +85,20 @@ const Page = async ({ params, searchParams }: PageProps) => {
                         </div>
                         <div className="min-w-0">
                             <div className="text-muted">快递单号</div>
-                            <div className="font-medium">{data.company ? companyMap[data.company] : "-"}</div>
+                            <div className="font-medium">{data.ticketNum || "-"}</div>
                         </div>
                         <div className="min-w-0">
                             <div className="text-muted">备注</div>
                             <div className="font-medium">{data.comment || "-"}</div>
+                        </div>
+                        <div className="min-w-0">
+                            <div className="text-muted">创建时间</div>
+                            <div className="font-medium">{date(data.createdAt)}</div>
+                        </div>
+
+                        <div className="min-w-0">
+                            <div className="text-muted">更新时间</div>
+                            <div className="font-medium">{date(data.updatedAt)}</div>
                         </div>
                     </div>
                 </Surface>

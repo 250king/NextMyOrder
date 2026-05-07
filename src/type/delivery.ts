@@ -20,14 +20,16 @@ export const iconMap: Record<DeliveryCompany, string> = {
     SF: "icon-[custom--sf]",
     ZTO: "icon-[custom--zto]",
     YTO: "icon-[custom--yto]",
-    JD: "icon-[custom--jd]"
+    JD: "icon-[custom--jd]",
+    EMS: "icon-[custom--ems]",
 };
 
 export const companyMap: Record<DeliveryCompany, string> = {
-    SF: "顺丰",
-    ZTO: "中通",
-    YTO: "圆通",
-    JD: "京东"
+    SF: "顺丰快递",
+    ZTO: "中通快递",
+    YTO: "圆通快递",
+    JD: "京东快递",
+    EMS: "中国邮政",
 };
 
 export const statusMap: Record<DeliveryStatus, string> = {

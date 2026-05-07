@@ -1,10 +1,10 @@
 import type { UserInfo } from '@/type/user';
 
 export type Context = {
-    accessToken: string | null;
+    accessToken: string;
     isAdmin: boolean;
-    uid: number | null;
-    user: UserInfo | null;
+    uid: number;
+    user: UserInfo;
 };
 
 export type Query<T> = T & {

@@ -1,14 +1,28 @@
 "use client";
 import React from "react";
-import { Button, Description, Input, Label, Modal, Radio, RadioGroup, Tabs, TextArea, TextField } from "@heroui/react";
+import {
+    Button,
+    Checkbox,
+    Description,
+    Input,
+    Label,
+    Modal,
+    Radio,
+    RadioGroup,
+    Tabs,
+    TextArea,
+    TextField,
+} from "@heroui/react";
 import clsx from "clsx";
 import { deliveryCompany } from "@/service/db/schema";
-import { getAddresses } from "@/service/delivery";
+import { getAddresses, saveDelivery } from "@/service/delivery";
 import { AddressResult } from "@/type/address";
-import { companyMap, DeliveryResult, iconMap } from "@/type/delivery";
+import { companyMap, DeliveryCompany, DeliveryResult, iconMap } from "@/type/delivery";
 
 export const DeliveryModal = ({ data }: { data: Omit<DeliveryResult, "user"> }) => {
     const [addresses, setAddresses] = React.useState<AddressResult[]>([]);
+    const [isPending, startTransition] = React.useTransition();
+    const [tab, setTab] = React.useState<React.Key>("blank")
     const companyOptions = deliveryCompany.enumValues.map((company) => ({
         id: company,
         label: companyMap[company],
@@ -16,9 +30,41 @@ export const DeliveryModal = ({ data }: { data: Omit<DeliveryResult, "user"> }) 
     }));
     React.useEffect(() => {
         getAddresses().then((r) => {
-            setAddresses(r)
+            setAddresses(r);
         });
-    }, []);
+    }, [tab]);
+
+    const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>, close: () => void) => {
+        e.preventDefault();
+        if (isPending) {
+            return;
+        }
+        const formData = new FormData(e.target);
+        const addressId = formData.get("addressId") as string;
+        const recipient = formData.get("recipient") as string;
+        const phone = formData.get("phone") as string;
+        const address = formData.get("address") as string;
+        const save = formData.get("save") === "on";
+        const company = formData.get("company") as DeliveryCompany;
+        console.log(save);
+        startTransition(async () => {
+            if (addressId) {
+                await saveDelivery(data.id, {
+                    company,
+                    addressId: Number(addressId),
+                });
+            } else {
+                await saveDelivery(data.id, {
+                    company,
+                    recipient,
+                    phone,
+                    address,
+                    save,
+                });
+            }
+            close()
+        });
+    };
 
     return (
         <Modal>
@@ -29,51 +75,128 @@ export const DeliveryModal = ({ data }: { data: Omit<DeliveryResult, "user"> }) 
             <Modal.Backdrop>
                 <Modal.Container placement="center">
                     <Modal.Dialog className="sm:max-w-2xl">
-                        <Modal.CloseTrigger />
-                        <Modal.Header>
-                            <Modal.Heading>修改信息</Modal.Heading>
-                        </Modal.Header>
-                        <Modal.Body>
-                            <form className="flex flex-col gap-4">
-                                <Tabs>
-                                    <Tabs.ListContainer className="w-fit max-w-full p-2">
-                                        <Tabs.List className="w-fit max-w-full *:w-fit *:whitespace-nowrap">
-                                            <Tabs.Tab id="blank">
-                                                直接填写
-                                                <Tabs.Indicator />
-                                            </Tabs.Tab>
-                                            <Tabs.Tab id="book">
-                                                通过地址簿填写
-                                                <Tabs.Indicator />
-                                            </Tabs.Tab>
-                                        </Tabs.List>
-                                    </Tabs.ListContainer>
-                                    <Tabs.Panel id="blank" className="flex flex-col gap-4">
-                                        <TextField className="w-full" name="recipient" type="text">
-                                            <Label>收件人</Label>
-                                            <Input variant="secondary" />
-                                        </TextField>
-                                        <TextField className="w-full" name="phone" type="text">
-                                            <Label>手机号</Label>
-                                            <Input variant="secondary" />
-                                        </TextField>
-                                        <TextField className="w-full" name="address" type="text">
-                                            <Label>地址</Label>
-                                            <TextArea variant="secondary" />
-                                        </TextField>
-                                    </Tabs.Panel>
-                                    <Tabs.Panel id="book">
-                                        <RadioGroup name="addressId" defaultValue={data.company} variant="secondary">
-                                            <div className="flex flex-wrap items-center justify-between gap-4">
-                                                <Label>选择地址</Label>
+                        {({ close }) => (
+                            <>
+                                <Modal.CloseTrigger />
+                                <Modal.Header>
+                                    <Modal.Heading>修改信息</Modal.Heading>
+                                </Modal.Header>
+                                <Modal.Body>
+                                    <form
+                                        className="flex flex-col gap-4"
+                                        autoComplete="on"
+                                        onSubmit={(e) => handleSubmit(e, close)}
+                                    >
+                                        <Tabs onSelectionChange={setTab}>
+                                            <Tabs.ListContainer className="w-fit max-w-full p-2">
+                                                <Tabs.List className="w-fit max-w-full *:w-fit *:whitespace-nowrap">
+                                                    <Tabs.Tab id="blank" isDisabled={isPending}>
+                                                        直接填写
+                                                        <Tabs.Indicator />
+                                                    </Tabs.Tab>
+                                                    <Tabs.Tab id="book" isDisabled={isPending}>
+                                                        从最近使用地址筛选
+                                                        <Tabs.Indicator />
+                                                    </Tabs.Tab>
+                                                </Tabs.List>
+                                            </Tabs.ListContainer>
+                                            <Tabs.Panel id="blank" className="flex flex-col gap-4">
+                                                <TextField
+                                                    isRequired
+                                                    className="w-full"
+                                                    name="recipient"
+                                                    type="text"
+                                                    variant="secondary"
+                                                    defaultValue={data.recipient}
+                                                    isDisabled={isPending}
+                                                >
+                                                    <Label>收件人</Label>
+                                                    <Input autoComplete="name" />
+                                                </TextField>
+                                                <TextField
+                                                    className="w-full"
+                                                    name="phone"
+                                                    type="tel"
+                                                    variant="secondary"
+                                                    defaultValue={data.phone ?? undefined}
+                                                    isDisabled={isPending}
+                                                >
+                                                    <Label>手机号</Label>
+                                                    <Input autoComplete="tel" />
+                                                </TextField>
+                                                <TextField
+                                                    className="w-full"
+                                                    name="address"
+                                                    type="text"
+                                                    variant="secondary"
+                                                    defaultValue={data.address ?? undefined}
+                                                    isDisabled={isPending}
+                                                >
+                                                    <Label>地址</Label>
+                                                    <TextArea autoComplete="street-address" />
+                                                </TextField>
+                                                <Checkbox
+                                                    id="save"
+                                                    name="save"
+                                                    variant="secondary"
+                                                    isDisabled={isPending}
+                                                >
+                                                    <Checkbox.Control>
+                                                        <Checkbox.Indicator />
+                                                    </Checkbox.Control>
+                                                    <Checkbox.Content>
+                                                        <Label htmlFor="save">保存地址供下次使用</Label>
+                                                    </Checkbox.Content>
+                                                </Checkbox>
+                                            </Tabs.Panel>
+                                            <Tabs.Panel id="book">
+                                                <RadioGroup name="addressId" variant="secondary" isDisabled={isPending}>
+                                                    <div className="flex flex-wrap items-center justify-between gap-4">
+                                                        <Label>选择地址</Label>
+                                                    </div>
+                                                    <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+                                                        {addresses.map((option) => (
+                                                            <Radio
+                                                                key={option.id}
+                                                                value={String(option.id)}
+                                                                className={clsx(
+                                                                    "group relative flex-col gap-4 rounded-lg border border-transparent bg-default p-4 transition-all items-center",
+                                                                    "data-[hovered=true]:bg-default-hover",
+                                                                    "data-[selected=true]:border-accent data-[selected=true]:bg-accent/10"
+                                                                )}
+                                                            >
+                                                                <Radio.Control className="absolute top-3 right-4 size-5">
+                                                                    <Radio.Indicator />
+                                                                </Radio.Control>
+                                                                <Radio.Content className="flex flex-col items-start justify-start gap-2">
+                                                                    <Label>{option.recipient}</Label>
+                                                                    <Description>
+                                                                        {option.phone} {option.address}
+                                                                    </Description>
+                                                                </Radio.Content>
+                                                            </Radio>
+                                                        ))}
+                                                    </div>
+                                                </RadioGroup>
+                                            </Tabs.Panel>
+                                        </Tabs>
+                                        <RadioGroup
+                                            name="company"
+                                            className="p-2"
+                                            defaultValue={data.company}
+                                            variant="secondary"
+                                            isDisabled={isPending}
+                                        >
+                                            <div className="flex flex-wrap items-center justify-between">
+                                                <Label>快递方式</Label>
                                             </div>
-                                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                                {addresses.map((option) => (
+                                            <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+                                                {companyOptions.map((option) => (
                                                     <Radio
                                                         key={option.id}
-                                                        value={String(option.id)}
+                                                        value={option.id}
                                                         className={clsx(
-                                                            "group relative flex-col gap-4 rounded-lg border border-transparent bg-default p-4 transition-all",
+                                                            "group relative flex-col rounded-lg border border-transparent bg-default p-4 transition-all",
                                                             "data-[hovered=true]:bg-default-hover",
                                                             "data-[selected=true]:border-accent data-[selected=true]:bg-accent/10"
                                                         )}
@@ -81,48 +204,21 @@ export const DeliveryModal = ({ data }: { data: Omit<DeliveryResult, "user"> }) 
                                                         <Radio.Control className="absolute top-3 right-4 size-5">
                                                             <Radio.Indicator />
                                                         </Radio.Control>
-                                                        <Radio.Content className="flex flex-row items-start justify-start gap-4">
-                                                            <div className="flex flex-col gap-1">
-                                                                <Label>{option.recipient}</Label>
-                                                                <Description>{option.phone} {option.address}</Description>
-                                                            </div>
+                                                        <Radio.Content className="flex flex-row items-center justify-start gap-4">
+                                                            <span className={clsx(option.icon)} />
+                                                            <Label>{option.label}</Label>
                                                         </Radio.Content>
                                                     </Radio>
                                                 ))}
                                             </div>
                                         </RadioGroup>
-                                    </Tabs.Panel>
-                                </Tabs>
-                                <RadioGroup name="company" className="p-2" defaultValue={data.company} variant="secondary">
-                                    <div className="flex flex-wrap items-center justify-between gap-4">
-                                        <Label>快递方式</Label>
-                                    </div>
-                                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                        {companyOptions.map((option) => (
-                                            <Radio
-                                                key={option.id}
-                                                value={option.id}
-                                                className={clsx(
-                                                    "group relative flex-col gap-4 rounded-lg border border-transparent bg-default p-4 transition-all",
-                                                    "data-[hovered=true]:bg-default-hover",
-                                                    "data-[selected=true]:border-accent data-[selected=true]:bg-accent/10"
-                                                )}
-                                            >
-                                                <Radio.Control className="absolute top-3 right-4 size-5">
-                                                    <Radio.Indicator />
-                                                </Radio.Control>
-                                                <Radio.Content className="flex flex-row items-start justify-start gap-4">
-                                                    <span className={clsx(option.icon)} />
-                                                    <div className="flex flex-col gap-1">
-                                                        <Label>{option.label}</Label>
-                                                    </div>
-                                                </Radio.Content>
-                                            </Radio>
-                                        ))}
-                                    </div>
-                                </RadioGroup>
-                            </form>
-                        </Modal.Body>
+                                        <Button type="submit" isPending={isPending}>
+                                            提交
+                                        </Button>
+                                    </form>
+                                </Modal.Body>
+                            </>
+                        )}
                     </Modal.Dialog>
                 </Modal.Container>
             </Modal.Backdrop>

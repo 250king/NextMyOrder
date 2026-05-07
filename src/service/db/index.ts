@@ -12,5 +12,5 @@ export const db = drizzle(pool, {
     schema: {
         ...schema,
         ...relations,
-    }
+    },
 })
