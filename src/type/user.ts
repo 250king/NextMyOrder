@@ -1,3 +1,5 @@
+import { user } from "@/service/db/schema";
+
 export type UserInfo = {
     username?: string,
     name: string,
@@ -6,3 +8,5 @@ export type UserInfo = {
         qq: string,
     }
 }
+
+export type UserResult = typeof user.$inferSelect

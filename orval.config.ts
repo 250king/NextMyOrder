@@ -2,7 +2,7 @@ import { defineConfig } from 'orval';
 
 export default defineConfig({
     orderApi: {
-        input: 'http://api.order.lan:8080/v3/api-docs',
+        input: 'http://localhost:8080/v3/api-docs',
         output: {
             mode: 'tags-split',
             target: 'src/api/generated',

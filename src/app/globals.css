@@ -1,3 +1,5 @@
 @import "tailwindcss";
 @import "@heroui/styles";
-@plugin "@iconify/tailwind4";
+@plugin "@iconify/tailwind4" {
+    icon-sets: from-folder(custom, "./public/icons");
+}
