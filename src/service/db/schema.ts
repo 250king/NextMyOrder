@@ -5,7 +5,6 @@ import {
     boolean,
     decimal,
     foreignKey,
-    index,
     integer,
     pgEnum,
     pgTable,
@@ -15,6 +14,7 @@ import {
     uniqueIndex,
 } from "drizzle-orm/pg-core";
 
+export const groupStatus = pgEnum("GroupStatus", ["PENDING", "CLOSED", "COMPLETED"]);
 export const deliveryCompany = pgEnum("DeliveryCompany", ["SF", "YTO", "ZTO", "JD", "EMS"]);
 export const deliveryStatus = pgEnum("DeliveryStatus", ["PENDING", "PUSHED", "DELIVERED", "ARRIVED", "CANCELED"]);
 export const orderStatus = pgEnum("OrderStatus", [
@@ -52,7 +52,7 @@ export const group = pgTable(
         name: text().notNull(),
         qq: text().notNull(),
         deadline: timestamp({ mode: "date" }).notNull(),
-        ended: boolean().default(false).notNull(),
+        status: groupStatus().default("PENDING").notNull(),
         createdAt: timestamp({ mode: "date" })
             .default(sql`CURRENT_TIMESTAMP`)
             .notNull(),
@@ -61,10 +61,7 @@ export const group = pgTable(
             .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
             .notNull(),
     },
-    (table) => [
-        uniqueIndex("Group_name_key").using("btree", table.name.asc().nullsLast().op("text_ops")),
-        uniqueIndex("Group_qq_key").using("btree", table.qq.asc().nullsLast().op("text_ops")),
-    ]
+    (table) => [uniqueIndex().using("btree", table.name), uniqueIndex().using("btree", table.qq)]
 );
 
 export const list = pgTable(
@@ -77,25 +74,17 @@ export const list = pgTable(
             .notNull(),
     },
     (table) => [
-        uniqueIndex("List_userId_groupId_key").using(
-            "btree",
-            table.userId.asc().nullsLast().op("int4_ops"),
-            table.groupId.asc().nullsLast().op("int4_ops")
-        ),
+        primaryKey({
+            columns: [table.userId, table.groupId],
+        }),
         foreignKey({
             columns: [table.groupId],
             foreignColumns: [group.id],
-            name: "List_groupId_fkey",
-        })
-            .onUpdate("cascade")
-            .onDelete("cascade"),
+        }).onDelete("cascade"),
         foreignKey({
             columns: [table.userId],
             foreignColumns: [user.id],
-            name: "List_userId_fkey",
-        })
-            .onUpdate("cascade")
-            .onDelete("cascade"),
+        }).onDelete("cascade"),
     ]
 );
 
@@ -119,18 +108,11 @@ export const item = pgTable(
             .notNull(),
     },
     (table) => [
-        uniqueIndex("Item_groupId_url_key").using(
-            "btree",
-            table.groupId.asc().nullsLast().op("int4_ops"),
-            table.url.asc().nullsLast().op("int4_ops")
-        ),
+        uniqueIndex().using("btree", table.groupId, table.url, table.name, table.price),
         foreignKey({
             columns: [table.groupId],
             foreignColumns: [group.id],
-            name: "Item_groupId_fkey",
-        })
-            .onUpdate("cascade")
-            .onDelete("cascade"),
+        }).onDelete("cascade"),
     ]
 );
 
@@ -153,32 +135,19 @@ export const order = pgTable(
         comment: text(),
     },
     (table) => [
-        uniqueIndex("Order_userId_itemId_key").using(
-            "btree",
-            table.userId.asc().nullsLast().op("int4_ops"),
-            table.itemId.asc().nullsLast().op("int4_ops")
-        ),
+        uniqueIndex().using("btree", table.userId, table.itemId),
         foreignKey({
             columns: [table.itemId],
             foreignColumns: [item.id],
-            name: "Order_itemId_fkey",
-        })
-            .onUpdate("cascade")
-            .onDelete("cascade"),
+        }).onDelete("cascade"),
         foreignKey({
             columns: [table.userId],
             foreignColumns: [user.id],
-            name: "Order_userId_fkey",
-        })
-            .onUpdate("cascade")
-            .onDelete("cascade"),
+        }).onDelete("cascade"),
         foreignKey({
             columns: [table.transitId],
             foreignColumns: [transit.id],
-            name: "Order_transitId_fkey",
-        })
-            .onUpdate("cascade")
-            .onDelete("set null"),
+        }).onDelete("cascade"),
     ]
 );
 
@@ -201,7 +170,7 @@ export const transit = pgTable(
             .notNull(),
         comment: text(),
     },
-    (table) => [uniqueIndex("Transit_ticketNum_key").using("btree", table.ticketNum.asc().nullsLast().op("text_ops"))]
+    (table) => [uniqueIndex().using("btree", table.ticketNum)]
 );
 
 export const delivery = pgTable(
@@ -228,14 +197,11 @@ export const delivery = pgTable(
             .notNull(),
     },
     (table) => [
-        uniqueIndex("Delivery_taskId_key").using("btree", table.taskId.asc().nullsLast().op("text_ops")),
+        uniqueIndex().using("btree", table.taskId),
         foreignKey({
             columns: [table.userId],
             foreignColumns: [user.id],
-            name: "Delivery_userId_fkey",
-        })
-            .onUpdate("cascade")
-            .onDelete("cascade"),
+        }).onDelete("cascade"),
     ]
 );
 
@@ -258,22 +224,19 @@ export const payment = pgTable(
         comment: text(),
     },
     (table) => [
-        uniqueIndex("Payment_requestId_key").using("btree", table.requestId.asc().nullsLast().op("text_ops")),
+        uniqueIndex().using("btree", table.requestId),
         foreignKey({
             columns: [table.userId],
             foreignColumns: [user.id],
-            name: "Payment_userId_fkey",
-        })
-            .onUpdate("cascade")
-            .onDelete("cascade"),
+        }).onDelete("cascade"),
     ]
 );
 
 export const refundRequest = pgTable(
     "RefundRequest",
     {
-        id: bigserial({ mode: "bigint" }).primaryKey().notNull(),
-        paymentId: bigint({ mode: "bigint" }).notNull(),
+        id: bigserial({ mode: "number" }).primaryKey().notNull(),
+        paymentId: bigint({ mode: "number" }).notNull(),
         requestId: text().notNull(),
         amount: decimal({ mode: "number" }).notNull(),
         createdAt: timestamp({ mode: "date" })
@@ -281,21 +244,18 @@ export const refundRequest = pgTable(
             .notNull(),
     },
     (table) => [
-        uniqueIndex("RefundRequest_requestId_key").using("btree", table.requestId.asc().nullsLast().op("text_ops")),
+        uniqueIndex().using("btree", table.requestId),
         foreignKey({
             columns: [table.paymentId],
             foreignColumns: [payment.id],
-            name: "RefundRequest_paymentId_fkey",
-        })
-            .onUpdate("cascade")
-            .onDelete("cascade"),
+        }).onDelete("cascade"),
     ]
 );
 
 export const user = pgTable(
     "User",
     {
-        id: bigserial({ mode: "bigint" }).primaryKey().notNull(),
+        id: bigserial({ mode: "number" }).primaryKey().notNull(),
         name: text().notNull(),
         qq: text().notNull(),
         email: text(),
@@ -308,36 +268,27 @@ export const user = pgTable(
             .notNull(),
     },
     (table) => [
-        uniqueIndex("User_email_key").using("btree", table.email.asc().nullsLast().op("text_ops")),
-        uniqueIndex("User_name_key").using("btree", table.name.asc().nullsLast().op("text_ops")),
-        uniqueIndex("User_qq_key").using("btree", table.qq.asc().nullsLast().op("text_ops")),
+        uniqueIndex().using("btree", table.email),
+        uniqueIndex().using("btree", table.name),
+        uniqueIndex().using("btree", table.qq),
     ]
 );
 
 export const address = pgTable(
     "Address",
     {
-        id: bigserial({ mode: "bigint" }).primaryKey().notNull(),
-        userId: bigint({ mode: "bigint" }).notNull(),
+        id: bigserial({ mode: "number" }).primaryKey().notNull(),
+        userId: bigint({ mode: "number" }).notNull(),
         recipient: text().notNull(),
         phone: text().notNull(),
         address: text().notNull(),
     },
     (table) => [
-        uniqueIndex("Address_userId_recipient_phone_address_key").using(
-            "btree",
-            table.userId.asc().nullsLast(),
-            table.recipient.asc().nullsLast(),
-            table.phone.asc().nullsLast(),
-            table.address.asc().nullsLast()
-        ),
+        uniqueIndex().using("btree", table.userId, table.recipient, table.phone, table.address),
         foreignKey({
             columns: [table.userId],
             foreignColumns: [user.id],
-            name: "Address_userId_fkey",
-        })
-            .onUpdate("restrict")
-            .onDelete("cascade"),
+        }).onDelete("cascade"),
     ]
 );
 
@@ -348,21 +299,14 @@ export const deliveryToOrder = pgTable(
         b: bigint("B", { mode: "number" }).notNull(),
     },
     (table) => [
-        index().using("btree", table.b.asc().nullsLast().op("int4_ops")),
         foreignKey({
             columns: [table.a],
             foreignColumns: [delivery.id],
-            name: "_DeliveryToOrder_A_fkey",
-        })
-            .onUpdate("cascade")
-            .onDelete("cascade"),
+        }).onDelete("cascade"),
         foreignKey({
             columns: [table.b],
             foreignColumns: [order.id],
-            name: "_DeliveryToOrder_B_fkey",
-        })
-            .onUpdate("cascade")
-            .onDelete("cascade"),
-        primaryKey({ columns: [table.b, table.a], name: "_DeliveryToOrder_AB_pkey" }),
+        }).onDelete("cascade"),
+        primaryKey({ columns: [table.b, table.a] }),
     ]
 );

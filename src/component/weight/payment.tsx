@@ -18,7 +18,7 @@ export const PaymentWeight = ({url, data}: WeightProps) => {
                 clearInterval(timer);
                 setFinished(true);
             }
-        }, 5000)
+        }, 2000)
         return () => {
             clearInterval(timer);
         }

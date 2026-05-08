@@ -17,9 +17,9 @@ const Page = async ({searchParams}: PageProps) => {
     const pagination = getPagination(query);
     const filters: SQL[] = [];
     if (!context.isAdmin) {
-        filters.push(eq(delivery.userId, BigInt(context.uid)));
+        filters.push(eq(delivery.userId, context.uid));
     } else if (query.userId) {
-        filters.push(eq(delivery.userId, BigInt(context.uid)));
+        filters.push(eq(delivery.userId, context.uid));
     }
     if (query.status) {
         filters.push(eq(delivery.status, query.status));

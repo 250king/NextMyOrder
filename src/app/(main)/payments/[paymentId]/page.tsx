@@ -25,8 +25,8 @@ const Page = async ({ params, searchParams }: PageProps) => {
     const context = await getContext();
     const data = await db.query.payment.findFirst({
         where: and(
-            eq(payment.id, BigInt(query.paymentId)),
-            ...(context.isAdmin ? [] : [eq(payment.userId, BigInt(context.uid))])
+            eq(payment.id, query.paymentId),
+            ...(context.isAdmin ? [] : [eq(payment.userId, context.uid)])
         ),
     });
     if (!data) {
@@ -83,10 +83,6 @@ const Page = async ({ params, searchParams }: PageProps) => {
                             </div>
                         )}
                         <div className="min-w-0">
-                            <div className="text-muted">备注</div>
-                            <div className="font-medium">{data.comment || "-"}</div>
-                        </div>
-                        <div className="min-w-0">
                             <div className="text-muted">创建时间</div>
                             <div className="font-medium">{date(data.createdAt)}</div>
                         </div>
@@ -96,6 +92,10 @@ const Page = async ({ params, searchParams }: PageProps) => {
                                 <div className="font-medium">{date(data.paidAt)}</div>
                             </div>
                         )}
+                        <div className="min-w-0">
+                            <div className="text-muted">备注</div>
+                            <div className="font-medium">{data.comment || "-"}</div>
+                        </div>
                         <div className="min-w-0">
                             <div className="text-muted">总金额</div>
                             <div className="text-xl font-bold">

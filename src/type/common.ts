@@ -8,6 +8,8 @@ export type Context = {
 };
 
 export type Query<T> = T & {
+    order?: string;
+    sort?: string;
     page?: number;
     size?: number;
     keyword?: string;

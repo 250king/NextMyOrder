@@ -1,5 +1,5 @@
 import { createHash } from "crypto";
-import axios, { AxiosHeaders} from "axios";
+import axios, { AxiosHeaders } from "axios";
 import { env } from "@/util/env";
 
 const client = axios.create({
@@ -14,10 +14,10 @@ client.interceptors.request.use((config) => {
     const timestamp = Date.now().toString();
     const url = new URL(`${config.baseURL}${config.url}`);
     const path = url.pathname;
-    let signStr = `secretKey=${env.JD_SECRET}&timestamp=${timestamp}&path=${path}`;
+    let str = `secretKey=${env.JD_SECRET}&timestamp=${timestamp}&path=${path}`;
     if (method === "POST") {
         const jsonBody = JSON.stringify(config.data);
-        signStr += `&body=${jsonBody}`;
+        str += `&body=${jsonBody}`;
         config.data = jsonBody;
         config.headers = AxiosHeaders.from(config.headers);
     } else {
@@ -26,7 +26,7 @@ client.interceptors.request.use((config) => {
     config.headers.set("Content-Type", "application/json");
     config.headers.set("accessKey", env.JD_KEY);
     config.headers.set("timestamp", timestamp);
-    config.headers.set("token", createHash("sha1").update(signStr).digest("hex").toUpperCase());
+    config.headers.set("token", createHash("sha1").update(str).digest("hex").toUpperCase());
     return config;
 });
 
@@ -37,8 +37,12 @@ export const generateUrl = async (requestNum: string, amount: string) => {
         customerNum: env.JD_CUSTOMER_ID,
         shopNum: env.JD_SHOP_ID,
         callbackUrl: env.JD_CALLBACK_URL,
-        source: "API"
+        source: "API",
     });
+};
+
+export const queryResult = async (requestNum: string) => {
+    return client.get(`customer/order/payresult/${env.JD_CUSTOMER_ID}/${env.JD_SHOP_ID}/${requestNum}`);
 }
 
 export const cancelOrder = async (requestNum: string) => {
@@ -46,4 +50,4 @@ export const cancelOrder = async (requestNum: string) => {
         requestNum: requestNum,
         customerNum: env.JD_CUSTOMER_ID,
     });
-}
+};

@@ -25,8 +25,8 @@ const Page = async ({ params, searchParams }: PageProps) => {
     const context = await getContext();
     const data = await db.query.delivery.findFirst({
         where: and(
-            eq(delivery.id, BigInt(query.deliveryId)),
-            ...(context.isAdmin ? [] : [eq(delivery.userId, BigInt(context.uid))])
+            eq(delivery.id, query.deliveryId),
+            ...(context.isAdmin ? [] : [eq(delivery.userId, context.uid)])
         ),
     });
     if (!data) {

@@ -4,7 +4,7 @@ import { LinkButton } from "@/component/navigation/button";
 import { PaymentWeight } from "@/component/weight/payment";
 import { db } from "@/service/db";
 import { payment } from "@/service/db/schema";
-import { cancelOrder, generateUrl } from "@/service/jd";
+import { cancelOrder, generateUrl } from "@/service/jdpay";
 import { getContext } from "@/util/context";
 import { genReqNum } from "@/util/string";
 
@@ -19,8 +19,8 @@ const Page = async ({ params }: PageProps) => {
     const context = await getContext();
     const data = await db.query.payment.findFirst({
         where: and(
-            eq(payment.id, BigInt(query.paymentId)),
-            ...(context.isAdmin ? [] : [eq(payment.userId, BigInt(context.uid))])
+            eq(payment.id, query.paymentId),
+            ...(context.isAdmin ? [] : [eq(payment.userId, context.uid)])
         ),
     });
     if (!data) {

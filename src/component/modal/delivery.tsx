@@ -22,17 +22,17 @@ import { companyMap, DeliveryCompany, DeliveryResult, iconMap } from "@/type/del
 export const DeliveryModal = ({ data }: { data: Omit<DeliveryResult, "user"> }) => {
     const [addresses, setAddresses] = React.useState<AddressResult[]>([]);
     const [isPending, startTransition] = React.useTransition();
-    const [tab, setTab] = React.useState<React.Key>("blank")
+    const [open, setOpen] = React.useState<boolean>(false)
     const companyOptions = deliveryCompany.enumValues.map((company) => ({
         id: company,
         label: companyMap[company],
         icon: iconMap[company],
     }));
     React.useEffect(() => {
-        getAddresses().then((r) => {
+        getAddresses(data.id).then((r) => {
             setAddresses(r);
         });
-    }, [tab]);
+    }, [data.id, open]);
 
     const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>, close: () => void) => {
         e.preventDefault();
@@ -67,7 +67,7 @@ export const DeliveryModal = ({ data }: { data: Omit<DeliveryResult, "user"> }) 
     };
 
     return (
-        <Modal>
+        <Modal onOpenChange={setOpen}>
             <Button variant="secondary">
                 <span className="icon-[ri--edit-2-fill]" />
                 编辑
@@ -87,7 +87,7 @@ export const DeliveryModal = ({ data }: { data: Omit<DeliveryResult, "user"> }) 
                                         autoComplete="on"
                                         onSubmit={(e) => handleSubmit(e, close)}
                                     >
-                                        <Tabs onSelectionChange={setTab}>
+                                        <Tabs>
                                             <Tabs.ListContainer className="w-fit max-w-full p-2">
                                                 <Tabs.List className="w-fit max-w-full *:w-fit *:whitespace-nowrap">
                                                     <Tabs.Tab id="blank" isDisabled={isPending}>

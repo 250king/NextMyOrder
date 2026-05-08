@@ -25,15 +25,15 @@ export const DeliveryCard = ({ items, total, company, status, keyword, page }: C
                     <div key={item.id} className="h-full">
                         <Card className="h-full transition-shadow hover:shadow-lg">
                             <Card.Header className="flex w-full flex-row items-start justify-between gap-3">
-                                <Card.Title className="flex items-center gap-3">
+                                <div className="flex items-center gap-3">
                                     <Avatar>
                                         <Avatar.Image src={`https://q.qlogo.cn/g?b=qq&nk=${item.user.qq}&s=100`} />
                                     </Avatar>
                                     <div className="min-w-0">
-                                        <div className="truncate font-semibold">{item.user.name}</div>
-                                        <div className="text-default-500 text-xs truncate">{item.user.qq}</div>
+                                        <Card.Title>{item.user.name}</Card.Title>
+                                        <Card.Description>{item.user.qq}</Card.Description>
                                     </div>
-                                </Card.Title>
+                                </div>
                                 <span className="text-default-500 shrink-0 font-mono text-sm">#{item.id}</span>
                             </Card.Header>
                             <Card.Content className="flex flex-1 flex-col gap-2">

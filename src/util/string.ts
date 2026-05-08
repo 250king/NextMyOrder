@@ -16,11 +16,11 @@ export const currency = (amount: number, type: string) => {
     }).format(amount);
 }
 
-export const date = (current: string) => {
+export const date = (current: Date | string) => {
     return dayjs.utc(current).tz("Asia/Shanghai").format("YYYY/M/D HH:mm:ss");
 }
 
-export const genReqNum = (requestId: bigint) => {
+export const genReqNum = (requestId: number) => {
     const time = dayjs.utc().format("YYYYMMDDHHmmss");
     return `${time}${String(requestId).padStart(18, "0")}`;
 }
