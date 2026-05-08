@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Avatar, Button, Drawer, Dropdown } from "@heroui/react";
 import { Context } from "@/type/common";
 
-export const Navbar = ({ user }: Omit<Context, "accessToken" | "uid">) => {
+export const Navbar = ({ user }: Partial<Omit<Context, "accessToken" | "uid">>) => {
     const pathname = usePathname();
     const router = useRouter();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -49,7 +49,7 @@ export const Navbar = ({ user }: Omit<Context, "accessToken" | "uid">) => {
                         <Dropdown>
                             <Dropdown.Trigger>
                                 <Avatar className="transition-transform">
-                                    <Avatar.Image src={`https://q.qlogo.cn/g?b=qq&nk=${user.custom_data.qq}&s=100`} />
+                                    <Avatar.Image src={`https://q.qlogo.cn/g?b=qq&nk=${user?.custom_data?.qq}&s=100`} />
                                 </Avatar>
                             </Dropdown.Trigger>
                             <Dropdown.Popover className="min-w-40">
