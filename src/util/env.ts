@@ -11,7 +11,7 @@ const envSchema = z.object({
     REDIS_URL: z.url().nonempty(),
     SESSION_PREFIX: z.string().nonempty().default("session"),
     SESSION_COOKIE_NAME: z.string().nonempty().default("__sid"),
-    SESSION_COOKIE_SECURE: z.enum(["true", "false"]).optional(),
+    SESSION_COOKIE_SECURE: z.coerce.boolean().optional(),
     SESSION_TTL: z.int().positive().default(60 * 60 * 24 * 7),
     JD_CUSTOMER_ID: z.string().nonempty(),
     JD_SHOP_ID: z.string().nonempty(),

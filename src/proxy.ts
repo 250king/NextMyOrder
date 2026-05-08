@@ -25,7 +25,7 @@ const getUid = async (idToken: string) => {
 
 export const proxy = async (request: NextRequest) => {
     const {pathname, search} = request.nextUrl;
-    const sid = request.cookies.get(env.SESSION_COOKIE)?.value || crypto.randomUUID();
+    const sid = request.cookies.get(env.SESSION_COOKIE_NAME)?.value || crypto.randomUUID();
     const params = new Headers(request.headers);
     const session = await getAll(sid);
     let response: NextResponse | null = null
@@ -66,7 +66,7 @@ export const proxy = async (request: NextRequest) => {
     response.cookies.set({
         name: env.SESSION_COOKIE_NAME,
         value: sid,
-        secure: env.SESSION_COOKIE_SECURE ? env.SESSION_COOKIE_SECURE === "true" : env.NODE_ENV === "production",
+        secure: env.SESSION_COOKIE_SECURE ? env.SESSION_COOKIE_SECURE : env.NODE_ENV === "production",
         maxAge: env.SESSION_TTL,
         httpOnly: true,
         sameSite: "lax",
