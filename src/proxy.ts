@@ -64,9 +64,9 @@ export const proxy = async (request: NextRequest) => {
         });
     }
     response.cookies.set({
-        name: env.SESSION_COOKIE,
+        name: env.SESSION_COOKIE_NAME,
         value: sid,
-        secure: env.NODE_ENV === "production",
+        secure: env.SESSION_COOKIE_SECURE ? env.SESSION_COOKIE_SECURE === "true" : env.NODE_ENV === "production",
         maxAge: env.SESSION_TTL,
         httpOnly: true,
         sameSite: "lax",
