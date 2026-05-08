@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import * as client from "openid-client";
 import { LinkButton } from "@/component/navigation/button";
 import { env } from "@/util/env";
-import { issuer } from "@/util/oauth2";
+import { getIssuer } from "@/util/oauth2";
 import { get, has, setAll } from "@/util/session";
 
 interface PageProps {
@@ -35,7 +35,7 @@ const Page = async ({ searchParams }: PageProps) => {
         for (const [k, v] of Object.entries(params)) {
             url.searchParams.set(k, v);
         }
-        const res = await client.authorizationCodeGrant(issuer, url, {
+        const res = await client.authorizationCodeGrant(await getIssuer(), url, {
             pkceCodeVerifier: await get("code_verifier"),
             expectedState: await get("state"),
         }, {

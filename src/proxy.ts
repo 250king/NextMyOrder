@@ -5,7 +5,7 @@ import { db } from "@/service/db";
 import { user } from "@/service/db/schema";
 import { UserInfo } from "@/type/user";
 import { env } from "@/util/env";
-import { issuer } from "@/util/oauth2";
+import { getIssuer } from "@/util/oauth2";
 import { getAll, setAll } from "@/util/session";
 import { toUtf8 } from "@/util/string";
 
@@ -33,7 +33,7 @@ export const proxy = async (request: NextRequest) => {
     if (!["/login", "/callback"].some(path => pathname == path)) {
         if ("expired_at" in session && session.expired_at < new Date().getTime()) {
             try {
-                const res = await client.refreshTokenGrant(issuer, session.refresh_token, {
+                const res = await client.refreshTokenGrant(await getIssuer(), session.refresh_token, {
                     resource: env.RESOURCE_URI,
                 })
                 await setAll({

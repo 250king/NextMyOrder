@@ -2,14 +2,19 @@ import { headers } from "next/headers";
 import { Redis } from "ioredis";
 import { env } from "@/util/env";
 
-const redis = new Redis(env.REDIS_URL);
+let redis: Redis | undefined;
+
+const getRedis = () => {
+    redis ??= new Redis(env.REDIS_URL);
+    return redis;
+};
 
 export const getAll = async (id: string | null = null) => {
     const sid = (await headers()).get("x-sid") || id;
     if (!sid) {
         return {};
     }
-    const raw = await redis.call("GETEX", `${env.SESSION_PREFIX}:${sid}`, "EX", String(env.SESSION_TTL));
+    const raw = await getRedis().call("GETEX", `${env.SESSION_PREFIX}:${sid}`, "EX", String(env.SESSION_TTL));
     if (!raw) {
         return {};
     }
@@ -21,7 +26,7 @@ export const setAll = async (data: Record<string, string | number | null>, id: s
     if (!sid) {
         return;
     }
-    await redis.set(`${env.SESSION_PREFIX}:${sid}`, JSON.stringify(data), "EX", env.SESSION_TTL);
+    await getRedis().set(`${env.SESSION_PREFIX}:${sid}`, JSON.stringify(data), "EX", env.SESSION_TTL);
 };
 
 export const has = async (key: string) => {

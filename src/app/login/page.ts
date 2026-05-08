@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import * as client from "openid-client";
 import { env } from "@/util/env";
-import { issuer } from "@/util/oauth2";
+import { getIssuer } from "@/util/oauth2";
 import { set } from "@/util/session";
 
 interface PageProps {
@@ -20,7 +20,7 @@ const Page = async ({searchParams}: PageProps) => {
     const state = client.randomState();
     await set("code_verifier", codeVerifier)
     await set("state", state)
-    const url = client.buildAuthorizationUrl(issuer, {
+    const url = client.buildAuthorizationUrl(await getIssuer(), {
         redirect_uri: env.REDIRECT_URI,
         scope: "openid profile email custom_data offline_access admin:all",
         code_challenge: codeChallenge,

@@ -4,13 +4,26 @@ import * as relations from "@/service/db/relations";
 import * as schema from "@/service/db/schema";
 import { env } from "@/util/env";
 
-const pool = new Pool({
-    connectionString: env.DATABASE_URL,
-});
+const createDb = () => {
+    const pool = new Pool({
+        connectionString: env.DATABASE_URL,
+    });
 
-export const db = drizzle(pool, {
-    schema: {
-        ...schema,
-        ...relations,
-    },
-})
+    return drizzle(pool, {
+        schema: {
+            ...schema,
+            ...relations,
+        },
+    });
+};
+
+let dbInstance: ReturnType<typeof createDb> | undefined;
+
+const getDb = () => {
+    dbInstance ??= createDb();
+    return dbInstance;
+};
+
+export const db = new Proxy({} as ReturnType<typeof createDb>, {
+    get: (_, prop, receiver) => Reflect.get(getDb(), prop, receiver),
+});

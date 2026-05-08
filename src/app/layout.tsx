@@ -5,6 +5,8 @@ import { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/component/layout/theme";
 
+export const dynamic = "force-dynamic";
+
 const js = `(function() {
     function getTheme() {
     const savedTheme = localStorage.getItem('theme');

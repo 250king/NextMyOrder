@@ -19,4 +19,15 @@ const envSchema = z.object({
     JD_CALLBACK_URL: z.url().nonempty(),
 });
 
-export const env = envSchema.parse(process.env);
+type Env = z.infer<typeof envSchema>;
+
+let cachedEnv: Env | undefined;
+
+export const getEnv = () => {
+    cachedEnv ??= envSchema.parse(process.env);
+    return cachedEnv;
+};
+
+export const env = new Proxy({} as Env, {
+    get: (_, prop: keyof Env) => getEnv()[prop],
+});
