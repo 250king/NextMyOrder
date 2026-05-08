@@ -66,7 +66,7 @@ export const proxy = async (request: NextRequest) => {
     response.cookies.set({
         name: env.SESSION_COOKIE,
         value: sid,
-        secure: process.env.NODE_ENV === "production",
+        secure: env.NODE_ENV === "production",
         maxAge: env.SESSION_TTL,
         httpOnly: true,
         sameSite: "lax",
