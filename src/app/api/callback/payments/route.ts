@@ -1,12 +1,20 @@
 import { createHash } from "crypto";
 import { notFound } from "next/navigation";
 import { NextRequest } from "next/server";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import { eq } from "drizzle-orm";
 import { db } from "@/service/db";
 import { payment } from "@/service/db/schema";
 import { queryResult } from "@/service/jdpay";
 import { PaymentMethod } from "@/type/payment";
 import { env } from "@/util/env";
+
+dayjs.extend(customParseFormat);
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export const GET = async (req: NextRequest) => {
     const sign = req.headers.get("token");
@@ -47,7 +55,9 @@ export const GET = async (req: NextRequest) => {
             break;
     }
     await db.update(payment).set({
-        paidAt: result.data.data.completeTime,
+        paidAt: dayjs.tz(result.data.data.completeTime, "YYYY-MM-DD HH:mm:ss", "Asia/Shanghai").toDate(),
         method: method,
-    });
+    }).where(eq(payment.id, data.id));
+
+    return new Response(null, { status: 204 });
 };
