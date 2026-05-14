@@ -61,7 +61,7 @@ export const group = pgTable(
             .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
             .notNull(),
     },
-    (table) => [uniqueIndex().using("btree", table.name), uniqueIndex().using("btree", table.qq)]
+    (table) => [uniqueIndex().using("btree", table.name, table.qq)]
 );
 
 export const list = pgTable(

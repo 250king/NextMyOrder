@@ -20,10 +20,10 @@ client.interceptors.request.use((config) => {
         str += `&body=${jsonBody}`;
         config.data = jsonBody;
         config.headers = AxiosHeaders.from(config.headers);
+        config.headers.set("Content-Type", "application/json");
     } else {
         config.headers = AxiosHeaders.from(config.headers);
     }
-    config.headers.set("Content-Type", "application/json");
     config.headers.set("accessKey", env.JD_KEY);
     config.headers.set("timestamp", timestamp);
     config.headers.set("token", createHash("sha1").update(str).digest("hex").toUpperCase());

@@ -16,7 +16,7 @@ export const GET = async (req: NextRequest) => {
     if (hash !== sign) {
         throw new Error("Invalid signature");
     }
-    const requestId = req.nextUrl.searchParams.get("requestId") || "";
+    const requestId = req.nextUrl.searchParams.get("requestNum") || "";
     const data = await db.query.payment.findFirst({
         where: eq(payment.requestId, requestId),
     })
@@ -25,10 +25,10 @@ export const GET = async (req: NextRequest) => {
     }
     const result = await queryResult(requestId);
     let method: PaymentMethod;
-    switch (result.data.payWayEnum) {
+    switch (result.data.data.payWayEnum) {
         case "GUOTONG_PAY_ALIPAY":
         case "GUOTONG_PAY_ALIPAY_SCAN":
-            method = "ALIPAY"
+            method = "ALIPAY";
             break;
         case "GUOTONG_PAY_WX":
         case "GUOTONG_PAY_WX_SCAN":
@@ -43,7 +43,7 @@ export const GET = async (req: NextRequest) => {
             method = "JDPAY";
             break;
         default:
-            method = "CASH"
+            method = "CASH";
             break;
     }
     await db.update(payment).set({
