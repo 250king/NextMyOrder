@@ -12,9 +12,10 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
-    "@heroui/react": "^3.0.1",
-    "@heroui/styles": "^3.0.1",
+    "@heroui/react": "^3.0.5",
+    "@heroui/styles": "^3.0.5",
     "@tanstack/react-table": "^8.21.3",
+    "@wrksz/themes": "^0.9.3",
     "axios": "1.15.0",
     "dayjs": "^1.11.20",
     "dotenv": "^17.4.2",

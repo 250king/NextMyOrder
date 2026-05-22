@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { delivery, deliveryCompany, deliveryStatus } from "@/service/db/schema";
 import { Query } from "@/type/common";
 import { UserResult } from "@/type/user";
@@ -47,3 +48,13 @@ export const colorMap: Record<DeliveryStatus, "default" | "success" | "warning" 
     ARRIVED: "success",
     CANCELED: "default",
 };
+
+export const deliveryDetailSchema = z.object({
+    delivery: z.int().positive(),
+    addressId: z.int().positive().optional(),
+    phone: z.string().regex(/^1[3-9]\d{9}$/).optional(),
+    address: z.string().optional(),
+    comment: z.string().optional(),
+    company: z.enum(deliveryCompany.enumValues).optional(),
+    save: z.boolean().optional(),
+})

@@ -4,6 +4,7 @@ import {
     Button,
     Checkbox,
     Description,
+    FieldError,
     Input,
     Label,
     Modal,
@@ -108,10 +109,12 @@ export const DeliveryModal = ({ data }: { data: Omit<DeliveryResult, "user"> }) 
                                                     type="text"
                                                     variant="secondary"
                                                     defaultValue={data.recipient}
+                                                    pattern="[A-Za-z0-9 \u4e00-\u9fff]+"
                                                     isDisabled={isPending}
                                                 >
                                                     <Label>收件人</Label>
                                                     <Input autoComplete="name" />
+                                                    <FieldError />
                                                 </TextField>
                                                 <TextField
                                                     className="w-full"
@@ -119,10 +122,12 @@ export const DeliveryModal = ({ data }: { data: Omit<DeliveryResult, "user"> }) 
                                                     type="tel"
                                                     variant="secondary"
                                                     defaultValue={data.phone ?? undefined}
+                                                    pattern="^1[3-9]\d{9}$"
                                                     isDisabled={isPending}
                                                 >
                                                     <Label>手机号</Label>
                                                     <Input autoComplete="tel" />
+                                                    <FieldError />
                                                 </TextField>
                                                 <TextField
                                                     className="w-full"
@@ -130,10 +135,12 @@ export const DeliveryModal = ({ data }: { data: Omit<DeliveryResult, "user"> }) 
                                                     type="text"
                                                     variant="secondary"
                                                     defaultValue={data.address ?? undefined}
+                                                    pattern="[A-Za-z0-9 \u4e00-\u9fff]+"
                                                     isDisabled={isPending}
                                                 >
                                                     <Label>地址</Label>
                                                     <TextArea autoComplete="street-address" />
+                                                    <FieldError />
                                                 </TextField>
                                                 <Checkbox
                                                     id="save"
