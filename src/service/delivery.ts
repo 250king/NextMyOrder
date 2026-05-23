@@ -2,9 +2,10 @@
 
 import { notFound } from "next/navigation";
 import { and, asc, eq, inArray } from "drizzle-orm";
+import { z } from "zod";
 import { db } from "@/service/db";
 import { address as address_, delivery } from "@/service/db/schema";
-import { DeliveryCompany } from "@/type/delivery";
+import { deliveryDetailSchema } from "@/type/delivery";
 import { getContext } from "@/util/context";
 
 export const getAddresses = async (deliveryId: number) => {
@@ -21,22 +22,11 @@ export const getAddresses = async (deliveryId: number) => {
 };
 
 export const saveDelivery = async (
-    deliveryId: number,
-    data: {
-        recipient?: string | null;
-        phone?: string | null;
-        address?: string | null;
-        addressId?: number | null;
-        comment?: string | null;
-        company?: DeliveryCompany | null;
-        save?: boolean;
-    }
+    params: z.infer<typeof deliveryDetailSchema>
 ) => {
-    const { addressId, comment, save, company } = data;
+    const data = deliveryDetailSchema.parse(params);
+    const { addressId, comment, save, company, deliveryId } = data;
     let { recipient, phone, address } = data;
-    if (!deliveryId && !recipient) {
-        throw new Error("deliveryId is required");
-    }
     const context = await getContext();
     const current = await db.query.delivery.findFirst({
         where: and(eq(delivery.id, deliveryId), ...(context.isAdmin ? [] : [eq(delivery.userId, context.uid)])),

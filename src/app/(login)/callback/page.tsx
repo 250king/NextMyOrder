@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 import * as client from "openid-client";
 import { LinkButton } from "@/component/navigation/button";
+import { getIssuer } from "@/service/oauth2";
+import { get, has, setAll } from "@/service/session";
 import { env } from "@/util/env";
-import { getIssuer } from "@/util/oauth2";
-import { get, has, setAll } from "@/util/session";
 
 interface PageProps {
     searchParams: Promise<{

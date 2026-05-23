@@ -13,11 +13,15 @@ export const Navbar = ({ user }: Partial<Omit<Context, "accessToken" | "uid">>) 
     const adminList = [
         { name: "首页", href: "/home" },
         { name: "用户", href: "/users" },
-        { name: "团购", href: "/groups" },
+
         { name: "国际运输", href: "/shipping" },
     ];
     */
-    const navItems = [{ name: "分发", href: "/deliveries" }, { name: "账单", href: "/payments" }];
+    const navItems = [
+        { name: "团购", href: "/groups" },
+        { name: "分发", href: "/deliveries" },
+        { name: "账单", href: "/payments" },
+    ];
 
     const getNavClassName = (href: string) => {
         const isActive = pathname === href || pathname?.startsWith(`${href}/`);
@@ -54,12 +58,6 @@ export const Navbar = ({ user }: Partial<Omit<Context, "accessToken" | "uid">>) 
                             </Dropdown.Trigger>
                             <Dropdown.Popover className="min-w-40">
                                 <Dropdown.Menu className="min-w-40">
-                                    <Dropdown.Item key="profile">
-                                        <div className="flex flex-col gap-2">
-                                            <p className="font-semibold whitespace-nowrap">当前登录</p>
-                                            <p className="text-primary whitespace-nowrap">{user.name}</p>
-                                        </div>
-                                    </Dropdown.Item>
                                     <Dropdown.Item onClick={() => router.replace("/me")} key="me" className="whitespace-nowrap">
                                         个人中心
                                     </Dropdown.Item>

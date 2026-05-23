@@ -20,7 +20,7 @@ const Page = async ({ params }: PageProps) => {
     const data = await db.query.payment.findFirst({
         where: and(
             eq(payment.id, query.paymentId),
-            ...(context.isAdmin ? [] : [eq(payment.userId, context.uid)])
+            ...(context.isAdmin ? [] : [eq(payment.userId, context.uid!)])
         ),
     });
     if (!data) {

@@ -26,7 +26,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
     const data = await db.query.delivery.findFirst({
         where: and(
             eq(delivery.id, query.deliveryId),
-            ...(context.isAdmin ? [] : [eq(delivery.userId, context.uid)])
+            ...(context.isAdmin ? [] : [eq(delivery.userId, context.uid!)])
         ),
     });
     if (!data) {
@@ -64,7 +64,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
                 <Surface className="rounded-3xl p-4 shadow-sm">
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         <h2 className="text-base font-semibold">基础信息</h2>
-                        {data.status === "PENDING" && <DeliveryModal data={data} />}
+                        {data.status === "PENDING" && <DeliveryModal data={data} isAdmin={context.isAdmin} />}
                     </div>
                     <div className="mt-4 grid gap-4 text-sm md:grid-cols-3">
                         <div className="min-w-0">

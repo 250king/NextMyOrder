@@ -3,19 +3,19 @@ import { delivery, deliveryCompany, deliveryStatus } from "@/service/db/schema";
 import { Query } from "@/type/common";
 import { UserResult } from "@/type/user";
 
-export type DeliveryCompany = (typeof deliveryCompany.enumValues)[number]
+export type DeliveryCompany = (typeof deliveryCompany.enumValues)[number];
 
-export type DeliveryStatus = (typeof deliveryStatus.enumValues)[number]
+export type DeliveryStatus = (typeof deliveryStatus.enumValues)[number];
 
 export type DeliveryQuery = Query<{
-    company?: DeliveryCompany
+    company?: DeliveryCompany;
     status?: DeliveryStatus;
     userId?: number;
 }>;
 
 export type DeliveryResult = typeof delivery.$inferSelect & {
-    user: UserResult
-}
+    user: UserResult;
+};
 
 export const iconMap: Record<DeliveryCompany, string> = {
     SF: "icon-[custom--sf]",
@@ -38,8 +38,8 @@ export const statusMap: Record<DeliveryStatus, string> = {
     PUSHED: "已推送",
     DELIVERED: "已发出",
     ARRIVED: "已抵达",
-    CANCELED: "已取消"
-}
+    CANCELED: "已取消",
+};
 
 export const colorMap: Record<DeliveryStatus, "default" | "success" | "warning" | "accent"> = {
     PENDING: "warning",
@@ -49,12 +49,31 @@ export const colorMap: Record<DeliveryStatus, "default" | "success" | "warning" 
     CANCELED: "default",
 };
 
-export const deliveryDetailSchema = z.object({
-    delivery: z.int().positive(),
-    addressId: z.int().positive().optional(),
-    phone: z.string().regex(/^1[3-9]\d{9}$/).optional(),
-    address: z.string().optional(),
-    comment: z.string().optional(),
+const baseSchema = z.object({
+    deliveryId: z.int().positive(),
     company: z.enum(deliveryCompany.enumValues).optional(),
-    save: z.boolean().optional(),
-})
+});
+
+const addressBookSchema = baseSchema
+    .extend({
+        addressId: z.int().positive(),
+        recipient: z.never().optional(),
+        phone: z.never().optional(),
+        address: z.never().optional(),
+        save: z.never().optional(),
+        comment: z.never().optional(),
+    })
+    .strict();
+
+const manualSchema = baseSchema
+    .extend({
+        addressId: z.never().optional(),
+        recipient: z.string().regex(/^[A-Za-z0-9 \u4e00-\u9fff]+$/).nullable(),
+        phone: z.string().regex(/^1[3-9]\d{9}$/).nullable(),
+        address: z.string().regex(/^[A-Za-z0-9 \u4e00-\u9fff（）()#\-、，。,./]+$/).nullable(),
+        save: z.boolean().optional(),
+        comment: z.string().nullable(),
+    })
+    .strict();
+
+export const deliveryDetailSchema = z.union([addressBookSchema, manualSchema]);

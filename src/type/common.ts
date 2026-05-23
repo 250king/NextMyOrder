@@ -1,10 +1,12 @@
-import type { UserInfo } from '@/type/user';
+import { z } from "zod";
+import  { userSchema } from '@/type/user';
 
 export type Context = {
-    accessToken: string;
+    accessToken: string | null;
+    refreshToken: string | null;
     isAdmin: boolean;
-    uid: number;
-    user: UserInfo;
+    uid: number | null;
+    user: z.infer<typeof userSchema> | null;
 };
 
 export type Query<T> = T & {

@@ -52,7 +52,7 @@ export const DeliveryCard = ({ items, total, company, status, keyword, page }: C
                                 <div className="text-default-500 text-sm">创建时间：{date(item.createdAt)}</div>
                             </Card.Content>
                             <Card.Footer className="mt-auto flex w-full justify-end gap-2">
-                                <LinkButton href={`/deliveries/${item.id}`} variant="secondary">
+                                <LinkButton href={`/deliveries/${item.id}`}>
                                     进入管理
                                 </LinkButton>
                             </Card.Footer>

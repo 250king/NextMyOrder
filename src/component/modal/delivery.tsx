@@ -20,7 +20,10 @@ import { getAddresses, saveDelivery } from "@/service/delivery";
 import { AddressResult } from "@/type/address";
 import { companyMap, DeliveryCompany, DeliveryResult, iconMap } from "@/type/delivery";
 
-export const DeliveryModal = ({ data }: { data: Omit<DeliveryResult, "user"> }) => {
+export const DeliveryModal = ({ data, isAdmin }: {
+    data: Omit<DeliveryResult, "user">,
+    isAdmin: boolean,
+}) => {
     const [addresses, setAddresses] = React.useState<AddressResult[]>([]);
     const [isPending, startTransition] = React.useTransition();
     const [open, setOpen] = React.useState<boolean>(false)
@@ -47,20 +50,24 @@ export const DeliveryModal = ({ data }: { data: Omit<DeliveryResult, "user"> }) 
         const address = formData.get("address") as string;
         const save = formData.get("save") === "on";
         const company = formData.get("company") as DeliveryCompany;
+        const comment = formData.get("comment") as string;
         console.log(save);
         startTransition(async () => {
             if (addressId) {
-                await saveDelivery(data.id, {
+                await saveDelivery({
                     company,
+                    deliveryId: data.id,
                     addressId: Number(addressId),
                 });
             } else {
-                await saveDelivery(data.id, {
-                    company,
-                    recipient,
-                    phone,
-                    address,
+                await saveDelivery({
                     save,
+                    deliveryId: data.id,
+                    company: company || null,
+                    recipient: recipient || null,
+                    phone: phone || null,
+                    address: address || null,
+                    comment: comment || null,
                 });
             }
             close()
@@ -69,8 +76,7 @@ export const DeliveryModal = ({ data }: { data: Omit<DeliveryResult, "user"> }) 
 
     return (
         <Modal onOpenChange={setOpen}>
-            <Button variant="secondary">
-                <span className="icon-[ri--edit-2-fill]" />
+            <Button size="sm">
                 编辑
             </Button>
             <Modal.Backdrop>
@@ -106,7 +112,6 @@ export const DeliveryModal = ({ data }: { data: Omit<DeliveryResult, "user"> }) 
                                                     isRequired
                                                     className="w-full"
                                                     name="recipient"
-                                                    type="text"
                                                     variant="secondary"
                                                     defaultValue={data.recipient}
                                                     pattern="[A-Za-z0-9 \u4e00-\u9fff]+"
@@ -132,16 +137,28 @@ export const DeliveryModal = ({ data }: { data: Omit<DeliveryResult, "user"> }) 
                                                 <TextField
                                                     className="w-full"
                                                     name="address"
-                                                    type="text"
                                                     variant="secondary"
                                                     defaultValue={data.address ?? undefined}
-                                                    pattern="[A-Za-z0-9 \u4e00-\u9fff]+"
+                                                    pattern="[A-Za-z0-9 \u4e00-\u9fff（）()#、，。,./-]+"
                                                     isDisabled={isPending}
                                                 >
                                                     <Label>地址</Label>
                                                     <TextArea autoComplete="street-address" />
                                                     <FieldError />
                                                 </TextField>
+                                                {isAdmin && (
+                                                    <TextField
+                                                        className="w-full"
+                                                        name="comment"
+                                                        variant="secondary"
+                                                        defaultValue={data.comment ?? undefined}
+                                                        isDisabled={isPending}
+                                                    >
+                                                        <Label>备注</Label>
+                                                        <TextArea/>
+                                                        <FieldError />
+                                                    </TextField>
+                                                )}
                                                 <Checkbox
                                                     id="save"
                                                     name="save"

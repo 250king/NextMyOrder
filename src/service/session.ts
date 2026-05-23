@@ -9,6 +9,14 @@ const getRedis = () => {
     return redis;
 };
 
+export const clear = async () => {
+    const sid = (await headers()).get("x-sid");
+    if (!sid) {
+        return;
+    }
+    await getRedis().del(`${env.SESSION_PREFIX}:${sid}`);
+};
+
 export const getAll = async (id: string | null = null) => {
     const sid = (await headers()).get("x-sid") || id;
     if (!sid) {

@@ -26,7 +26,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
     const data = await db.query.payment.findFirst({
         where: and(
             eq(payment.id, query.paymentId),
-            ...(context.isAdmin ? [] : [eq(payment.userId, context.uid)])
+            ...(context.isAdmin ? [] : [eq(payment.userId, context.uid!)])
         ),
     });
     if (!data) {
@@ -71,7 +71,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
                 <Surface className="rounded-3xl p-4 shadow-sm">
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         <h2 className="text-base font-semibold">基础信息</h2>
-                        {!data.paidAt && <LinkButton href={`/payments/${data.id}/pay`}>前往支付</LinkButton>}
+                        {!data.paidAt && <LinkButton size="sm" href={`/payments/${data.id}/pay`}>前往支付</LinkButton>}
                     </div>
                     <div className="mt-4 grid gap-4 text-sm md:grid-cols-3">
                         {data.currency != "CNY" && (
