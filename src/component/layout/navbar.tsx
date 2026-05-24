@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Avatar, Button, Drawer, Dropdown } from "@heroui/react";
+import { Avatar, Button, Drawer, Dropdown, Label } from "@heroui/react";
 import { Context } from "@/type/common";
 
 export const Navbar = ({ user }: Partial<Omit<Context, "accessToken" | "uid">>) => {
@@ -56,13 +56,13 @@ export const Navbar = ({ user }: Partial<Omit<Context, "accessToken" | "uid">>) 
                                     <Avatar.Image src={`https://q.qlogo.cn/g?b=qq&nk=${user?.custom_data?.qq}&s=100`} />
                                 </Avatar>
                             </Dropdown.Trigger>
-                            <Dropdown.Popover className="min-w-40">
-                                <Dropdown.Menu className="min-w-40">
-                                    <Dropdown.Item onClick={() => router.replace("/me")} key="me" className="whitespace-nowrap">
-                                        个人中心
+                            <Dropdown.Popover className="min-w-40" placement="bottom end">
+                                <Dropdown.Menu>
+                                    <Dropdown.Item onClick={() => router.replace("/me")}>
+                                        <Label>个人中心</Label>
                                     </Dropdown.Item>
-                                    <Dropdown.Item onClick={() => router.replace("/logout")} key="logout" className="text-danger whitespace-nowrap">
-                                        退出登录
+                                    <Dropdown.Item variant="danger" onClick={() => router.replace("/logout")}>
+                                        <Label>退出登录</Label>
                                     </Dropdown.Item>
                                 </Dropdown.Menu>
                             </Dropdown.Popover>

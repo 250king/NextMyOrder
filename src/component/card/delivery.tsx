@@ -17,8 +17,18 @@ export const DeliveryCard = ({ items, total, company, status, keyword, page }: C
         <div className="relative flex flex-col gap-4">
             {isPending && <Loading />}
             <SearchFilter initialValue={keyword} onSearch={(val) => updateFilter({ keyword: val })} />
-            <EnumFilter label="快递公司" currentValue={company} options={companyMap} onChange={(val) => updateFilter({ company: val })} />
-            <EnumFilter label="订单状态" currentValue={status} options={statusMap} onChange={(val) => updateFilter({ status: val })} />
+            <EnumFilter
+                label="快递公司"
+                currentValue={company}
+                options={companyMap}
+                onChange={(val) => updateFilter({ company: val })}
+            />
+            <EnumFilter
+                label="订单状态"
+                currentValue={status}
+                options={statusMap}
+                onChange={(val) => updateFilter({ status: val })}
+            />
             <p className="text-default-500 text-sm">共找到{total}条记录</p>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 items-stretch">
                 {items.map((item) => (
@@ -38,7 +48,11 @@ export const DeliveryCard = ({ items, total, company, status, keyword, page }: C
                             </Card.Header>
                             <Card.Content className="flex flex-1 flex-col gap-2">
                                 <div className="flex flex-row gap-2 items-center">
-                                    {(!item.address || !item.phone || !item.recipient) && <Chip variant="primary" color="warning">物流信息未完善</Chip>}
+                                    {(!item.address || !item.phone || !item.recipient) && (
+                                        <Chip variant="primary" color="warning">
+                                            物流信息未完善
+                                        </Chip>
+                                    )}
                                     {item.ticketNum && (
                                         <Chip variant="primary">
                                             <span className={iconMap[item.company!]} />
@@ -52,9 +66,7 @@ export const DeliveryCard = ({ items, total, company, status, keyword, page }: C
                                 <div className="text-default-500 text-sm">创建时间：{date(item.createdAt)}</div>
                             </Card.Content>
                             <Card.Footer className="mt-auto flex w-full justify-end gap-2">
-                                <LinkButton href={`/deliveries/${item.id}`}>
-                                    进入管理
-                                </LinkButton>
+                                <LinkButton href={`/deliveries/${item.id}`} variant="secondary">详情</LinkButton>
                             </Card.Footer>
                         </Card>
                     </div>

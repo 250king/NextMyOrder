@@ -17,7 +17,7 @@ export const GET = async (_: NextRequest, ctx: Context) => {
     const data = await db.query.payment.findFirst({
         where: and(
             eq(payment.id, Number(paymentId)),
-            ...(context.isAdmin ? [] : [eq(payment.userId, context.uid)])
+            ...(context.isAdmin ? [] : [eq(payment.userId, context.uid!)])
         ),
     });
     if (!data) {

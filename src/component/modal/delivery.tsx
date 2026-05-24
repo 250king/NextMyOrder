@@ -76,7 +76,8 @@ export const DeliveryModal = ({ data, isAdmin }: {
 
     return (
         <Modal onOpenChange={setOpen}>
-            <Button size="sm">
+            <Button variant="secondary">
+                <span className="icon-[ri--edit-box-fill]" />
                 编辑
             </Button>
             <Modal.Backdrop>
@@ -155,7 +156,7 @@ export const DeliveryModal = ({ data, isAdmin }: {
                                                         isDisabled={isPending}
                                                     >
                                                         <Label>备注</Label>
-                                                        <TextArea/>
+                                                        <TextArea />
                                                         <FieldError />
                                                     </TextField>
                                                 )}

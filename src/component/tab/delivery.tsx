@@ -1,8 +1,7 @@
 "use client"
-
 import React from "react";
 import Link, { LinkProps } from "next/link";
-import { Surface, Tabs } from "@heroui/react";
+import { Tabs } from "@heroui/react";
 import { DeliveryResult } from "@/type/delivery";
 
 export const DeliveryTab = ({
@@ -39,10 +38,10 @@ export const DeliveryTab = ({
             </Tabs.ListContainer>
             <div className="w-full">
                 <Tabs.Panel className="pt-4" id="goods">
-                    <Surface className="min-h-48 rounded-lg border border-dashed border-separator p-6" variant="transparent" />
+                    <div className="min-h-48 rounded-lg border border-dashed border-separator p-6"/>
                 </Tabs.Panel>
                 <Tabs.Panel className="pt-4" id="track">
-                    <Surface className="min-h-48 rounded-lg border border-dashed border-separator p-6" variant="transparent" />
+                    <div className="min-h-48 rounded-lg border border-dashed border-separator p-6" />
                 </Tabs.Panel>
             </div>
         </Tabs>

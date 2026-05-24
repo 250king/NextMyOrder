@@ -1,5 +1,5 @@
 import React from "react";
-import { Alert, Chip, Surface } from "@heroui/react";
+import { Alert, Button, ButtonGroup, Chip, Dropdown, Label, Surface } from "@heroui/react";
 import { and, eq } from "drizzle-orm";
 import notFound from "@/app/not-found";
 import { DeliveryModal } from "@/component/modal/delivery";
@@ -64,7 +64,29 @@ const Page = async ({ params, searchParams }: PageProps) => {
                 <Surface className="rounded-3xl p-4 shadow-sm">
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         <h2 className="text-base font-semibold">基础信息</h2>
-                        {data.status === "PENDING" && <DeliveryModal data={data} isAdmin={context.isAdmin} />}
+                        <ButtonGroup>
+                            {data.status == "PENDING" && <DeliveryModal data={data} isAdmin={context.isAdmin} />}
+                            {context.isAdmin && ["PENDING", "PUSHED"].includes(data.status) && (
+                                <Dropdown>
+                                    <Button isIconOnly variant="secondary">
+                                        <ButtonGroup.Separator />
+                                        <span className="icon-[ri--arrow-down-s-line]" />
+                                    </Button>
+                                    <Dropdown.Popover className="min-w-40" placement="bottom end">
+                                        <Dropdown.Menu>
+                                            {data.status == "PENDING" && (
+                                                <Dropdown.Item>
+                                                    <Label>推送</Label>
+                                                </Dropdown.Item>
+                                            )}
+                                            <Dropdown.Item variant="danger">
+                                                <Label>取消</Label>
+                                            </Dropdown.Item>
+                                        </Dropdown.Menu>
+                                    </Dropdown.Popover>
+                                </Dropdown>
+                            )}
+                        </ButtonGroup>
                     </div>
                     <div className="mt-4 grid gap-4 text-sm md:grid-cols-3">
                         <div className="min-w-0">

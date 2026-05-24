@@ -40,7 +40,7 @@ const Page = async ({ params }: PageProps) => {
         await cancelOrder(data.requestId);
     }
     const requestNum = genReqNum(data.id);
-    const amount = (data.amount * data.currencyRate * 1.0038).toFixed(2);
+    const amount = ((data.amount * data.currencyRate) / (1 - 0.0038)).toFixed(2);
     const res = await generateUrl(requestNum, amount);
     await db
         .update(payment)

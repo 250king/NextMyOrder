@@ -1,6 +1,6 @@
 import React from "react";
 import { notFound } from "next/navigation";
-import { Alert, Button, Chip, Surface } from "@heroui/react";
+import { Alert, Button, ButtonGroup, Chip, Dropdown, Label, Surface } from "@heroui/react";
 import { and, eq, exists } from "drizzle-orm";
 import { db } from "@/service/db";
 import { group, list } from "@/service/db/schema";
@@ -41,13 +41,26 @@ const Page = async ({ params }: PageProps) => {
                 <Surface className="rounded-3xl p-4 shadow-sm">
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         <h2 className="text-base font-semibold">基础信息</h2>
-                        {context.isAdmin && (
-                            <div className="flex flex-row gap-2">
-                                <Button size="sm">编辑信息</Button>
-                                {data.status != "COMPLETED" && (
-                                    <Button size="sm">{data.status == "PENDING" ? "截单" : "重新开放"}</Button>
-                                )}
-                            </div>
+                        {context.isAdmin && data.status != "COMPLETED" && (
+                            <ButtonGroup>
+                                <Button variant="secondary">
+                                    <span className={data.status == "PENDING" ? "icon-[ri--stop-fill]": "icon-[ri--play-fill]"}/>
+                                    {data.status == "PENDING" ? "截单" : "重新开放"}
+                                </Button>
+                                <Dropdown>
+                                    <Button isIconOnly variant="secondary">
+                                        <ButtonGroup.Separator />
+                                        <span className="icon-[ri--arrow-down-s-line]" />
+                                    </Button>
+                                    <Dropdown.Popover className="min-w-40" placement="bottom end">
+                                        <Dropdown.Menu>
+                                            <Dropdown.Item variant="danger">
+                                                <Label>编辑信息</Label>
+                                            </Dropdown.Item>
+                                        </Dropdown.Menu>
+                                    </Dropdown.Popover>
+                                </Dropdown>
+                            </ButtonGroup>
                         )}
                     </div>
                     <div className="mt-4 grid gap-4 text-sm md:grid-cols-3">

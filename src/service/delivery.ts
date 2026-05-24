@@ -11,7 +11,7 @@ import { getContext } from "@/util/context";
 export const getAddresses = async (deliveryId: number) => {
     const context = await getContext();
     const current = await db.query.delivery.findFirst({
-        where: and(eq(delivery.id, deliveryId), ...(context.isAdmin ? [] : [eq(delivery.userId, context.uid)])),
+        where: and(eq(delivery.id, deliveryId), ...(context.isAdmin ? [] : [eq(delivery.userId, context.uid!)])),
     });
     if (!current) {
         return notFound();
@@ -29,7 +29,7 @@ export const saveDelivery = async (
     let { recipient, phone, address } = data;
     const context = await getContext();
     const current = await db.query.delivery.findFirst({
-        where: and(eq(delivery.id, deliveryId), ...(context.isAdmin ? [] : [eq(delivery.userId, context.uid)])),
+        where: and(eq(delivery.id, deliveryId), ...(context.isAdmin ? [] : [eq(delivery.userId, context.uid!)])),
     });
     if (!current) {
         return notFound();
@@ -38,7 +38,7 @@ export const saveDelivery = async (
         const data = await db.query.address.findFirst({
             where: and(
                 eq(address_.id, addressId),
-                ...(context.isAdmin ? [] : [eq(address_.userId, context.uid)])
+                ...(context.isAdmin ? [] : [eq(address_.userId, context.uid!)])
             ),
         });
         if (data) {
@@ -77,5 +77,5 @@ export const saveDelivery = async (
             recipient: recipient!,
             comment: context.isAdmin ? comment : undefined,
         })
-        .where(and(eq(delivery.id, deliveryId), ...(context.isAdmin ? [] : [eq(delivery.userId, context.uid)])));
+        .where(and(eq(delivery.id, deliveryId), ...(context.isAdmin ? [] : [eq(delivery.userId, context.uid!)])));
 };

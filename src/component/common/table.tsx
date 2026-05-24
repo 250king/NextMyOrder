@@ -25,7 +25,7 @@ export const SortableColumnHeader = ({ children, sortDirection }: { children: Re
             {!!sortDirection && (
                 <span
                     className={cn(
-                        "size-3 transform transition-transform duration-100 ease-out icon-[gravity-ui--chevron-up]",
+                        "size-3 transform transition-transform duration-100 ease-out icon-[ri--arrow-up-s-line]",
                         sortDirection === "descending" ? "rotate-180" : ""
                     )}
                 />

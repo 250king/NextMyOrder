@@ -19,7 +19,7 @@ const Page = async ({searchParams}: PageProps) => {
     if (!context.isAdmin) {
         filters.push(eq(delivery.userId, context.uid!));
     } else if (query.userId) {
-        filters.push(eq(delivery.userId, context.uid!));
+        filters.push(eq(delivery.userId, query.userId));
     }
     if (query.status) {
         filters.push(eq(delivery.status, query.status));

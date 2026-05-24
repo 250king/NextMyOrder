@@ -16,9 +16,9 @@ const Page = async ({ searchParams }: PageProps) => {
     const pagination = getPagination(query);
     const filters: SQL[] = [];
     if (!context.isAdmin) {
-        filters.push(eq(payment.userId, context.uid));
+        filters.push(eq(payment.userId, context.uid!));
     } else if (query.userId) {
-        filters.push(eq(payment.userId, context.uid));
+        filters.push(eq(payment.userId, query.userId));
     }
     if (query.method) {
         filters.push(eq(payment.method, query.method));

@@ -17,7 +17,12 @@ export const GroupCard = ({ items, total, status, page, keyword }: CardProps<Gro
         <div className="relative flex flex-col gap-4">
             {isPending && <Loading />}
             <SearchFilter initialValue={keyword} onSearch={(val) => updateFilter({ keyword: val })} />
-            <EnumFilter label="团购状态" currentValue={status} options={statusMap} onChange={(val) => updateFilter({ status: val })} />
+            <EnumFilter
+                label="团购状态"
+                currentValue={status}
+                options={statusMap}
+                onChange={(val) => updateFilter({ status: val })}
+            />
             <p className="text-default-500 text-sm">共找到{total}条记录</p>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 items-stretch">
                 {items.map((item) => (
@@ -37,7 +42,7 @@ export const GroupCard = ({ items, total, status, page, keyword }: CardProps<Gro
                                 </div>
                             </Card.Content>
                             <Card.Footer className="mt-auto flex w-full justify-end gap-2 px-4 pb-4">
-                                <LinkButton href={`/groups/${item.id}`}>进入团购</LinkButton>
+                                <LinkButton href={`/groups/${item.id}`} variant="secondary">详情</LinkButton>
                             </Card.Footer>
                         </Card>
                     </div>

@@ -53,7 +53,7 @@ export const group = pgTable(
         qq: text().notNull(),
         deadline: timestamp({ mode: "date" }).notNull(),
         status: groupStatus().default("PENDING").notNull(),
-        image: text().notNull(),
+        image: text(),
         createdAt: timestamp({ mode: "date" })
             .default(sql`CURRENT_TIMESTAMP`)
             .notNull(),

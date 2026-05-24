@@ -8,6 +8,9 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
     title: "NextMyOrder",
+    icons: {
+        icon: "https://static.250king.top/image/2026/03/ozvkna9p.png",
+    },
 };
 
 const Layout = ({ children }: React.PropsWithChildren) => {
