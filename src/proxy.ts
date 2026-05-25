@@ -6,8 +6,8 @@ import { user } from "@/service/db/schema";
 import { getIssuer } from "@/service/oauth2";
 import { getAll, setAll } from "@/service/session";
 import { userSchema } from "@/type/user";
+import { toUtf8 } from "@/util/cover";
 import { env } from "@/util/env";
-import { toUtf8 } from "@/util/string";
 
 const buildUrl = (path: string, base: string) => {
     if (path == "/") {

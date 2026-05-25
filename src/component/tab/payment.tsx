@@ -1,7 +1,6 @@
 "use client"
-import React from "react";
-import Link, { LinkProps } from "next/link";
 import { Tabs } from "@heroui/react";
+import { LinkTab } from "@/component/navigation/tab";
 import { PaymentResult } from "@/type/payment";
 
 export const PaymentTab = ({
@@ -18,22 +17,14 @@ export const PaymentTab = ({
         <Tabs selectedKey={currentTab} className="w-full">
             <Tabs.ListContainer className="w-fit max-w-full">
                 <Tabs.List className="w-fit max-w-full *:w-fit *:whitespace-nowrap">
-                    <Tabs.Tab
-                        href={`/payments/${data.id}?tab=detail`}
-                        id="detail"
-                        render={(props) => <Link {...(props as Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, keyof LinkProps> & LinkProps)} />}
-                    >
+                    <LinkTab href={`/payments/${data.id}?tab=detail`} id="detail">
                         收款明细
                         <Tabs.Indicator />
-                    </Tabs.Tab>
-                    <Tabs.Tab
-                        href={`/payments/${data.id}?tab=refund`}
-                        id="refund"
-                        render={(props) => <Link {...(props as Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, keyof LinkProps> & LinkProps)} />}
-                    >
+                    </LinkTab>
+                    <LinkTab href={`/payments/${data.id}?tab=refund`} id="refund">
                         退款详情
                         <Tabs.Indicator />
-                    </Tabs.Tab>
+                    </LinkTab>
                 </Tabs.List>
             </Tabs.ListContainer>
             <div className="w-full">

@@ -1,7 +1,7 @@
 import { headers } from "next/headers"
 import { Context } from "@/type/common";
 import { userSchema } from "@/type/user";
-import { toUtf8 } from "@/util/string";
+import { toUtf8 } from "@/util/cover";
 
 export const getContext = async (): Promise<Context> => {
     const header = await headers()

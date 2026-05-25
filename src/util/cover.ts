@@ -1,3 +1,4 @@
+import { parseAbsolute } from "@internationalized/date";
 import dayjs from "dayjs"
 import timezone from "dayjs/plugin/timezone"
 import utc from "dayjs/plugin/utc"
@@ -23,4 +24,8 @@ export const date = (current: Date | string) => {
 export const genReqNum = (requestId: number) => {
     const time = dayjs.utc().format("YYYYMMDDHHmmss");
     return `${time}${String(requestId).padStart(18, "0")}`;
+}
+
+export const dataValue = (current: Date | string) => {
+    return parseAbsolute(dayjs(current).toISOString(), "Asia/Shanghai");
 }

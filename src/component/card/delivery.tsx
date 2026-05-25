@@ -7,7 +7,7 @@ import { Pagination } from "@/component/common/pagination";
 import { LinkButton } from "@/component/navigation/button";
 import { CardProps } from "@/type/card";
 import { colorMap, companyMap, DeliveryQuery, DeliveryResult, iconMap, statusMap } from "@/type/delivery";
-import { date } from "@/util/string";
+import { date } from "@/util/cover";
 
 export const DeliveryCard = ({ items, total, company, status, keyword, page }: CardProps<DeliveryQuery, DeliveryResult>) => {
     const [isPending, startTransition] = React.useTransition();

@@ -6,7 +6,7 @@ import { db } from "@/service/db";
 import { payment } from "@/service/db/schema";
 import { cancelOrder, generateUrl } from "@/service/jdpay";
 import { getContext } from "@/util/context";
-import { genReqNum } from "@/util/string";
+import { genReqNum } from "@/util/cover";
 
 type PageProps = {
     params: Promise<{

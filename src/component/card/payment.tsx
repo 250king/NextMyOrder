@@ -7,7 +7,7 @@ import { Pagination } from "@/component/common/pagination";
 import { LinkButton } from "@/component/navigation/button";
 import { CardProps } from "@/type/card";
 import { colorMap, iconMap, methodMap, PaymentQuery, PaymentResult, typeIconMap, typeMap } from "@/type/payment";
-import { currency, date } from "@/util/string";
+import { currency, date } from "@/util/cover";
 
 export const PaymentCard = ({ items, total, page, method, type }: CardProps<PaymentQuery, PaymentResult>) => {
     const [isPending, startTransition] = React.useTransition();

@@ -8,7 +8,7 @@ import { db } from "@/service/db";
 import { delivery } from "@/service/db/schema";
 import { colorMap, companyMap, iconMap, statusMap } from "@/type/delivery";
 import { getContext } from "@/util/context";
-import { date } from "@/util/string";
+import { date } from "@/util/cover";
 
 type PageProps = {
     params: Promise<{

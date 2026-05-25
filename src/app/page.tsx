@@ -6,6 +6,6 @@ export default function Home() {
     const router = useRouter();
 
     React.useEffect(() => {
-        router.replace("/payments")
+        router.replace("/groups")
     }, [router])
 }

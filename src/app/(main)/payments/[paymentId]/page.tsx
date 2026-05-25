@@ -8,7 +8,7 @@ import { db } from "@/service/db";
 import { payment } from "@/service/db/schema";
 import { colorMap, iconMap, methodMap, typeIconMap, typeMap } from "@/type/payment";
 import { getContext } from "@/util/context";
-import { currency, date } from "@/util/string";
+import { currency, date } from "@/util/cover";
 
 type PageProps = {
     params: Promise<{

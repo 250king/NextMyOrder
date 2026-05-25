@@ -40,11 +40,6 @@ export const transitStatus = pgEnum("TransitStatus", [
 ]);
 export const transitType = pgEnum("TransitType", ["LOGISTICS", "PERSONAL"]);
 
-export const setting = pgTable("Setting", {
-    key: text().primaryKey().notNull(),
-    value: text(),
-});
-
 export const group = pgTable(
     "Group",
     {

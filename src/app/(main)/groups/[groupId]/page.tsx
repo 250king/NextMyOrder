@@ -1,12 +1,13 @@
 import React from "react";
 import { notFound } from "next/navigation";
-import { Alert, Button, ButtonGroup, Chip, Dropdown, Label, Surface } from "@heroui/react";
+import { Alert, ButtonGroup, Chip, Surface } from "@heroui/react";
 import { and, eq, exists } from "drizzle-orm";
+import { GroupModifyModal } from "@/component/modal/group";
 import { db } from "@/service/db";
 import { group, list } from "@/service/db/schema";
 import { colorMap, statusMap } from "@/type/group";
 import { getContext } from "@/util/context";
-import { date } from "@/util/string";
+import { date } from "@/util/cover";
 
 type PageProps = {
     params: Promise<{
@@ -20,9 +21,16 @@ const Page = async ({ params }: PageProps) => {
     const data = await db.query.group.findFirst({
         where: and(
             eq(group.id, path.groupId),
-            ...(context.isAdmin ? [] : [
-                exists(db.select().from(list).where(and(eq(list.groupId, group.id), eq(list.userId, context.uid!)))),
-            ])
+            ...(context.isAdmin
+                ? []
+                : [
+                      exists(
+                          db
+                              .select()
+                              .from(list)
+                              .where(and(eq(list.groupId, group.id), eq(list.userId, context.uid!)))
+                      ),
+                  ])
         ),
     });
     if (!data) {
@@ -43,23 +51,7 @@ const Page = async ({ params }: PageProps) => {
                         <h2 className="text-base font-semibold">基础信息</h2>
                         {context.isAdmin && data.status != "COMPLETED" && (
                             <ButtonGroup>
-                                <Button variant="secondary">
-                                    <span className={data.status == "PENDING" ? "icon-[ri--stop-fill]": "icon-[ri--play-fill]"}/>
-                                    {data.status == "PENDING" ? "截单" : "重新开放"}
-                                </Button>
-                                <Dropdown>
-                                    <Button isIconOnly variant="secondary">
-                                        <ButtonGroup.Separator />
-                                        <span className="icon-[ri--arrow-down-s-line]" />
-                                    </Button>
-                                    <Dropdown.Popover className="min-w-40" placement="bottom end">
-                                        <Dropdown.Menu>
-                                            <Dropdown.Item variant="danger">
-                                                <Label>编辑信息</Label>
-                                            </Dropdown.Item>
-                                        </Dropdown.Menu>
-                                    </Dropdown.Popover>
-                                </Dropdown>
+                                <GroupModifyModal data={data} />
                             </ButtonGroup>
                         )}
                     </div>
@@ -67,6 +59,10 @@ const Page = async ({ params }: PageProps) => {
                         <div className="min-w-0">
                             <div className="text-muted">群号</div>
                             <div className="font-medium">{data.qq}</div>
+                        </div>
+                        <div className="min-w-0">
+                            <div className="text-muted">截至时间</div>
+                            <div className="font-medium">{date(data.deadline)}</div>
                         </div>
                         <div className="min-w-0">
                             <div className="text-muted">创建时间</div>

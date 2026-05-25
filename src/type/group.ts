@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { group, groupStatus } from "@/service/db/schema";
 import { Query } from "@/type/common";
 
@@ -21,3 +22,11 @@ export const colorMap: Record<GroupStatus, "default" | "success" | "warning"> = 
     CLOSED: "warning",
     COMPLETED: "default",
 };
+
+export const groupDetailSchema = z.object({
+    id: z.number().positive().nonoptional(),
+    name: z.string().nonempty(),
+    qq: z.string().regex(/^\d{5,}$/).nonempty(),
+    image: z.url().nullable(),
+    deadline: z.date().nonoptional(),
+}).strict()

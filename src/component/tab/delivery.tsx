@@ -1,7 +1,6 @@
 "use client"
-import React from "react";
-import Link, { LinkProps } from "next/link";
 import { Tabs } from "@heroui/react";
+import { LinkTab } from "@/component/navigation/tab";
 import { DeliveryResult } from "@/type/delivery";
 
 export const DeliveryTab = ({
@@ -18,22 +17,14 @@ export const DeliveryTab = ({
         <Tabs selectedKey={currentTab} className="w-full">
             <Tabs.ListContainer className="w-fit max-w-full">
                 <Tabs.List className="w-fit max-w-full *:w-fit *:whitespace-nowrap">
-                    <Tabs.Tab
-                        href={`/deliveries/${data.id}?tab=goods`}
-                        id="goods"
-                        render={(props) => <Link {...(props as Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, keyof LinkProps> & LinkProps)} />}
-                    >
+                    <LinkTab href={`/deliveries/${data.id}?tab=goods`} id="goods">
                         已绑定商品
                         <Tabs.Indicator />
-                    </Tabs.Tab>
-                    <Tabs.Tab
-                        href={`/deliveries/${data.id}?tab=track`}
-                        id="track"
-                        render={(props) => <Link {...(props as Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, keyof LinkProps> & LinkProps)} />}
-                    >
+                    </LinkTab>
+                    <LinkTab href={`/deliveries/${data.id}?tab=track`} id="track">
                         物流跟踪
                         <Tabs.Indicator />
-                    </Tabs.Tab>
+                    </LinkTab>
                 </Tabs.List>
             </Tabs.ListContainer>
             <div className="w-full">
