@@ -79,6 +79,9 @@ const Page = async ({ params, searchParams }: PageProps) => {
                                                     <Label>推送</Label>
                                                 </Dropdown.Item>
                                             )}
+                                            <Dropdown.Item>
+                                                <Label>打印运单</Label>
+                                            </Dropdown.Item>
                                             <Dropdown.Item variant="danger">
                                                 <Label>取消</Label>
                                             </Dropdown.Item>

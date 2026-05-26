@@ -2,6 +2,7 @@ import { z } from "zod";
 import { delivery, deliveryCompany, deliveryStatus } from "@/service/db/schema";
 import { Query } from "@/type/common";
 import { UserResult } from "@/type/user";
+import { env } from "@/util/env";
 
 export type DeliveryCompany = (typeof deliveryCompany.enumValues)[number];
 
@@ -77,3 +78,21 @@ const manualSchema = baseSchema
     .strict();
 
 export const deliveryDetailSchema = z.union([addressBookSchema, manualSchema]);
+
+export const createOrderSchema = z.object({
+    kuaidicom: z.string().nonempty(),
+    recManName: z.string().regex(/^[A-Za-z0-9 \u4e00-\u9fff]+$/).nonempty(),
+    recManPhone: z.string().regex(/^1[3-9]\d{9}$/).nonempty(),
+    recManAddress: z.string().regex(/^[A-Za-z0-9 \u4e00-\u9fff（）()#\-、，。,./]+$/).nonempty(),
+    sendManName: z.string().regex(/^[A-Za-z0-9 \u4e00-\u9fff]+$/).nonempty(),
+    sendManPhone: z.string().regex(/^1[3-9]\d{9}$/).nonempty(),
+    sendManAddress: z.string().regex(/^[A-Za-z0-9 \u4e00-\u9fff（）()#\-、，。,./]+$/).nonempty(),
+    callBackUrl: z.url().optional().default(env.KD100_CALLBACK_URL),
+    cargo: z.string().optional().default("动漫周边"),
+});
+
+export const cancelOrderSchema = z.object({
+    orderId: z.string().nonempty(),
+    taskId: z.string().nonempty(),
+    reason: z.string().nonempty(),
+})

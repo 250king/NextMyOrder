@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import * as client from 'openid-client';
 import { db } from "@/service/db";
 import { user } from "@/service/db/schema";
-import { getIssuer } from "@/service/oauth2";
+import { issuer } from "@/service/oauth2";
 import { getAll, setAll } from "@/service/session";
 import { userSchema } from "@/type/user";
 import { toUtf8 } from "@/util/cover";
@@ -33,9 +33,9 @@ export const proxy = async (request: NextRequest) => {
     if (!["/login", "/callback"].some(path => pathname == path)) {
         if ("expired_at" in session && session.expired_at < new Date().getTime()) {
             try {
-                const res = await client.refreshTokenGrant(await getIssuer(), session.refresh_token, {
+                const res = await client.refreshTokenGrant(issuer, session.refresh_token, {
                     resource: env.RESOURCE_URI,
-                })
+                });
                 await setAll({
                     access_token: res.access_token,
                     refresh_token: res.refresh_token || null,
@@ -68,7 +68,7 @@ export const proxy = async (request: NextRequest) => {
     response.cookies.set({
         name: env.SESSION_COOKIE_NAME,
         value: sid,
-        secure: env.SESSION_COOKIE_SECURE ?? env.NODE_ENV === "production",
+        secure: env.NODE_ENV === "production",
         maxAge: env.SESSION_TTL,
         httpOnly: true,
         sameSite: "lax",
