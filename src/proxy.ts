@@ -42,15 +42,13 @@ export const proxy = async (request: NextRequest) => {
                     id_token: res.id_token || null,
                     expired_at: (res.expires_in || 0) * 1000 + new Date().getTime()
                 }, sid)
-                params.set("x-access-token", res.access_token);
                 params.set("x-refresh-token", res.refresh_token || "");
                 params.set("x-user", res.id_token?.split(".")[1] || "e30=");
                 params.set("x-uid", String(await getUid(res.id_token!)));
             } catch {
                 response = NextResponse.redirect(buildUrl(`${pathname}${search}`, request.url));
             }
-        } else if ("access_token" in session) {
-            params.set("x-access-token", session.access_token);
+        } else if ("refresh_token" in session) {
             params.set("x-refresh-token", session.refresh_token);
             params.set("x-user", session.id_token.split(".")[1]);
             params.set("x-uid", String(await getUid(session.id_token)));

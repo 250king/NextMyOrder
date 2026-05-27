@@ -20,6 +20,7 @@ const envSchema = z.object({
     KD100_CALLBACK_URL: z.url().nonempty().default("http://localhost/callback"),
     KD100_KEY: z.string().nonempty(),
     KD100_SECRET: z.string().nonempty(),
+    KD100_NONCE: z.string().nonempty(),
 });
 
 const result = envSchema.safeParse(process.env);

@@ -38,11 +38,8 @@ const Page = async ({ searchParams }: PageProps) => {
         const res = await client.authorizationCodeGrant(issuer, url, {
             pkceCodeVerifier: await get("code_verifier"),
             expectedState: await get("state"),
-        }, {
-            resource: env.RESOURCE_URI,
         });
         await setAll({
-            access_token: res.access_token,
             refresh_token: res.refresh_token || null,
             id_token: res.id_token || null,
             expired_at: (res.expires_in || 0) * 1000 + new Date().getTime()

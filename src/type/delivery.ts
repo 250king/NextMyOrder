@@ -107,6 +107,7 @@ export const createOrderSchema = z.object({
         .nonempty(),
     callBackUrl: z.url().default(env.KD100_CALLBACK_URL).optional(),
     cargo: z.string().default("动漫周边").optional(),
+    sale: z.string().default(env.KD100_NONCE).optional(),
 });
 
 export const cancelOrderSchema = z.object({

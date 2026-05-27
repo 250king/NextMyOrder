@@ -2,7 +2,6 @@ import { z } from "zod";
 import  { userSchema } from '@/type/user';
 
 export type Context = {
-    accessToken: string | null;
     refreshToken: string | null;
     isAdmin: boolean;
     uid: number | null;

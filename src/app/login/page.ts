@@ -22,10 +22,9 @@ const Page = async ({searchParams}: PageProps) => {
     await set("state", state)
     const url = client.buildAuthorizationUrl(issuer, {
         redirect_uri: env.REDIRECT_URI,
-        scope: "openid profile email custom_data offline_access admin:all",
+        scope: "openid profile email custom_data offline_access",
         code_challenge: codeChallenge,
         code_challenge_method: "S256",
-        resource: env.RESOURCE_URI,
         prompt: "consent",
         state,
     });
