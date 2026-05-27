@@ -1,7 +1,7 @@
 import { and, eq, exists, SQL } from "drizzle-orm";
 import { GroupCard } from "@/component/card/group";
 import { db } from "@/service/db";
-import { group, list } from "@/service/db/schema";
+import { Group, List } from "@/service/db/schema";
 import { GroupQuery } from "@/type/group";
 import { getContext } from "@/util/context";
 import { getPagination } from "@/util/query";
@@ -18,26 +18,26 @@ const Page = async ({ searchParams }: PageProps) => {
     if (!context.isAdmin) {
         filters.push(
             exists(
-                db.select().from(list).where(and(eq(list.groupId, group.id), eq(list.userId, context.uid!)))
+                db.select().from(List).where(and(eq(List.groupId, Group.id), eq(List.userId, context.uid!)))
             )
         );
     } else if (query.userId) {
         filters.push(
             exists(
-                db.select().from(list).where(and(eq(list.groupId, group.id), eq(list.userId, query.userId)))
+                db.select().from(List).where(and(eq(List.groupId, Group.id), eq(List.userId, query.userId)))
             )
         );
     }
     if (query.status) {
-        filters.push(eq(group.status, query.status));
+        filters.push(eq(Group.status, query.status));
     }
     const [items, total] = await Promise.all([
-        await db.query.group.findMany({
+        await db.query.Group.findMany({
             where: and(...filters),
             ...pagination,
             orderBy: (group, { desc }) => [desc(group.createdAt)],
         }),
-        db.$count(group, and(...filters)),
+        db.$count(Group, and(...filters)),
     ]);
 
     return (

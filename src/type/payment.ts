@@ -1,10 +1,10 @@
-import { payment, paymentMethod, paymentType } from "@/service/db/schema";
+import { Payment, PaymentMethod as PaymentMethodEnum, PaymentType as PaymentTypeEnum } from "@/service/db/schema";
 import { Query } from "@/type/common";
 import { UserResult } from "@/type/user";
 
-export type PaymentMethod = (typeof paymentMethod.enumValues)[number]
+export type PaymentMethod = (typeof PaymentMethodEnum.enumValues)[number]
 
-export type PaymentType = (typeof paymentType.enumValues)[number]
+export type PaymentType = (typeof PaymentTypeEnum.enumValues)[number]
 
 export type PaymentQuery = Query<{
     type?: PaymentType;
@@ -12,7 +12,7 @@ export type PaymentQuery = Query<{
     userId?: number;
 }>;
 
-export type PaymentResult = typeof payment.$inferSelect & {
+export type PaymentResult = typeof Payment.$inferSelect & {
     user: UserResult;
 };
 

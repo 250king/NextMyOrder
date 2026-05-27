@@ -2,8 +2,10 @@
 import React from "react";
 import {
     Button,
+    ButtonGroup,
     Checkbox,
     Description,
+    Dropdown,
     FieldError,
     Input,
     Label,
@@ -13,21 +15,23 @@ import {
     Tabs,
     TextArea,
     TextField,
+    toast,
 } from "@heroui/react";
 import clsx from "clsx";
-import { deliveryCompany } from "@/service/db/schema";
-import { getAddresses, saveDelivery } from "@/service/delivery";
+import { DeliveryCompany as DeliveryCompanyEnum } from "@/service/db/schema";
+import { getAddresses, getSenderAddresses, pushDelivery, saveDelivery, withdrawDelivery } from "@/service/delivery";
 import { AddressResult } from "@/type/address";
+import { ModalState } from "@/type/common";
 import { companyMap, DeliveryCompany, DeliveryResult, iconMap } from "@/type/delivery";
 
-export const DeliveryModal = ({ data, isAdmin }: {
+const DeliveryModifyModal = ({ data, isAdmin }: {
     data: Omit<DeliveryResult, "user">,
     isAdmin: boolean,
 }) => {
     const [addresses, setAddresses] = React.useState<AddressResult[]>([]);
     const [isPending, startTransition] = React.useTransition();
     const [open, setOpen] = React.useState<boolean>(false)
-    const companyOptions = deliveryCompany.enumValues.map((company) => ({
+    const companyOptions = DeliveryCompanyEnum.enumValues.map((company) => ({
         id: company,
         label: companyMap[company],
         icon: iconMap[company],
@@ -44,30 +48,29 @@ export const DeliveryModal = ({ data, isAdmin }: {
             return;
         }
         const formData = new FormData(e.target);
-        const addressId = formData.get("addressId") as string;
-        const recipient = formData.get("recipient") as string;
-        const phone = formData.get("phone") as string;
-        const address = formData.get("address") as string;
+        const addressId = Number(formData.get("addressId") as string);
+        const recipient = (formData.get("recipient") as string) || null;
+        const phone = (formData.get("phone") as string) || null;
+        const address = (formData.get("address") as string) || null;
         const save = formData.get("save") === "on";
-        const company = formData.get("company") as DeliveryCompany;
-        const comment = formData.get("comment") as string;
-        console.log(save);
+        const company = (formData.get("company") as DeliveryCompany) || null;
+        const comment = (formData.get("comment") as string) || null;
         startTransition(async () => {
             if (addressId) {
                 await saveDelivery({
                     company,
                     deliveryId: data.id,
-                    addressId: Number(addressId),
+                    addressId: addressId,
                 });
             } else {
                 await saveDelivery({
                     save,
                     deliveryId: data.id,
-                    company: company || null,
-                    recipient: recipient || null,
-                    phone: phone || null,
-                    address: address || null,
-                    comment: comment || null,
+                    company: company,
+                    recipient: recipient,
+                    phone: phone,
+                    address: address,
+                    comment: comment,
                 });
             }
             setOpen(false);
@@ -105,7 +108,7 @@ export const DeliveryModal = ({ data, isAdmin }: {
                                     <Tabs.Panel id="blank" className="space-y-4 p-0">
                                         <TextField
                                             isRequired
-                                            className="w-full"
+                                            fullWidth
                                             name="recipient"
                                             variant="secondary"
                                             defaultValue={data.recipient}
@@ -117,7 +120,7 @@ export const DeliveryModal = ({ data, isAdmin }: {
                                             <FieldError />
                                         </TextField>
                                         <TextField
-                                            className="w-full"
+                                            fullWidth
                                             name="phone"
                                             type="tel"
                                             variant="secondary"
@@ -130,7 +133,7 @@ export const DeliveryModal = ({ data, isAdmin }: {
                                             <FieldError />
                                         </TextField>
                                         <TextField
-                                            className="w-full"
+                                            fullWidth
                                             name="address"
                                             variant="secondary"
                                             defaultValue={data.address ?? undefined}
@@ -143,7 +146,7 @@ export const DeliveryModal = ({ data, isAdmin }: {
                                         </TextField>
                                         {isAdmin && (
                                             <TextField
-                                                className="w-full"
+                                                fullWidth
                                                 name="comment"
                                                 variant="secondary"
                                                 defaultValue={data.comment ?? undefined}
@@ -151,7 +154,6 @@ export const DeliveryModal = ({ data, isAdmin }: {
                                             >
                                                 <Label>备注</Label>
                                                 <TextArea />
-                                                <FieldError />
                                             </TextField>
                                         )}
                                         <Checkbox id="save" name="save" variant="secondary" isDisabled={isPending}>
@@ -164,10 +166,13 @@ export const DeliveryModal = ({ data, isAdmin }: {
                                         </Checkbox>
                                     </Tabs.Panel>
                                     <Tabs.Panel id="book" className="p-0">
-                                        <RadioGroup name="addressId" variant="secondary" isDisabled={isPending}>
-                                            <div className="flex flex-wrap items-center justify-between gap-4">
-                                                <Label>选择地址</Label>
-                                            </div>
+                                        <RadioGroup
+                                            name="addressId"
+                                            variant="secondary"
+                                            isDisabled={isPending}
+                                            isRequired
+                                        >
+                                            <Label>选择地址</Label>
                                             <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
                                                 {addresses.map((option) => (
                                                     <Radio
@@ -191,6 +196,7 @@ export const DeliveryModal = ({ data, isAdmin }: {
                                                     </Radio>
                                                 ))}
                                             </div>
+                                            <FieldError />
                                         </RadioGroup>
                                     </Tabs.Panel>
                                 </Tabs>
@@ -200,9 +206,7 @@ export const DeliveryModal = ({ data, isAdmin }: {
                                     variant="secondary"
                                     isDisabled={isPending}
                                 >
-                                    <div className="flex flex-wrap items-center justify-between">
-                                        <Label>快递方式</Label>
-                                    </div>
+                                    <Label>快递方式</Label>
                                     <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
                                         {companyOptions.map((option) => (
                                             <Radio
@@ -225,14 +229,183 @@ export const DeliveryModal = ({ data, isAdmin }: {
                                         ))}
                                     </div>
                                 </RadioGroup>
-                                <Button type="submit" isPending={isPending}>
-                                    提交
-                                </Button>
+                                <div className="flex flex-row justify-end gap-2">
+                                    <Button type="submit" isPending={isPending}>
+                                        提交
+                                    </Button>
+                                </div>
                             </form>
                         </Modal.Body>
                     </Modal.Dialog>
                 </Modal.Container>
             </Modal.Backdrop>
         </Modal>
+    );
+};
+
+const DeliveryPushModal = ({ data, open, onChange }: ModalState<Omit<DeliveryResult, "user">>) => {
+    const [addresses, setAddresses] = React.useState<AddressResult[]>([]);
+    const [isPending, startTransition] = React.useTransition();
+    React.useEffect(() => {
+        getSenderAddresses().then((r) => {
+            setAddresses(r);
+        });
+    }, [open]);
+
+    const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const addressId = Number(formData.get("addressId") as string);
+        startTransition(async () => {
+            await pushDelivery(data.id, addressId);
+        })
+    }
+
+    return (
+        <Modal isOpen={open} onOpenChange={onChange}>
+            <Modal.Backdrop>
+                <Modal.Container placement="center">
+                    <Modal.Dialog className="sm:max-w-2xl">
+                        <Modal.CloseTrigger />
+                        <Modal.Header>
+                            <Modal.Heading>推送运单</Modal.Heading>
+                        </Modal.Header>
+                        <Modal.Body className="p-2">
+                            <form className="space-y-4" onSubmit={handleSubmit}>
+                                <RadioGroup name="addressId" variant="secondary" isDisabled={isPending} isRequired>
+                                    <Label>选择发货地址</Label>
+                                    <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+                                        {addresses.map((option) => (
+                                            <Radio
+                                                key={option.id}
+                                                value={String(option.id)}
+                                                className={clsx(
+                                                    "group relative flex-col gap-4 rounded-lg border border-transparent bg-default p-4 transition-all items-center",
+                                                    "data-[hovered=true]:bg-default-hover",
+                                                    "data-[selected=true]:border-accent data-[selected=true]:bg-accent/10"
+                                                )}
+                                            >
+                                                <Radio.Control className="absolute top-3 right-4 size-5">
+                                                    <Radio.Indicator />
+                                                </Radio.Control>
+                                                <Radio.Content className="flex flex-col items-start justify-start gap-2">
+                                                    <Label>{option.recipient}</Label>
+                                                    <Description>
+                                                        {option.phone} {option.address}
+                                                    </Description>
+                                                </Radio.Content>
+                                            </Radio>
+                                        ))}
+                                    </div>
+                                    <FieldError />
+                                </RadioGroup>
+                                <div className="flex flex-row justify-end gap-2">
+                                    <Button type="submit" isPending={isPending}>
+                                        提交
+                                    </Button>
+                                </div>
+                            </form>
+                        </Modal.Body>
+                    </Modal.Dialog>
+                </Modal.Container>
+            </Modal.Backdrop>
+        </Modal>
+    );
+};
+
+const DeliveryWithdrawModal = ({ data, open, onChange }: ModalState<Omit<DeliveryResult, "user">>) => {
+    const [isPending, startTransition] = React.useTransition();
+
+    const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const reason = formData.get("reason") as string;
+        startTransition(async () => {
+            await withdrawDelivery(data.id, reason);
+        });
+    };
+
+    return (
+        <Modal isOpen={open} onOpenChange={onChange}>
+            <Modal.Backdrop>
+                <Modal.Container placement="center">
+                    <Modal.Dialog className="sm:max-w-2xl">
+                        <Modal.CloseTrigger />
+                        <Modal.Header>
+                            <Modal.Heading>撤回运单</Modal.Heading>
+                        </Modal.Header>
+                        <Modal.Body className="p-2">
+                            <form className="space-y-4" onSubmit={handleSubmit}>
+                                <TextField
+                                    fullWidth
+                                    name="reason"
+                                    variant="secondary"
+                                    isRequired
+                                    isDisabled={isPending}
+                                >
+                                    <Label>撤回原因</Label>
+                                    <TextArea />
+                                    <FieldError />
+                                </TextField>
+                                <div className="flex flex-row justify-end gap-2">
+                                    <Button type="submit" isPending={isPending}>
+                                        提交
+                                    </Button>
+                                </div>
+                            </form>
+                        </Modal.Body>
+                    </Modal.Dialog>
+                </Modal.Container>
+            </Modal.Backdrop>
+        </Modal>
+    );
+};
+
+export const DeliveryModal = ({ data, isAdmin }: {
+    data: Omit<DeliveryResult, "user">,
+    isAdmin: boolean,
+}) => {
+    const [push, setPush] = React.useState(false);
+    const [withdraw, setWithdraw] = React.useState(false);
+
+    return (
+        <>
+            {data.status == "PENDING" && <DeliveryModifyModal data={data} isAdmin={isAdmin} />}
+            {isAdmin && ["PENDING", "PUSHED"].includes(data.status) && (
+                <Dropdown>
+                    <Button isIconOnly variant="secondary">
+                        <ButtonGroup.Separator />
+                        <span className="icon-[ri--arrow-down-s-line]" />
+                    </Button>
+                    <Dropdown.Popover className="min-w-40" placement="bottom end">
+                        <Dropdown.Menu>
+                            {data.status == "PENDING" && (
+                                <Dropdown.Item
+                                    onClick={() => {
+                                        if (!data.address || !data.phone || !data.recipient) {
+                                            toast.danger("推送失败：当前运单信息不完善");
+                                            return;
+                                        }
+                                        setPush(true);
+                                    }}
+                                >
+                                    <Label>推送</Label>
+                                </Dropdown.Item>
+                            )}
+                            <Dropdown.Item>
+                                <Label>打印运单</Label>
+                            </Dropdown.Item>
+                            {data.status == "PUSHED" && (
+                                <Dropdown.Item variant="danger" onClick={() => setWithdraw(true)}>
+                                    <Label>撤回</Label>
+                                </Dropdown.Item>
+                            )}
+                        </Dropdown.Menu>
+                    </Dropdown.Popover>
+                    <DeliveryPushModal open={push} onChange={setPush} data={data} />
+                    <DeliveryWithdrawModal open={withdraw} onChange={setWithdraw} data={data} />
+                </Dropdown>
+            )}
+        </>
     );
 };

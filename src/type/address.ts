@@ -1,3 +1,3 @@
-import { address } from "@/service/db/schema";
+import { Address } from "@/service/db/schema";
 
-export type AddressResult = typeof address.$inferSelect;
+export type AddressResult = typeof Address.$inferSelect;

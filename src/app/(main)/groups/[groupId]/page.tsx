@@ -4,7 +4,7 @@ import { Alert, ButtonGroup, Chip, Surface } from "@heroui/react";
 import { and, eq, exists } from "drizzle-orm";
 import { GroupModifyModal } from "@/component/modal/group";
 import { db } from "@/service/db";
-import { group, list } from "@/service/db/schema";
+import { Group, List } from "@/service/db/schema";
 import { colorMap, statusMap } from "@/type/group";
 import { getContext } from "@/util/context";
 import { date } from "@/util/cover";
@@ -18,17 +18,17 @@ type PageProps = {
 const Page = async ({ params }: PageProps) => {
     const path = await params;
     const context = await getContext();
-    const data = await db.query.group.findFirst({
+    const data = await db.query.Group.findFirst({
         where: and(
-            eq(group.id, path.groupId),
+            eq(Group.id, path.groupId),
             ...(context.isAdmin
                 ? []
                 : [
                       exists(
                           db
                               .select()
-                              .from(list)
-                              .where(and(eq(list.groupId, group.id), eq(list.userId, context.uid!)))
+                              .from(List)
+                              .where(and(eq(List.groupId, Group.id), eq(List.userId, context.uid!)))
                       ),
                   ])
         ),

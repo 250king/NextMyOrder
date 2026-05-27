@@ -17,3 +17,9 @@ export type Query<T> = T & {
     keyword?: string;
     id?: number;
 };
+
+export type ModalState<T> = {
+    open: boolean;
+    onChange: (value: boolean) => void;
+    data: T;
+}

@@ -5,7 +5,7 @@ import notFound from "@/app/not-found";
 import { LinkButton } from "@/component/navigation/button";
 import { PaymentTab } from "@/component/tab/payment";
 import { db } from "@/service/db";
-import { payment } from "@/service/db/schema";
+import { Payment } from "@/service/db/schema";
 import { colorMap, iconMap, methodMap, typeIconMap, typeMap } from "@/type/payment";
 import { getContext } from "@/util/context";
 import { currency, date } from "@/util/cover";
@@ -23,10 +23,10 @@ const Page = async ({ params, searchParams }: PageProps) => {
     const query = await params;
     const search = await searchParams;
     const context = await getContext();
-    const data = await db.query.payment.findFirst({
+    const data = await db.query.Payment.findFirst({
         where: and(
-            eq(payment.id, query.paymentId),
-            ...(context.isAdmin ? [] : [eq(payment.userId, context.uid!)])
+            eq(Payment.id, query.paymentId),
+            ...(context.isAdmin ? [] : [eq(Payment.userId, context.uid!)])
         ),
     });
     if (!data) {

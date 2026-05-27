@@ -1,11 +1,11 @@
 import React from "react";
-import { Alert, Button, ButtonGroup, Chip, Dropdown, Label, Surface } from "@heroui/react";
+import { Alert, ButtonGroup, Chip, Surface } from "@heroui/react";
 import { and, eq } from "drizzle-orm";
 import notFound from "@/app/not-found";
 import { DeliveryModal } from "@/component/modal/delivery";
 import { DeliveryTab } from "@/component/tab/delivery";
 import { db } from "@/service/db";
-import { delivery } from "@/service/db/schema";
+import { Delivery } from "@/service/db/schema";
 import { colorMap, companyMap, iconMap, statusMap } from "@/type/delivery";
 import { getContext } from "@/util/context";
 import { date } from "@/util/cover";
@@ -23,10 +23,10 @@ const Page = async ({ params, searchParams }: PageProps) => {
     const query = await params;
     const search = await searchParams;
     const context = await getContext();
-    const data = await db.query.delivery.findFirst({
+    const data = await db.query.Delivery.findFirst({
         where: and(
-            eq(delivery.id, query.deliveryId),
-            ...(context.isAdmin ? [] : [eq(delivery.userId, context.uid!)])
+            eq(Delivery.id, query.deliveryId),
+            ...(context.isAdmin ? [] : [eq(Delivery.userId, context.uid!)])
         ),
     });
     if (!data) {
@@ -65,30 +65,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         <h2 className="text-base font-semibold">基础信息</h2>
                         <ButtonGroup>
-                            {data.status == "PENDING" && <DeliveryModal data={data} isAdmin={context.isAdmin} />}
-                            {context.isAdmin && ["PENDING", "PUSHED"].includes(data.status) && (
-                                <Dropdown>
-                                    <Button isIconOnly variant="secondary">
-                                        <ButtonGroup.Separator />
-                                        <span className="icon-[ri--arrow-down-s-line]" />
-                                    </Button>
-                                    <Dropdown.Popover className="min-w-40" placement="bottom end">
-                                        <Dropdown.Menu>
-                                            {data.status == "PENDING" && (
-                                                <Dropdown.Item>
-                                                    <Label>推送</Label>
-                                                </Dropdown.Item>
-                                            )}
-                                            <Dropdown.Item>
-                                                <Label>打印运单</Label>
-                                            </Dropdown.Item>
-                                            <Dropdown.Item variant="danger">
-                                                <Label>取消</Label>
-                                            </Dropdown.Item>
-                                        </Dropdown.Menu>
-                                    </Dropdown.Popover>
-                                </Dropdown>
-                            )}
+                            <DeliveryModal data={data} isAdmin={context.isAdmin} />
                         </ButtonGroup>
                     </div>
                     <div className="mt-4 grid gap-4 text-sm md:grid-cols-3">

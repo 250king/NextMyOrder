@@ -5,16 +5,21 @@ import { AlertDialog, Button } from "@heroui/react";
 type AlertProps = React.PropsWithChildren<{
     title: string;
     status: "default" | "accent" | "success" | "warning" | "danger";
-    trigger: React.ReactNode;
     onConfirmed: () => Promise<void>;
+    trigger?: React.ReactNode;
+    open?: boolean;
+    onOpenChange?: (value: boolean) => void;
 }>;
 
-export const AlertModal = ({title, onConfirmed, children, trigger, status}: AlertProps) => {
+export const AlertModal = ({title, onConfirmed, children, trigger, status, open, onOpenChange}: AlertProps) => {
     const [isPending, startTransition] = React.useTransition();
-    const [open, setOpen] = React.useState(false);
+    const [show, setShow] = React.useState(false);
+
+    const current = open ?? show;
+    const handleClose = onOpenChange ?? setShow;
 
     return (
-        <AlertDialog isOpen={open} onOpenChange={setOpen}>
+        <AlertDialog isOpen={current} onOpenChange={handleClose}>
             {trigger}
             <AlertDialog.Backdrop isDismissable={false}>
                 <AlertDialog.Container placement="center">
@@ -38,7 +43,7 @@ export const AlertModal = ({title, onConfirmed, children, trigger, status}: Aler
                                 onClick={async () => {
                                     startTransition(async () => {
                                         await onConfirmed();
-                                        setOpen(false);
+                                        handleClose(false);
                                     })
                                 }}
                             >

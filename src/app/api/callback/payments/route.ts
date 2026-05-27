@@ -8,7 +8,7 @@ import utc from "dayjs/plugin/utc";
 import { eq } from "drizzle-orm";
 import { queryResult } from "@/service/api/jdpay";
 import { db } from "@/service/db";
-import { payment } from "@/service/db/schema";
+import { Payment } from "@/service/db/schema";
 import { PaymentMethod } from "@/type/payment";
 import { env } from "@/util/env";
 
@@ -25,8 +25,8 @@ export const GET = async (req: NextRequest) => {
         throw new Error("Invalid signature");
     }
     const requestId = req.nextUrl.searchParams.get("requestNum") || "";
-    const data = await db.query.payment.findFirst({
-        where: eq(payment.requestId, requestId),
+    const data = await db.query.Payment.findFirst({
+        where: eq(Payment.requestId, requestId),
     })
     if (!data) {
         return notFound()
@@ -54,10 +54,10 @@ export const GET = async (req: NextRequest) => {
             method = "CASH";
             break;
     }
-    await db.update(payment).set({
+    await db.update(Payment).set({
         paidAt: dayjs.tz(result.data.data.completeTime, "YYYY-MM-DD HH:mm:ss", "Asia/Shanghai").toDate(),
         method: method,
-    }).where(eq(payment.id, data.id));
+    }).where(eq(Payment.id, data.id));
 
     return new Response(null, { status: 204 });
 };

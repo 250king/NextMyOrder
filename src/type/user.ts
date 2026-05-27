@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { user } from "@/service/db/schema";
+import { User } from "@/service/db/schema";
 
-export type UserResult = typeof user.$inferSelect
+export type UserResult = typeof User.$inferSelect
 
 export const userSchema = z.object({
     username: z.string().optional(),

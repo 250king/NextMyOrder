@@ -1,7 +1,7 @@
 import { and, eq, type SQL } from "drizzle-orm";
 import { PaymentCard } from "@/component/card/payment";
 import { db } from "@/service/db";
-import { payment } from "@/service/db/schema";
+import { Payment } from "@/service/db/schema";
 import { PaymentQuery } from "@/type/payment";
 import { getContext } from "@/util/context";
 import { getPagination } from "@/util/query";
@@ -16,18 +16,18 @@ const Page = async ({ searchParams }: PageProps) => {
     const pagination = getPagination(query);
     const filters: SQL[] = [];
     if (!context.isAdmin) {
-        filters.push(eq(payment.userId, context.uid!));
+        filters.push(eq(Payment.userId, context.uid!));
     } else if (query.userId) {
-        filters.push(eq(payment.userId, query.userId));
+        filters.push(eq(Payment.userId, query.userId));
     }
     if (query.method) {
-        filters.push(eq(payment.method, query.method));
+        filters.push(eq(Payment.method, query.method));
     }
     if (query.type) {
-        filters.push(eq(payment.type, query.type));
+        filters.push(eq(Payment.type, query.type));
     }
     const [items, total] = await Promise.all([
-        await db.query.payment.findMany({
+        await db.query.Payment.findMany({
             where: and(...filters),
             with: {
                 user: true,
@@ -35,7 +35,7 @@ const Page = async ({ searchParams }: PageProps) => {
             ...pagination,
             orderBy: (payment, { desc }) => [desc(payment.createdAt)],
         }),
-        db.$count(payment, and(...filters)),
+        db.$count(Payment, and(...filters)),
     ]);
 
     return (

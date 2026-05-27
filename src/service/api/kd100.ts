@@ -10,7 +10,7 @@ client.interceptors.request.use(async (config) => {
     if (config.data instanceof URLSearchParams) {
         const data = config.data;
         const param = data.get("param")?.toString() ?? "";
-        const t = (Math.floor(Date.now() / 1000) * 1000).toString();
+        const t = Date.now().toString();
         const key = env.KD100_KEY;
         const secret = env.KD100_SECRET;
         const sign = crypto

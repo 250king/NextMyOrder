@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { group, groupStatus } from "@/service/db/schema";
+import { Group, GroupStatus as GroupStatusEnum } from "@/service/db/schema";
 import { Query } from "@/type/common";
 
-export type GroupStatus = (typeof groupStatus.enumValues)[number]
+export type GroupStatus = (typeof GroupStatusEnum.enumValues)[number]
 
-export type GroupResult = typeof group.$inferSelect
+export type GroupResult = typeof Group.$inferSelect
 
 export type GroupQuery = Query<{
     userId: number,

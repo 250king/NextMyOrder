@@ -4,7 +4,7 @@ import { LinkButton } from "@/component/navigation/button";
 import { PaymentWeight } from "@/component/weight/payment";
 import { cancelOrder, generateUrl } from "@/service/api/jdpay";
 import { db } from "@/service/db";
-import { payment } from "@/service/db/schema";
+import { Payment } from "@/service/db/schema";
 import { getContext } from "@/util/context";
 import { genReqNum } from "@/util/cover";
 
@@ -17,10 +17,10 @@ type PageProps = {
 const Page = async ({ params }: PageProps) => {
     const query = await params;
     const context = await getContext();
-    const data = await db.query.payment.findFirst({
+    const data = await db.query.Payment.findFirst({
         where: and(
-            eq(payment.id, query.paymentId),
-            ...(context.isAdmin ? [] : [eq(payment.userId, context.uid!)])
+            eq(Payment.id, query.paymentId),
+            ...(context.isAdmin ? [] : [eq(Payment.userId, context.uid!)])
         ),
     });
     if (!data) {
@@ -43,11 +43,11 @@ const Page = async ({ params }: PageProps) => {
     const amount = ((data.amount * data.currencyRate) / (1 - 0.0038)).toFixed(2);
     const res = await generateUrl(requestNum, amount);
     await db
-        .update(payment)
+        .update(Payment)
         .set({
             requestId: requestNum,
         })
-        .where(eq(payment.id, data.id));
+        .where(eq(Payment.id, data.id));
 
     return (
         <div className="container mx-auto flex flex-1 flex-col p-6">

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import * as client from 'openid-client';
 import { db } from "@/service/db";
-import { user } from "@/service/db/schema";
+import { User } from "@/service/db/schema";
 import { issuer } from "@/service/oauth2";
 import { getAll, setAll } from "@/service/session";
 import { userSchema } from "@/type/user";
@@ -19,7 +19,7 @@ const buildUrl = (path: string, base: string) => {
 
 const getUid = async (idToken: string) => {
     const ac = userSchema.parse(JSON.parse(toUtf8(idToken.split(".")[1])));
-    const result = await db.query.user.findFirst({ where: eq(user.qq, ac.custom_data.qq) });
+    const result = await db.query.User.findFirst({ where: eq(User.qq, ac.custom_data.qq) });
     return result?.id;
 }
 

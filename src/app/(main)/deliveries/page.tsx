@@ -2,7 +2,7 @@ import React from "react";
 import { and, eq, SQL } from "drizzle-orm";
 import { DeliveryCard } from "@/component/card/delivery";
 import { db } from "@/service/db";
-import { delivery } from "@/service/db/schema";
+import { Delivery } from "@/service/db/schema";
 import { DeliveryQuery } from "@/type/delivery";
 import { getContext } from "@/util/context";
 import { getPagination } from "@/util/query";
@@ -17,18 +17,18 @@ const Page = async ({searchParams}: PageProps) => {
     const pagination = getPagination(query);
     const filters: SQL[] = [];
     if (!context.isAdmin) {
-        filters.push(eq(delivery.userId, context.uid!));
+        filters.push(eq(Delivery.userId, context.uid!));
     } else if (query.userId) {
-        filters.push(eq(delivery.userId, query.userId));
+        filters.push(eq(Delivery.userId, query.userId));
     }
     if (query.status) {
-        filters.push(eq(delivery.status, query.status));
+        filters.push(eq(Delivery.status, query.status));
     }
     if (query.company) {
-        filters.push(eq(delivery.company, query.company));
+        filters.push(eq(Delivery.company, query.company));
     }
     const [items, total] = await Promise.all([
-        await db.query.delivery.findMany({
+        await db.query.Delivery.findMany({
             where: and(...filters),
             with: {
                 user: true,
@@ -37,7 +37,7 @@ const Page = async ({searchParams}: PageProps) => {
             ...pagination,
             orderBy: (delivery, { desc }) => [desc(delivery.createdAt)],
         }),
-        db.$count(delivery, and(...filters)),
+        db.$count(Delivery, and(...filters)),
     ]);
 
     return (
