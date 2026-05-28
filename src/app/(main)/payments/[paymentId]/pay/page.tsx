@@ -2,7 +2,7 @@ import { and, eq } from "drizzle-orm";
 import notFound from "@/app/not-found";
 import { LinkButton } from "@/component/navigation/button";
 import { PaymentWeight } from "@/component/weight/payment";
-import { cancelOrder, generateUrl } from "@/service/api/jdpay";
+import { cancelOrder, generateUrl } from "@/service/client/jdpay";
 import { db } from "@/service/db";
 import { Payment } from "@/service/db/schema";
 import { getContext } from "@/util/context";

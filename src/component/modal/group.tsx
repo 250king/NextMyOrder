@@ -8,9 +8,10 @@ import { DateTimePicker } from "@/component/weight/picker";
 import { changeGroupLock, saveGroup } from "@/service/group";
 import { GroupResult } from "@/type/group";
 import { dataValue } from "@/util/cover";
+import { useHttp } from "@/util/request";
 
 export const GroupModifyModal = ({ data }: { data: GroupResult }) => {
-    const [isPending, startTransition] = React.useTransition();
+    const [isPending, runAction] = useHttp();
     const [open, setOpen] = React.useState(false);
 
     const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
@@ -23,7 +24,7 @@ export const GroupModifyModal = ({ data }: { data: GroupResult }) => {
         const qq = formData.get("qq") as string;
         const image = (formData.get("image") as string) || null;
         const deadline = parseZonedDateTime(formData.get("deadline") as string).toDate();
-        startTransition(async () => {
+        runAction(async () => {
             await saveGroup({
                 id: data.id,
                 name,

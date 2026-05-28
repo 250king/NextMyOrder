@@ -36,7 +36,7 @@ export const createOrder = async (params: z.infer<typeof createOrderSchema>) => 
 };
 
 export const cancelOrder = async (params: z.infer<typeof cancelOrderSchema>) => {
-    const data = createOrderSchema.parse(params);
+    const data = cancelOrderSchema.parse(params);
     const url = `${env.NODE_ENV === "development" ? "http://e-test.kuaidilab.com/api" : "https://poll.kuaidi100.com"}/order/borderapi.do`;
     const payload = new URLSearchParams({
         param: JSON.stringify(data),

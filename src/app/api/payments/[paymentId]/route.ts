@@ -1,4 +1,3 @@
-import { notFound } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/service/db";
@@ -21,7 +20,7 @@ export const GET = async (_: NextRequest, ctx: Context) => {
         ),
     });
     if (!data) {
-        return notFound();
+        return Response.json({ error: "payment not found" }, { status: 404 });
     }
     return NextResponse.json({
         finished: !!data.paidAt,

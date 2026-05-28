@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { AlertDialog, Button } from "@heroui/react";
+import { useHttp } from "@/util/request";
 
 type AlertProps = React.PropsWithChildren<{
     title: string;
@@ -12,7 +13,7 @@ type AlertProps = React.PropsWithChildren<{
 }>;
 
 export const AlertModal = ({title, onConfirmed, children, trigger, status, open, onOpenChange}: AlertProps) => {
-    const [isPending, startTransition] = React.useTransition();
+    const [isPending, runAction] = useHttp();
     const [show, setShow] = React.useState(false);
 
     const current = open ?? show;
@@ -41,7 +42,7 @@ export const AlertModal = ({title, onConfirmed, children, trigger, status, open,
                                 variant="danger"
                                 isPending={isPending}
                                 onClick={async () => {
-                                    startTransition(async () => {
+                                    runAction(async () => {
                                         await onConfirmed();
                                         handleClose(false);
                                     })

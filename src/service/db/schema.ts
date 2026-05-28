@@ -291,18 +291,18 @@ export const Address = pgTable(
 export const DeliveryToOrder = pgTable(
     "_DeliveryToOrder",
     {
-        a: bigint("A", { mode: "number" }).notNull(),
-        b: bigint("B", { mode: "number" }).notNull(),
+        deliveryId: bigint("A", { mode: "number" }).notNull(),
+        orderId: bigint("B", { mode: "number" }).notNull(),
     },
     (table) => [
         foreignKey({
-            columns: [table.a],
+            columns: [table.deliveryId],
             foreignColumns: [Delivery.id],
         }).onDelete("cascade"),
         foreignKey({
-            columns: [table.b],
+            columns: [table.orderId],
             foreignColumns: [Order.id],
         }).onDelete("cascade"),
-        primaryKey({ columns: [table.b, table.a] }),
+        primaryKey({ columns: [table.deliveryId, table.orderId] }),
     ]
 );

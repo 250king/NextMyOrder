@@ -7,7 +7,6 @@ const envSchema = z.object({
     CLIENT_SECRET: z.string().nonempty(),
     OIDC_URI: z.url().nonempty().default("http://localhost/.well-known/openid-configuration"),
     REDIRECT_URI: z.url().nonempty().default("http://localhost/callback"),
-    RESOURCE_URI: z.url().nonempty().default("http://localhost"),
     REDIS_URL: z.url().nonempty().default("http://localhost:6379"),
     SESSION_PREFIX: z.string().nonempty().default("session"),
     SESSION_COOKIE_NAME: z.string().nonempty().default("__sid"),

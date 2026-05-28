@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { useRouter } from "next/navigation";
 import {
     Button,
     ButtonGroup,
@@ -17,20 +18,29 @@ import {
     TextField,
     toast,
 } from "@heroui/react";
+import { ImageEncoder } from "@mmote/niimbluelib";
 import clsx from "clsx";
+import { AlertModal } from "@/component/common/alert";
+import { usePrinter } from "@/component/weight/printer";
 import { DeliveryCompany as DeliveryCompanyEnum } from "@/service/db/schema";
-import { getAddresses, getSenderAddresses, pushDelivery, saveDelivery, withdrawDelivery } from "@/service/delivery";
+import {
+    getAddresses,
+    getSenderAddresses,
+    pushDelivery,
+    removeDelivery,
+    saveDelivery,
+    withdrawDelivery,
+} from "@/service/delivery";
 import { AddressResult } from "@/type/address";
 import { ModalState } from "@/type/common";
 import { companyMap, DeliveryCompany, DeliveryResult, iconMap } from "@/type/delivery";
+import { createHelloWorldCanvas } from "@/util/print";
+import { useHttp } from "@/util/request";
 
-const DeliveryModifyModal = ({ data, isAdmin }: {
-    data: Omit<DeliveryResult, "user">,
-    isAdmin: boolean,
-}) => {
+const DeliveryModifyModal = ({ data, isAdmin }: { data: Omit<DeliveryResult, "user">; isAdmin: boolean }) => {
     const [addresses, setAddresses] = React.useState<AddressResult[]>([]);
-    const [isPending, startTransition] = React.useTransition();
-    const [open, setOpen] = React.useState<boolean>(false)
+    const [isPending, runAction] = useHttp();
+    const [open, setOpen] = React.useState<boolean>(false);
     const companyOptions = DeliveryCompanyEnum.enumValues.map((company) => ({
         id: company,
         label: companyMap[company],
@@ -55,7 +65,7 @@ const DeliveryModifyModal = ({ data, isAdmin }: {
         const save = formData.get("save") === "on";
         const company = (formData.get("company") as DeliveryCompany) || null;
         const comment = (formData.get("comment") as string) || null;
-        startTransition(async () => {
+        runAction(async () => {
             if (addressId) {
                 await saveDelivery({
                     company,
@@ -245,7 +255,7 @@ const DeliveryModifyModal = ({ data, isAdmin }: {
 
 const DeliveryPushModal = ({ data, open, onChange }: ModalState<Omit<DeliveryResult, "user">>) => {
     const [addresses, setAddresses] = React.useState<AddressResult[]>([]);
-    const [isPending, startTransition] = React.useTransition();
+    const [isPending, runAction] = useHttp();
     React.useEffect(() => {
         getSenderAddresses().then((r) => {
             setAddresses(r);
@@ -256,10 +266,10 @@ const DeliveryPushModal = ({ data, open, onChange }: ModalState<Omit<DeliveryRes
         e.preventDefault();
         const formData = new FormData(e.target);
         const addressId = Number(formData.get("addressId") as string);
-        startTransition(async () => {
+        runAction(async () => {
             await pushDelivery(data.id, addressId);
-        })
-    }
+        });
+    };
 
     return (
         <Modal isOpen={open} onOpenChange={onChange}>
@@ -314,13 +324,13 @@ const DeliveryPushModal = ({ data, open, onChange }: ModalState<Omit<DeliveryRes
 };
 
 const DeliveryWithdrawModal = ({ data, open, onChange }: ModalState<Omit<DeliveryResult, "user">>) => {
-    const [isPending, startTransition] = React.useTransition();
+    const [isPending, runAction] = useHttp();
 
     const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.target);
         const reason = formData.get("reason") as string;
-        startTransition(async () => {
+        runAction(async () => {
             await withdrawDelivery(data.id, reason);
         });
     };
@@ -361,12 +371,39 @@ const DeliveryWithdrawModal = ({ data, open, onChange }: ModalState<Omit<Deliver
     );
 };
 
-export const DeliveryModal = ({ data, isAdmin }: {
-    data: Omit<DeliveryResult, "user">,
-    isAdmin: boolean,
-}) => {
+export const DeliveryModal = ({ data, isAdmin }: { data: Omit<DeliveryResult, "user">; isAdmin: boolean }) => {
     const [push, setPush] = React.useState(false);
+    const [remove, setRemove] = React.useState(false);
     const [withdraw, setWithdraw] = React.useState(false);
+    const router = useRouter();
+    const { getClient, isPending } = usePrinter();
+    const [loading, runAction] = useHttp();
+
+    const handleClick = () => {
+        runAction(
+            async () => {
+                const client = await getClient();
+                const canvas = createHelloWorldCanvas();
+                const image = ImageEncoder.encodeCanvas(canvas, "top");
+                const printTask = client.abstraction.newPrintTask("B1", {
+                    totalPages: 1,
+                    statusPollIntervalMs: 100,
+                    statusTimeoutMs: 8000,
+                });
+
+                try {
+                    await printTask.printInit();
+                    await printTask.printPage(image, 1);
+                    await printTask.waitForFinished();
+                } finally {
+                    await printTask.printEnd();
+                }
+            },
+            {
+                success: "测试标签已发送",
+            }
+        );
+    };
 
     return (
         <>
@@ -392,7 +429,7 @@ export const DeliveryModal = ({ data, isAdmin }: {
                                     <Label>推送</Label>
                                 </Dropdown.Item>
                             )}
-                            <Dropdown.Item>
+                            <Dropdown.Item isDisabled={loading || isPending} onClick={handleClick}>
                                 <Label>打印运单</Label>
                             </Dropdown.Item>
                             {data.status == "PUSHED" && (
@@ -400,10 +437,27 @@ export const DeliveryModal = ({ data, isAdmin }: {
                                     <Label>撤回</Label>
                                 </Dropdown.Item>
                             )}
+                            {data.status == "PENDING" && (
+                                <Dropdown.Item variant="danger" onClick={() => setRemove(true)}>
+                                    <Label>删除</Label>
+                                </Dropdown.Item>
+                            )}
                         </Dropdown.Menu>
                     </Dropdown.Popover>
                     <DeliveryPushModal open={push} onChange={setPush} data={data} />
                     <DeliveryWithdrawModal open={withdraw} onChange={setWithdraw} data={data} />
+                    <AlertModal
+                        title="确认移除运单"
+                        status="danger"
+                        open={remove}
+                        onOpenChange={setRemove}
+                        onConfirmed={async () => {
+                            await removeDelivery(data.id);
+                            router.replace("/deliveries");
+                        }}
+                    >
+                        <div>该操作不可逆，请谨慎操作</div>
+                    </AlertModal>
                 </Dropdown>
             )}
         </>

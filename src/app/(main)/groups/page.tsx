@@ -43,7 +43,7 @@ const Page = async ({ searchParams }: PageProps) => {
     return (
         <div className="container mx-auto p-6">
             <div className="flex flex-col gap-4">
-                <h1 className="mb-4 text-2xl font-bold">团购</h1>
+                <div className="text-2xl font-bold">团购</div>
                 <GroupCard {...query} items={items} total={total} isAdmin={context.isAdmin} />
             </div>
         </div>

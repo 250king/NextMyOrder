@@ -33,9 +33,7 @@ export const proxy = async (request: NextRequest) => {
     if (!["/login", "/callback"].some(path => pathname == path)) {
         if ("expired_at" in session && session.expired_at < new Date().getTime()) {
             try {
-                const res = await client.refreshTokenGrant(issuer, session.refresh_token, {
-                    resource: env.RESOURCE_URI,
-                });
+                const res = await client.refreshTokenGrant(issuer, session.refresh_token);
                 await setAll({
                     access_token: res.access_token,
                     refresh_token: res.refresh_token || null,
@@ -76,5 +74,5 @@ export const proxy = async (request: NextRequest) => {
 };
 
 export const config = {
-    matcher: ["/((?!_next/static|_next/image|.well-known|favicon.ico|sitemap.xml|robots.txt|api/callback).*)"],
+    matcher: ["/((?!_next/static|_next/image|.well-known|favicon.ico|sitemap.xml|robots.txt|api/callback|public).*)"],
 };

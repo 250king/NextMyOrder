@@ -1,6 +1,5 @@
 "use server";
 
-import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/service/db";
@@ -18,10 +17,10 @@ export const saveGroup = async (params: z.infer<typeof groupDetailSchema>) => {
         where: eq(Group.id, id),
     });
     if (!data) {
-        notFound();
+        throw new Error("团购不存在");
     }
     if (data.status === "COMPLETED") {
-        throw Error("当前状态无法修改");
+        throw new Error("当前状态无法修改");
     }
     await db.update(Group).set({ name, qq, deadline, image }).where(eq(Group.id, id));
 };
@@ -36,10 +35,10 @@ export const changeGroupLock = async (params: number) => {
         where: eq(Group.id, id),
     });
     if (!data) {
-        notFound();
+        throw new Error("团购不存在");
     }
     if (data.status === "COMPLETED") {
-        throw Error("当前状态无法修改");
+        throw new Error("当前状态无法修改");
     }
     await db
         .update(Group)

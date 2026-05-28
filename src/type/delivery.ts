@@ -85,11 +85,11 @@ export const createOrderSchema = z.object({
         .string()
         .regex(/^[A-Za-z0-9 \u4e00-\u9fff]+$/)
         .nonempty(),
-    recManPhone: z
+    recManMobile: z
         .string()
         .regex(/^1[3-9]\d{9}$/)
         .nonempty(),
-    recManAddress: z
+    recManPrintAddr: z
         .string()
         .regex(/^[A-Za-z0-9 \u4e00-\u9fff（）()#\-、，。,./]+$/)
         .nonempty(),
@@ -97,21 +97,21 @@ export const createOrderSchema = z.object({
         .string()
         .regex(/^[A-Za-z0-9 \u4e00-\u9fff]+$/)
         .nonempty(),
-    sendManPhone: z
+    sendManMobile: z
         .string()
         .regex(/^1[3-9]\d{9}$/)
         .nonempty(),
-    sendManAddress: z
+    sendManPrintAddr: z
         .string()
         .regex(/^[A-Za-z0-9 \u4e00-\u9fff（）()#\-、，。,./]+$/)
         .nonempty(),
     callBackUrl: z.url().default(env.KD100_CALLBACK_URL).optional(),
     cargo: z.string().default("动漫周边").optional(),
-    sale: z.string().default(env.KD100_NONCE).optional(),
+    salt: z.string().default(env.KD100_NONCE).optional(),
 });
 
 export const cancelOrderSchema = z.object({
     orderId: z.string().nonempty(),
     taskId: z.string().nonempty(),
-    reason: z.string().nonempty(),
+    cancelMsg: z.string().nonempty(),
 })

@@ -1,11 +1,10 @@
 "use server";
 
-import { notFound } from "next/navigation";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
-import { cancelOrder, createOrder} from "@/service/api/kd100";
+import { cancelOrder, createOrder} from "@/service/client/kd100";
 import { db } from "@/service/db";
-import { Address, Delivery } from "@/service/db/schema";
+import { Address, Delivery, DeliveryToOrder } from "@/service/db/schema";
 import { deliveryDetailSchema } from "@/type/delivery";
 import { getContext } from "@/util/context";
 
@@ -16,7 +15,7 @@ export const getAddresses = async (params: number) => {
         where: and(eq(Delivery.id, id), ...(context.isAdmin ? [] : [eq(Delivery.userId, context.uid!)])),
     });
     if (!delivery) {
-        return notFound();
+        throw new Error("运单不存在");
     }
     return db.query.Address.findMany({
         where: eq(Address.userId, delivery.userId),
@@ -39,7 +38,7 @@ export const saveDelivery = async (params: z.infer<typeof deliveryDetailSchema>)
         where: and(eq(Delivery.id, deliveryId), ...(context.isAdmin ? [] : [eq(Delivery.userId, context.uid!)])),
     });
     if (!delivery) {
-        return notFound();
+        throw new Error("运单不存在");
     }
     if (addressId) {
         const receiver = await db.query.Address.findFirst({
@@ -98,7 +97,7 @@ export const pushDelivery = async (p1: number, p2: number) => {
         where: and(eq(Address.id, addressId)),
     });
     if (!delivery || !sender) {
-        return notFound();
+        throw new Error("运单不存在");
     }
     if (!delivery.phone || !delivery.address || !delivery.recipient) {
         throw new Error("请完善运单信息");
@@ -125,16 +124,26 @@ export const pushDelivery = async (p1: number, p2: number) => {
     }
     const res = await createOrder({
         kuaidicom: company,
-        sendManAddress: sender.address,
+        sendManPrintAddr: sender.address,
         sendManName: sender.recipient,
-        sendManPhone: sender.phone,
-        recManAddress: delivery.address,
+        sendManMobile: sender.phone,
+        recManPrintAddr: delivery.address,
         recManName: delivery.recipient,
-        recManPhone: delivery.phone,
+        recManMobile: delivery.phone,
     });
     if (!res.data.result) {
         throw new Error(`推送失败：${res.data.message}`);
     }
+    await db
+        .update(Delivery)
+        .set({
+            status: "PUSHED",
+            taskId: res.data.data.taskId,
+            ticketId: res.data.data.orderId,
+            ticketNum: res.data.data.kuaidinum || null,
+            queryToken: res.data.data.pollToken || null,
+        })
+        .where(eq(Delivery.id, deliveryId));
 };
 
 export const withdrawDelivery = async (params: number, reason: string) => {
@@ -147,7 +156,7 @@ export const withdrawDelivery = async (params: number, reason: string) => {
         where: eq(Delivery.id, deliveryId),
     });
     if (!delivery) {
-        return notFound();
+        throw new Error("运单不存在");
     }
     if (delivery.status != "PUSHED") {
         throw new Error("当前订单无法撤销");
@@ -155,7 +164,7 @@ export const withdrawDelivery = async (params: number, reason: string) => {
     await cancelOrder({
         taskId: delivery.taskId!,
         orderId: delivery.ticketId!,
-        reason,
+        cancelMsg: reason,
     });
     await db
         .update(Delivery)
@@ -167,3 +176,22 @@ export const withdrawDelivery = async (params: number, reason: string) => {
         })
         .where(eq(Delivery.id, deliveryId));
 };
+
+export const removeDelivery = async (params: number) => {
+    const context = await getContext();
+    if (!context.isAdmin) {
+        throw new Error("非管理员无权限");
+    }
+    const deliveryId = z.int().positive().parse(params);
+    const delivery = await db.query.Delivery.findFirst({
+        where: eq(Delivery.id, deliveryId),
+    });
+    if (!delivery) {
+        throw new Error("运单不存在");
+    }
+    if (delivery.status != "PENDING") {
+        throw new Error("当前运单无法删除");
+    }
+    await db.delete(DeliveryToOrder).where(eq(DeliveryToOrder.deliveryId, deliveryId));
+    await db.delete(Delivery).where(eq(Delivery.id, deliveryId));
+}

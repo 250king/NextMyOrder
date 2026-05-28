@@ -85,11 +85,11 @@ export const addressRelations = relations(Address, ({one}) => ({
 
 export const deliveryToOrderRelations = relations(DeliveryToOrder, ({one}) => ({
 	delivery: one(Delivery, {
-		fields: [DeliveryToOrder.a],
+		fields: [DeliveryToOrder.deliveryId],
 		references: [Delivery.id]
 	}),
 	order: one(Order, {
-		fields: [DeliveryToOrder.b],
+		fields: [DeliveryToOrder.orderId],
 		references: [Order.id]
 	}),
 }));
