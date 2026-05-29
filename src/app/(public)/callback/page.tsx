@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import * as client from "openid-client";
 import { LinkButton } from "@/component/navigation/button";
-import { issuer } from "@/service/oauth2";
+import { issuer } from "@/service/client/oauth2";
 import { get, has, setAll } from "@/service/session";
 import { env } from "@/util/env";
 
@@ -31,7 +31,7 @@ const Page = async ({ searchParams }: PageProps) => {
         return <Error next={next} />;
     }
     try {
-        const url = new URL(env.REDIRECT_URI);
+        const url = new URL("/callback", env.BASE_URL);
         for (const [k, v] of Object.entries(params)) {
             url.searchParams.set(k, v);
         }

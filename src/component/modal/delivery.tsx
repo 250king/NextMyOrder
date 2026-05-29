@@ -24,6 +24,7 @@ import { AlertModal } from "@/component/common/alert";
 import { usePrinter } from "@/component/weight/printer";
 import { DeliveryCompany as DeliveryCompanyEnum } from "@/service/db/schema";
 import {
+    generateQrCode,
     getAddresses,
     getSenderAddresses,
     pushDelivery,
@@ -34,7 +35,7 @@ import {
 import { AddressResult } from "@/type/address";
 import { ModalState } from "@/type/common";
 import { companyMap, DeliveryCompany, DeliveryResult, iconMap } from "@/type/delivery";
-import { createHelloWorldCanvas } from "@/util/print";
+import { createLabelCanvas, downloadCanvas } from "@/util/print";
 import { useHttp } from "@/util/request";
 
 const DeliveryModifyModal = ({ data, isAdmin }: { data: Omit<DeliveryResult, "user">; isAdmin: boolean }) => {
@@ -379,11 +380,25 @@ export const DeliveryModal = ({ data, isAdmin }: { data: Omit<DeliveryResult, "u
     const { getClient, isPending } = usePrinter();
     const [loading, runAction] = useHttp();
 
-    const handleClick = () => {
+    const createDeliveryCanvas = async () => {
+        if (!data.company || !data.recipient || !data.phone) {
+            throw new Error("请完善运单信息");
+        }
+        const result = await generateQrCode(data.id);
+        return createLabelCanvas({
+            url: result.url,
+            carrierName: companyMap[data.company],
+            receiverName: data.recipient,
+            receiverPhone: data.phone,
+            receiverCity: result.city || "",
+        });
+    };
+
+    const handlePrint = () => {
         runAction(
             async () => {
                 const client = await getClient();
-                const canvas = createHelloWorldCanvas();
+                const canvas = await createDeliveryCanvas();
                 const image = ImageEncoder.encodeCanvas(canvas, "top");
                 const printTask = client.abstraction.newPrintTask("B1", {
                     totalPages: 1,
@@ -403,6 +418,13 @@ export const DeliveryModal = ({ data, isAdmin }: { data: Omit<DeliveryResult, "u
                 success: "测试标签已发送",
             }
         );
+    };
+
+    const handleDownload = () => {
+        runAction(async () => {
+            const canvas = await createDeliveryCanvas();
+            downloadCanvas(canvas, `delivery-${data.id}-label.png`);
+        });
     };
 
     return (
@@ -429,8 +451,11 @@ export const DeliveryModal = ({ data, isAdmin }: { data: Omit<DeliveryResult, "u
                                     <Label>推送</Label>
                                 </Dropdown.Item>
                             )}
-                            <Dropdown.Item isDisabled={loading || isPending} onClick={handleClick}>
+                            <Dropdown.Item isDisabled={loading || isPending} onClick={handlePrint}>
                                 <Label>打印运单</Label>
+                            </Dropdown.Item>
+                            <Dropdown.Item isDisabled={loading || isPending} onClick={handleDownload}>
+                                <Label>下载标签预览</Label>
                             </Dropdown.Item>
                             {data.status == "PUSHED" && (
                                 <Dropdown.Item variant="danger" onClick={() => setWithdraw(true)}>

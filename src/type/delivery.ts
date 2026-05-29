@@ -52,7 +52,7 @@ export const colorMap: Record<DeliveryStatus, "default" | "success" | "warning" 
 
 const baseSchema = z.object({
     deliveryId: z.int().positive(),
-    company: z.enum(DeliveryCompanyEnum.enumValues).optional(),
+    company: z.enum(DeliveryCompanyEnum.enumValues).nullable(),
 });
 
 const addressBookSchema = baseSchema

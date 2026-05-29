@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import * as client from "openid-client";
-import { issuer } from "@/service/oauth2";
+import { issuer } from "@/service/client/oauth2";
 import { clear } from "@/service/session";
 import { getContext } from "@/util/context";
 

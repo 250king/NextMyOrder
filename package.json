@@ -27,9 +27,9 @@
     "openid-client": "^6.8.2",
     "pg": "^8.20.0",
     "playwright": "^1.59.1",
+    "qrcode": "^1.5.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "react-qr-code": "^2.0.21",
     "zod": "^4.3.6"
   },
   "devDependencies": {
@@ -38,6 +38,7 @@
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/pg": "^8.20.0",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "babel-plugin-react-compiler": "1.0.0",

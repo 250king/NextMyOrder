@@ -306,3 +306,19 @@ export const DeliveryToOrder = pgTable(
         primaryKey({ columns: [table.deliveryId, table.orderId] }),
     ]
 );
+
+export const TicketLink = pgTable(
+    "TicketLink",
+    {
+        id: bigserial({ mode: "number" }).primaryKey().notNull(),
+        code: text().notNull(),
+        deliveryId: bigint({ mode: "number" }).notNull(),
+    },
+    (table) => [
+        foreignKey({
+            columns: [table.deliveryId],
+            foreignColumns: [Delivery.id]
+        }),
+        uniqueIndex().using("btree", table.code),
+    ]
+)

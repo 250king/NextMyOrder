@@ -27,10 +27,10 @@ export const GroupCard = ({ items, total, status, page, keyword }: CardProps<Gro
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 items-stretch">
                 {items.map((item) => (
                     <div className="mb-4 break-inside-avoid" key={item.id}>
-                        <Card className="transition-shadow hover:shadow-lg p-0 overflow-hidden">
+                        <Card className="min-w-0 transition-shadow hover:shadow-lg p-0 overflow-hidden">
                             <CardImage src={item.image || "https://static.250king.top/image/2026/04/i3f4xep2.png"} />
-                            <Card.Content className="flex flex-col gap-2 p-4">
-                                <h3 className="text-xl font-bold">{item.name}</h3>
+                            <Card.Content className="flex min-w-0 flex-col gap-2 p-4">
+                                <h3 className="truncate text-xl font-bold">{item.name}</h3>
                                 <div className="flex flex-row gap-2 items-center">
                                     <Chip variant="primary" color="accent">
                                         <span className="icon-[ri--qq-fill]" />

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import * as client from "openid-client";
-import { issuer } from "@/service/oauth2";
+import { issuer } from "@/service/client/oauth2";
 import { set } from "@/service/session";
 import { env } from "@/util/env";
 
@@ -21,7 +21,7 @@ const Page = async ({searchParams}: PageProps) => {
     await set("code_verifier", codeVerifier)
     await set("state", state)
     const url = client.buildAuthorizationUrl(issuer, {
-        redirect_uri: env.REDIRECT_URI,
+        redirect_uri: new URL("/callback", env.BASE_URL).toString(),
         scope: "openid profile email custom_data offline_access",
         code_challenge: codeChallenge,
         code_challenge_method: "S256",

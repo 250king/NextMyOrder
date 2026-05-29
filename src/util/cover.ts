@@ -29,3 +29,10 @@ export const genReqNum = (requestId: number) => {
 export const dataValue = (current: Date | string) => {
     return parseAbsolute(dayjs(current).toISOString(), "Asia/Shanghai");
 }
+
+export const randomStr = (length: number) => {
+    const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    const values = new Uint32Array(length);
+    crypto.getRandomValues(values);
+    return Array.from(values, (value) => chars[value % chars.length]).join("");
+};

@@ -2,7 +2,7 @@ import { createHash } from "crypto";
 import { NextRequest } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/service/db";
-import { Delivery } from "@/service/db/schema";
+import { Delivery, TicketLink } from "@/service/db/schema";
 import { env } from "@/util/env";
 
 const warningPattern = /\n?快递状态异常，请重点关注[:：]?\s*.+/;
@@ -57,6 +57,7 @@ export const POST = async (req: NextRequest) => {
         case 13:
             status = "ARRIVED";
             comment = removeWarning(comment);
+            await db.delete(TicketLink).where(eq(TicketLink.deliveryId, delivery.id));
             break;
         default:
             comment = addComment(comment, `快递状态异常，请重点关注：${data.data.status}`, warningPattern);

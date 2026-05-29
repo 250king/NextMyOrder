@@ -2,11 +2,28 @@
 
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
-import { cancelOrder, createOrder} from "@/service/client/kd100";
+import { parseAddress } from "@/service/client/amap";
+import { cancelOrder, createOrder } from "@/service/client/kd100";
 import { db } from "@/service/db";
-import { Address, Delivery, DeliveryToOrder } from "@/service/db/schema";
+import { Address, Delivery, DeliveryToOrder, TicketLink } from "@/service/db/schema";
 import { deliveryDetailSchema } from "@/type/delivery";
 import { getContext } from "@/util/context";
+import { randomStr } from "@/util/cover";
+import { env } from "@/util/env";
+
+const getDelivery = async (deliveryId: number) => {
+    const context = await getContext();
+    if (!context.isAdmin) {
+        throw new Error("非管理员无权限");
+    }
+    const delivery = await db.query.Delivery.findFirst({
+        where: eq(Delivery.id, deliveryId),
+    });
+    if (!delivery) {
+        throw new Error("运单不存在");
+    }
+    return delivery;
+}
 
 export const getAddresses = async (params: number) => {
     const context = await getContext();
@@ -27,7 +44,7 @@ export const getSenderAddresses = async () => {
     return db.query.Address.findMany({
         where: eq(Address.userId, context.uid!),
     });
-}
+};
 
 export const saveDelivery = async (params: z.infer<typeof deliveryDetailSchema>) => {
     const data = deliveryDetailSchema.parse(params);
@@ -92,7 +109,7 @@ export const pushDelivery = async (p1: number, p2: number) => {
     const addressId = z.int().positive().parse(p2);
     const delivery = await db.query.Delivery.findFirst({
         where: eq(Delivery.id, deliveryId),
-    })
+    });
     const sender = await db.query.Address.findFirst({
         where: and(eq(Address.id, addressId)),
     });
@@ -147,17 +164,8 @@ export const pushDelivery = async (p1: number, p2: number) => {
 };
 
 export const withdrawDelivery = async (params: number, reason: string) => {
-    const context = await getContext();
-    if (!context.isAdmin) {
-        throw new Error("非管理员无权限");
-    }
     const deliveryId = z.int().positive().parse(params);
-    const delivery = await db.query.Delivery.findFirst({
-        where: eq(Delivery.id, deliveryId),
-    });
-    if (!delivery) {
-        throw new Error("运单不存在");
-    }
+    const delivery = await getDelivery(deliveryId);
     if (delivery.status != "PUSHED") {
         throw new Error("当前订单无法撤销");
     }
@@ -178,20 +186,35 @@ export const withdrawDelivery = async (params: number, reason: string) => {
 };
 
 export const removeDelivery = async (params: number) => {
-    const context = await getContext();
-    if (!context.isAdmin) {
-        throw new Error("非管理员无权限");
-    }
     const deliveryId = z.int().positive().parse(params);
-    const delivery = await db.query.Delivery.findFirst({
-        where: eq(Delivery.id, deliveryId),
-    });
-    if (!delivery) {
-        throw new Error("运单不存在");
-    }
+    const delivery = await getDelivery(deliveryId);
     if (delivery.status != "PENDING") {
         throw new Error("当前运单无法删除");
     }
     await db.delete(DeliveryToOrder).where(eq(DeliveryToOrder.deliveryId, deliveryId));
+    await db.delete(TicketLink).where(eq(TicketLink.deliveryId, deliveryId));
     await db.delete(Delivery).where(eq(Delivery.id, deliveryId));
-}
+};
+
+export const generateQrCode = async (params: number) => {
+    const deliveryId = z.int().positive().parse(params);
+    const delivery = await getDelivery(deliveryId);
+    if (delivery.status == "DELIVERED") {
+        throw new Error("当前运单已发出");
+    }
+    if (!delivery.phone || !delivery.address || !delivery.recipient) {
+        throw new Error("请完善运单信息");
+    }
+    const code = randomStr(8);
+    const result = await parseAddress(delivery.address);
+    await db.insert(TicketLink).values([
+        {
+            code,
+            deliveryId: deliveryId,
+        },
+    ]);
+    return {
+        url: new URL(`/ticket/${code}`, env.BASE_URL).toString(),
+        city: result.data?.geocodes?.[0]?.city || null,
+    };
+};

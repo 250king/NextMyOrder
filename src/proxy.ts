@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import * as client from 'openid-client';
+import { issuer } from "@/service/client/oauth2";
 import { db } from "@/service/db";
 import { User } from "@/service/db/schema";
-import { issuer } from "@/service/oauth2";
 import { getAll, setAll } from "@/service/session";
 import { userSchema } from "@/type/user";
 import { toUtf8 } from "@/util/cover";
@@ -74,5 +74,5 @@ export const proxy = async (request: NextRequest) => {
 };
 
 export const config = {
-    matcher: ["/((?!_next/static|_next/image|.well-known|favicon.ico|sitemap.xml|robots.txt|api/callback|public).*)"],
+    matcher: ["/((?!_next/static|_next/image|.well-known|favicon.ico|sitemap.xml|robots.txt|api/callback|ticket).*)"],
 };
