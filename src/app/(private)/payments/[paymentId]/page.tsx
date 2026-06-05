@@ -1,7 +1,7 @@
 import React from "react";
+import { notFound } from "next/navigation";
 import { Alert, Button, ButtonGroup, Chip, Dropdown, Label, Surface } from "@heroui/react";
 import { and, eq } from "drizzle-orm";
-import notFound from "@/app/not-found";
 import { LinkButton } from "@/component/navigation/button";
 import { PaymentTab } from "@/component/tab/payment";
 import { db } from "@/service/db";
@@ -37,9 +37,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
         <div className="container mx-auto p-6">
             <div className="flex flex-col gap-4">
                 <header className="flex flex-col gap-3">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                        <h1 className="text-2xl font-bold">账单管理 #{data.id}</h1>
-                    </div>
+                    <h1 className="text-2xl font-bold">账单管理 #{data.id}</h1>
                     <div className="flex flex-wrap items-center gap-2">
                         <Chip>
                             <span className={`shrink-0 ${typeIconMap[data.type]}`} />

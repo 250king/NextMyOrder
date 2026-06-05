@@ -27,7 +27,7 @@ const Page = async ({ searchParams }: PageProps) => {
         filters.push(eq(Payment.type, query.type));
     }
     const [items, total] = await Promise.all([
-        await db.query.Payment.findMany({
+        db.query.Payment.findMany({
             where: and(...filters),
             with: {
                 user: true,

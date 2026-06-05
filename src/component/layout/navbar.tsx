@@ -32,22 +32,31 @@ export const Navbar = ({ user }: Partial<Omit<Context, "accessToken" | "uid">>) 
         <nav className="border-separator bg-background/70 sticky top-0 z-40 w-full border-b backdrop-blur-lg">
             <header className="container mx-auto flex h-16 items-center gap-8 px-6">
                 <div className="flex shrink-0 items-center gap-4">
-                    <Button isIconOnly className="md:hidden" variant="secondary" onPress={() => setIsDrawerOpen(true)}>
-                        <span className="icon-[ri--list-unordered]" />
-                    </Button>
+                    {!user || (
+                        <Button
+                            isIconOnly
+                            className="md:hidden"
+                            variant="secondary"
+                            onPress={() => setIsDrawerOpen(true)}
+                        >
+                            <span className="icon-[ri--list-unordered]" />
+                        </Button>
+                    )}
                     <div className="flex items-center gap-3">
                         <p className="font-bold">耀の小店</p>
                     </div>
                 </div>
-                <ul className="hidden items-center gap-6 md:flex">
-                    {navItems.map((item) => (
-                        <li key={item.href}>
-                            <Link href={item.href} className={getNavClassName(item.href)}>
-                                {item.name}
-                            </Link>
-                        </li>
-                    ))}
-                </ul>
+                {!user || (
+                    <ul className="hidden items-center gap-6 md:flex">
+                        {navItems.map((item) => (
+                            <li key={item.href}>
+                                <Link href={item.href} className={getNavClassName(item.href)}>
+                                    {item.name}
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+                )}
                 {!user || (
                     <ul className="ml-auto flex items-center gap-4">
                         <Dropdown>

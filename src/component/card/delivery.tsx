@@ -33,7 +33,7 @@ export const DeliveryCard = ({ items, total, company, status, keyword, page }: C
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 items-stretch">
                 {items.map((item) => (
                     <div key={item.id} className="h-full">
-                        <Card className="h-full transition-shadow hover:shadow-lg">
+                        <Card className="h-full min-w-0 transition-shadow hover:shadow-lg">
                             <Card.Header className="flex w-full flex-row items-start justify-between gap-3">
                                 <div className="flex items-center gap-3">
                                     <Avatar>
@@ -47,7 +47,7 @@ export const DeliveryCard = ({ items, total, company, status, keyword, page }: C
                                 <span className="text-default-500 shrink-0 font-mono text-sm">#{item.id}</span>
                             </Card.Header>
                             <Card.Content className="flex flex-1 flex-col gap-2">
-                                <div className="flex flex-row gap-2 items-center">
+                                <div className="flex flex-row items-center gap-2">
                                     {(!item.address || !item.phone || !item.recipient) && (
                                         <Chip variant="primary" color="warning">
                                             物流信息未完善
@@ -66,7 +66,9 @@ export const DeliveryCard = ({ items, total, company, status, keyword, page }: C
                                 <div className="text-default-500 text-sm">创建时间：{date(item.createdAt)}</div>
                             </Card.Content>
                             <Card.Footer className="mt-auto flex w-full justify-end gap-2">
-                                <LinkButton href={`/deliveries/${item.id}`} variant="secondary">详情</LinkButton>
+                                <LinkButton href={`/deliveries/${item.id}`} variant="secondary">
+                                    详情
+                                </LinkButton>
                             </Card.Footer>
                         </Card>
                     </div>

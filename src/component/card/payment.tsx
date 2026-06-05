@@ -46,7 +46,7 @@ export const PaymentCard = ({ items, total, page, method, type }: CardProps<Paym
                                 <span className="text-default-500 shrink-0 font-mono text-sm">#{item.id}</span>
                             </Card.Header>
                             <Card.Content className="flex flex-1 flex-col gap-2">
-                                <div className="flex flex-row gap-2 items-center">
+                                <div className="flex flex-row items-center gap-2">
                                     <Chip>
                                         <span className={`shrink-0 ${typeIconMap[item.type]}`} />
                                         <Chip.Label className="truncate">

@@ -8,7 +8,7 @@ import { getPagination } from "@/util/query";
 
 type PageProps = {
     searchParams: Promise<GroupQuery>;
-}
+};
 
 const Page = async ({ searchParams }: PageProps) => {
     const query = await searchParams;
@@ -32,7 +32,7 @@ const Page = async ({ searchParams }: PageProps) => {
         filters.push(eq(Group.status, query.status));
     }
     const [items, total] = await Promise.all([
-        await db.query.Group.findMany({
+        db.query.Group.findMany({
             where: and(...filters),
             ...pagination,
             orderBy: (group, { desc }) => [desc(group.createdAt)],
@@ -43,7 +43,7 @@ const Page = async ({ searchParams }: PageProps) => {
     return (
         <div className="container mx-auto p-6">
             <div className="flex flex-col gap-4">
-                <div className="text-2xl font-bold">团购</div>
+                <h1 className="text-2xl font-bold">团购</h1>
                 <GroupCard {...query} items={items} total={total} isAdmin={context.isAdmin} />
             </div>
         </div>

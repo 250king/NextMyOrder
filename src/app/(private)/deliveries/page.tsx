@@ -9,9 +9,9 @@ import { getPagination } from "@/util/query";
 
 type PageProps = {
     searchParams: Promise<DeliveryQuery>;
-}
+};
 
-const Page = async ({searchParams}: PageProps) => {
+const Page = async ({ searchParams }: PageProps) => {
     const query = await searchParams;
     const context = await getContext();
     const pagination = getPagination(query);
@@ -28,7 +28,7 @@ const Page = async ({searchParams}: PageProps) => {
         filters.push(eq(Delivery.company, query.company));
     }
     const [items, total] = await Promise.all([
-        await db.query.Delivery.findMany({
+        db.query.Delivery.findMany({
             where: and(...filters),
             with: {
                 user: true,
@@ -44,10 +44,10 @@ const Page = async ({searchParams}: PageProps) => {
         <div className="container mx-auto p-6">
             <div className="flex flex-col gap-4">
                 <h1 className="text-2xl font-bold">分发</h1>
-                <DeliveryCard {...query} items={items} total={total} isAdmin={context.isAdmin}/>
+                <DeliveryCard {...query} items={items} total={total} isAdmin={context.isAdmin} />
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default Page
+export default Page;

@@ -1,7 +1,7 @@
 import React from "react";
+import { notFound } from "next/navigation";
 import { Alert, ButtonGroup, Chip, Surface } from "@heroui/react";
 import { and, eq } from "drizzle-orm";
-import notFound from "@/app/not-found";
 import { DeliveryModal } from "@/component/modal/delivery";
 import { DeliveryTab } from "@/component/tab/delivery";
 import { db } from "@/service/db";
@@ -37,9 +37,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
         <div className="container mx-auto p-6">
             <div className="flex flex-col gap-4">
                 <header className="flex flex-col gap-3">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                        <h1 className="text-2xl font-bold">分发管理 #{data.id}</h1>
-                    </div>
+                    <h1 className="text-2xl font-bold">分发管理 #{data.id}</h1>
                     <div className="flex flex-wrap items-center gap-2">
                         {data.ticketNum && (
                             <Chip variant="primary">
@@ -97,7 +95,6 @@ const Page = async ({ params, searchParams }: PageProps) => {
                             <div className="text-muted">创建时间</div>
                             <div className="font-medium">{date(data.createdAt)}</div>
                         </div>
-
                         <div className="min-w-0">
                             <div className="text-muted">更新时间</div>
                             <div className="font-medium">{date(data.updatedAt)}</div>
