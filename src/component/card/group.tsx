@@ -4,6 +4,7 @@ import { Card, Chip } from "@heroui/react";
 import { EnumFilter, SearchFilter, useFilter } from "@/component/common/filter";
 import { Loading } from "@/component/common/loading";
 import { Pagination } from "@/component/common/pagination";
+import { GroupCreateModal } from "@/component/modal/group";
 import { LinkButton } from "@/component/navigation/button";
 import { CardImage } from "@/component/weight/image";
 import { CardProps } from "@/type/card";
@@ -23,31 +24,35 @@ export const GroupCard = ({ items, total, status, page, keyword }: CardProps<Gro
                 options={statusMap}
                 onChange={(val) => updateFilter({ status: val })}
             />
-            <p className="text-default-500 text-sm">共找到{total}条记录</p>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 items-stretch">
+            <div className="flex flex-row justify-between">
+                <p className="text-default-500 text-sm">共找到{total}条记录</p>
+                <GroupCreateModal/>
+            </div>
+            <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {items.map((item) => (
-                    <div key={item.id} className="h-full break-inside-avoid">
-                        <Card className="h-full min-w-0 overflow-hidden p-0 transition-shadow hover:shadow-lg">
-                            <CardImage src={item.image || "https://static.250king.top/image/2026/04/i3f4xep2.png"} />
-                            <Card.Content className="flex min-w-0 flex-col gap-2 p-4">
-                                <h3 className="truncate text-xl font-bold">{item.name}</h3>
-                                <div className="flex flex-row items-center gap-2">
-                                    <Chip variant="primary" color="accent">
-                                        <span className="icon-[ri--qq-fill]" />
-                                        <Chip.Label>{item.qq}</Chip.Label>
-                                    </Chip>
-                                    <Chip variant="primary" color={colorMap[item.status]}>
-                                        {statusMap[item.status]}
-                                    </Chip>
-                                </div>
-                            </Card.Content>
-                            <Card.Footer className="mt-auto flex w-full justify-end gap-2 px-4 pb-4">
-                                <LinkButton href={`/groups/${item.id}`} variant="secondary">
-                                    详情
-                                </LinkButton>
-                            </Card.Footer>
-                        </Card>
-                    </div>
+                    <Card
+                        key={item.id}
+                        className="h-full min-w-0 overflow-hidden p-0 transition-shadow hover:shadow-lg"
+                    >
+                        <CardImage src={item.image || "https://static.250king.top/image/2026/04/i3f4xep2.png"} />
+                        <Card.Content className="flex min-w-0 flex-1 flex-col gap-2 p-4">
+                            <Card.Title className="truncate text-xl">{item.name}</Card.Title>
+                            <div className="flex flex-row items-center gap-2">
+                                <Chip variant="primary" color="accent">
+                                    <span className="icon-[ri--qq-fill]" />
+                                    <Chip.Label>{item.qq}</Chip.Label>
+                                </Chip>
+                                <Chip variant="primary" color={colorMap[item.status]}>
+                                    {statusMap[item.status]}
+                                </Chip>
+                            </div>
+                        </Card.Content>
+                        <Card.Footer className="mt-auto flex w-full justify-end gap-2 px-4 pb-4">
+                            <LinkButton href={`/groups/${item.id}`} variant="secondary">
+                                详情
+                            </LinkButton>
+                        </Card.Footer>
+                    </Card>
                 ))}
             </div>
             <Pagination startTransition={startTransition} total={total} page={page} />

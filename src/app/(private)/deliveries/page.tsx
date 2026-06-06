@@ -1,5 +1,5 @@
 import React from "react";
-import { and, eq, SQL } from "drizzle-orm";
+import { and, eq, type SQL } from "drizzle-orm";
 import { DeliveryCard } from "@/component/card/delivery";
 import { db } from "@/service/db";
 import { Delivery } from "@/service/db/schema";

@@ -10,6 +10,68 @@ import { GroupResult } from "@/type/group";
 import { dataValue } from "@/util/cover";
 import { useHttp } from "@/util/request";
 
+const GroupForm = ({data, isPending, onSubmit}: {
+    data?: GroupResult;
+    isPending: boolean;
+    onSubmit: (e: React.SubmitEvent<HTMLFormElement>) => void;
+}) => {
+    return (
+        <form className="space-y-4" onSubmit={onSubmit}>
+            <TextField
+                name="name"
+                defaultValue={data?.name}
+                variant="secondary"
+                isDisabled={isPending}
+                isRequired
+                fullWidth
+            >
+                <Label>群名称</Label>
+                <Input />
+                <FieldError />
+            </TextField>
+            <TextField
+                name="qq"
+                defaultValue={data?.qq}
+                isDisabled={isPending}
+                variant="secondary"
+                pattern="\d{5,}"
+                isRequired
+                fullWidth
+            >
+                <Label>群号</Label>
+                <Input />
+                <FieldError />
+            </TextField>
+            <TextField
+                name="image"
+                defaultValue={data?.image || undefined}
+                isDisabled={isPending}
+                variant="secondary"
+                type="url"
+                isRequired
+                fullWidth
+            >
+                <Label>封面图</Label>
+                <Input />
+                <FieldError />
+            </TextField>
+            <DateTimePicker
+                name="deadline"
+                defaultValue={data?.deadline ? dataValue(data?.deadline): undefined}
+                isDisabled={isPending}
+                className="w-full"
+                isRequired
+                label="截止日期"
+            />
+            <div className="flex flex-row justify-end gap-2">
+                <Button type="submit" isPending={isPending}>
+                    提交
+                </Button>
+            </div>
+        </form>
+    );
+}
+
 export const GroupModifyModal = ({ data }: { data: GroupResult }) => {
     const [isPending, runAction] = useHttp();
     const [open, setOpen] = React.useState(false);
@@ -67,59 +129,7 @@ export const GroupModifyModal = ({ data }: { data: GroupResult }) => {
                                     <Modal.Heading>修改信息</Modal.Heading>
                                 </Modal.Header>
                                 <Modal.Body className="p-2">
-                                    <form className="space-y-4" onSubmit={handleSubmit}>
-                                        <TextField
-                                            name="name"
-                                            defaultValue={data.name}
-                                            variant="secondary"
-                                            isDisabled={isPending}
-                                            isRequired
-                                            fullWidth
-                                        >
-                                            <Label>群名称</Label>
-                                            <Input />
-                                            <FieldError />
-                                        </TextField>
-                                        <TextField
-                                            name="qq"
-                                            defaultValue={data.qq}
-                                            isDisabled={isPending}
-                                            variant="secondary"
-                                            pattern="\d{5,}"
-                                            isRequired
-                                            fullWidth
-                                        >
-                                            <Label>群号</Label>
-                                            <Input />
-                                            <FieldError />
-                                        </TextField>
-                                        <TextField
-                                            name="image"
-                                            defaultValue={data.image || undefined}
-                                            isDisabled={isPending}
-                                            variant="secondary"
-                                            type="url"
-                                            isRequired
-                                            fullWidth
-                                        >
-                                            <Label>封面图</Label>
-                                            <Input />
-                                            <FieldError />
-                                        </TextField>
-                                        <DateTimePicker
-                                            name="deadline"
-                                            defaultValue={dataValue(data.deadline)}
-                                            isDisabled={isPending}
-                                            className="w-full"
-                                            isRequired
-                                            label="截止日期"
-                                        />
-                                        <div className="flex flex-row justify-end gap-2">
-                                            <Button type="submit" isPending={isPending}>
-                                                提交
-                                            </Button>
-                                        </div>
-                                    </form>
+                                    <GroupForm data={data} isPending={isPending} onSubmit={handleSubmit} />
                                 </Modal.Body>
                             </Modal.Dialog>
                         </Modal.Container>
@@ -140,3 +150,33 @@ export const GroupModifyModal = ({ data }: { data: GroupResult }) => {
         </>
     );
 };
+
+export const GroupCreateModal = () => {
+    const [isPending, runAction] = useHttp();
+
+    const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        runAction(async () => {
+            
+        })
+    }
+
+    return (
+        <Modal>
+            <Button>新建团购</Button>
+            <Modal.Backdrop>
+                <Modal.Container placement="center">
+                    <Modal.Dialog>
+                        <Modal.CloseTrigger />
+                        <Modal.Header>
+                            <Modal.Heading>新建团购</Modal.Heading>
+                        </Modal.Header>
+                        <Modal.Body className="p-2">
+                            <GroupForm isPending={isPending} onSubmit={handleSubmit} />
+                        </Modal.Body>
+                    </Modal.Dialog>
+                </Modal.Container>
+            </Modal.Backdrop>
+        </Modal>
+    );
+}
