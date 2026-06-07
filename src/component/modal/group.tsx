@@ -5,7 +5,7 @@ import { Button, ButtonGroup, Dropdown, FieldError, Input, Label, Modal, TextFie
 import { parseZonedDateTime } from "@internationalized/date";
 import { AlertModal } from "@/component/common/alert";
 import { DateTimePicker } from "@/component/weight/picker";
-import { changeGroupLock, saveGroup } from "@/service/group";
+import { changeGroupLock, createGroup, saveGroup } from "@/service/group";
 import { GroupResult } from "@/type/group";
 import { dataValue } from "@/util/cover";
 import { useHttp } from "@/util/request";
@@ -153,16 +153,26 @@ export const GroupModifyModal = ({ data }: { data: GroupResult }) => {
 
 export const GroupCreateModal = () => {
     const [isPending, runAction] = useHttp();
+    const [open, setOpen] = React.useState(false);
 
     const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
+        if (isPending) {
+            return;
+        }
+        const formData = new FormData(e.target);
+        const name = formData.get("name") as string;
+        const qq = formData.get("qq") as string;
+        const image = (formData.get("image") as string) || null;
+        const deadline = parseZonedDateTime(formData.get("deadline") as string).toDate();
         runAction(async () => {
-            
+            await createGroup({ name, qq, deadline, image });
+            setOpen(false);
         })
     }
 
     return (
-        <Modal>
+        <Modal isOpen={open} onOpenChange={setOpen}>
             <Button>新建团购</Button>
             <Modal.Backdrop>
                 <Modal.Container placement="center">

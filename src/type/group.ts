@@ -23,10 +23,16 @@ export const colorMap: Record<GroupStatus, "default" | "success" | "warning"> = 
     COMPLETED: "default",
 };
 
-export const groupDetailSchema = z.object({
-    id: z.number().positive().nonoptional(),
+export const groupCreateSchema = z.object({
     name: z.string().nonempty(),
-    qq: z.string().regex(/^\d{5,}$/).nonempty(),
+    qq: z
+        .string()
+        .regex(/^\d{5,}$/)
+        .nonempty(),
     image: z.url().nullable(),
     deadline: z.date().nonoptional(),
+});
+
+export const groupDetailSchema = groupCreateSchema.extend({
+    id: z.number().positive().nonoptional(),
 }).strict()

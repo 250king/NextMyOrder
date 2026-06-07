@@ -10,7 +10,7 @@ import { CardImage } from "@/component/weight/image";
 import { CardProps } from "@/type/card";
 import { colorMap, GroupQuery, GroupResult, statusMap } from "@/type/group";
 
-export const GroupCard = ({ items, total, status, page, keyword }: CardProps<GroupQuery, GroupResult>) => {
+export const GroupCard = ({ items, total, status, page, keyword, isAdmin }: CardProps<GroupQuery, GroupResult>) => {
     const [isPending, startTransition] = React.useTransition();
     const { updateFilter } = useFilter(startTransition);
 
@@ -26,7 +26,7 @@ export const GroupCard = ({ items, total, status, page, keyword }: CardProps<Gro
             />
             <div className="flex flex-row justify-between">
                 <p className="text-default-500 text-sm">共找到{total}条记录</p>
-                <GroupCreateModal/>
+                {isAdmin && <GroupCreateModal />}
             </div>
             <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {items.map((item) => (

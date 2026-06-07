@@ -4,8 +4,17 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/service/db";
 import { Group } from "@/service/db/schema";
-import { groupDetailSchema } from "@/type/group";
+import { groupCreateSchema, groupDetailSchema } from "@/type/group";
 import { getContext } from "@/util/context";
+
+export const createGroup = async (params: z.infer<typeof groupCreateSchema>) => {
+    const context = await getContext();
+    if (!context.isAdmin) {
+        throw new Error("非管理员无权限");
+    }
+    const { name, qq, deadline, image } = groupCreateSchema.parse(params);
+    await db.insert(Group).values({ name, qq, deadline, image });
+}
 
 export const saveGroup = async (params: z.infer<typeof groupDetailSchema>) => {
     const context = await getContext();
