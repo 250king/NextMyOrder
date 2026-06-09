@@ -8,7 +8,9 @@ import { getContext } from "@/util/context";
 import { getPagination } from "@/util/query";
 
 type PageProps = {
-    searchParams: Promise<DeliveryQuery>;
+    searchParams: Promise<DeliveryQuery & {
+        selected?: string;
+    }>;
 };
 
 const Page = async ({ searchParams }: PageProps) => {

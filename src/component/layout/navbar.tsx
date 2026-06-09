@@ -1,13 +1,13 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Avatar, Button, Drawer, Dropdown, Label } from "@heroui/react";
+import { LinkDropdownItem } from "@/component/common/link";
 import { Context } from "@/type/common";
 
 export const Navbar = ({ user }: Partial<Omit<Context, "accessToken" | "uid">>) => {
     const pathname = usePathname();
-    const router = useRouter();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     /*
     const adminList = [
@@ -67,12 +67,12 @@ export const Navbar = ({ user }: Partial<Omit<Context, "accessToken" | "uid">>) 
                             </Dropdown.Trigger>
                             <Dropdown.Popover className="min-w-40" placement="bottom end">
                                 <Dropdown.Menu>
-                                    <Dropdown.Item onClick={() => router.replace("/me")}>
+                                    <LinkDropdownItem href="/me">
                                         <Label>个人中心</Label>
-                                    </Dropdown.Item>
-                                    <Dropdown.Item variant="danger" onClick={() => router.replace("/logout")}>
+                                    </LinkDropdownItem>
+                                    <LinkDropdownItem href="/logout" variant="danger">
                                         <Label>退出登录</Label>
-                                    </Dropdown.Item>
+                                    </LinkDropdownItem>
                                 </Dropdown.Menu>
                             </Dropdown.Popover>
                         </Dropdown>

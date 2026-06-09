@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import * as client from "openid-client";
-import { LinkButton } from "@/component/navigation/button";
+import { LinkButton } from "@/component/common/link";
 import { issuer } from "@/service/client/oauth2";
 import { get, has, setAll } from "@/service/session";
 import { env } from "@/util/env";

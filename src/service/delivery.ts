@@ -1,12 +1,12 @@
 "use server";
 
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray, isNotNull } from "drizzle-orm";
 import { z } from "zod";
 import { parseAddress } from "@/service/client/amap";
 import { cancelOrder, createOrder } from "@/service/client/kd100";
 import { db } from "@/service/db";
 import { Address, Delivery, DeliveryToOrder, TicketLink } from "@/service/db/schema";
-import { deliveryDetailSchema } from "@/type/delivery";
+import { codeMap, deliveryDetailSchema } from "@/type/delivery";
 import { getContext } from "@/util/context";
 import { randomStr } from "@/util/cover";
 import { env } from "@/util/env";
@@ -100,67 +100,59 @@ export const saveDelivery = async (params: z.infer<typeof deliveryDetailSchema>)
         .where(and(eq(Delivery.id, deliveryId), ...(context.isAdmin ? [] : [eq(Delivery.userId, context.uid!)])));
 };
 
-export const pushDelivery = async (p1: number, p2: number) => {
+export const pushDelivery = async (p1: number[], p2: number) => {
     const context = await getContext();
     if (!context.isAdmin) {
         throw new Error("非管理员无权限");
     }
-    const deliveryId = z.int().positive().parse(p1);
+    const deliveryIds = z.int().positive().array().parse(p1);
     const addressId = z.int().positive().parse(p2);
-    const delivery = await db.query.Delivery.findFirst({
-        where: eq(Delivery.id, deliveryId),
-    });
     const sender = await db.query.Address.findFirst({
         where: and(eq(Address.id, addressId)),
     });
-    if (!delivery || !sender) {
-        throw new Error("运单不存在");
+    if (!sender) {
+        throw new Error("寄件地址不存在");
     }
-    if (!delivery.phone || !delivery.address || !delivery.recipient) {
-        throw new Error("请完善运单信息");
-    }
-    let company;
-    switch (delivery.company) {
-        case "SF":
-            company = "shunfeng";
-            break;
-        case "EMS":
-            company = "ems";
-            break;
-        case "YTO":
-            company = "yuantong";
-            break;
-        case "ZTO":
-            company = "zhongtong";
-            break;
-        case "JD":
-            company = "jd";
-            break;
-        default:
-            throw new Error("该快递公司暂时不受支持");
-    }
-    const res = await createOrder({
-        kuaidicom: company,
-        sendManPrintAddr: sender.address,
-        sendManName: sender.recipient,
-        sendManMobile: sender.phone,
-        recManPrintAddr: delivery.address,
-        recManName: delivery.recipient,
-        recManMobile: delivery.phone,
-    });
-    if (!res.data.result) {
-        throw new Error(`推送失败：${res.data.message}`);
-    }
-    await db
-        .update(Delivery)
-        .set({
-            status: "PUSHED",
-            taskId: res.data.data.taskId,
-            ticketId: res.data.data.orderId,
-            ticketNum: res.data.data.kuaidinum || null,
-            queryToken: res.data.data.pollToken || null,
+    const deliveries = (
+        await db.query.Delivery.findMany({
+            where: and(
+                inArray(Delivery.id, deliveryIds),
+                eq(Delivery.status, "PENDING"),
+                isNotNull(Delivery.address),
+                isNotNull(Delivery.phone),
+                isNotNull(Delivery.company)
+            ),
         })
-        .where(eq(Delivery.id, deliveryId));
+    )
+        .map((i) => ({
+            id: i.id,
+            recipient: i.recipient,
+            address: i.address!,
+            phone: i.phone!,
+            company: i.company! in codeMap ? codeMap[i.company!] : null,
+        }))
+        .filter((i) => !!i.company);
+    for (const i of deliveries) {
+        const res = await createOrder({
+            kuaidicom: i.company!,
+            sendManPrintAddr: sender.address,
+            sendManName: sender.recipient,
+            sendManMobile: sender.phone,
+            recManPrintAddr: i.address,
+            recManName: i.recipient,
+            recManMobile: i.phone,
+        });
+        await db
+            .update(Delivery)
+            .set({
+                status: "PUSHED",
+                taskId: res.data.data.taskId,
+                ticketId: res.data.data.orderId,
+                ticketNum: res.data.data.kuaidinum || null,
+                queryToken: res.data.data.pollToken || null,
+            })
+            .where(eq(Delivery.id, i.id));
+    }
 };
 
 export const withdrawDelivery = async (params: number, reason: string) => {

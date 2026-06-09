@@ -16,7 +16,6 @@ import {
     Tabs,
     TextArea,
     TextField,
-    toast,
 } from "@heroui/react";
 import { ImageEncoder } from "@mmote/niimbluelib";
 import clsx from "clsx";
@@ -38,7 +37,7 @@ import { companyMap, DeliveryCompany, DeliveryResult, iconMap } from "@/type/del
 import { createLabelCanvas, downloadCanvas } from "@/util/print";
 import { useHttp } from "@/util/request";
 
-const DeliveryModifyModal = ({ data, isAdmin }: { data: Omit<DeliveryResult, "user">; isAdmin: boolean }) => {
+export const DeliveryModifyModal = ({ data, isAdmin }: { data: Omit<DeliveryResult, "user">; isAdmin: boolean }) => {
     const [addresses, setAddresses] = React.useState<AddressResult[]>([]);
     const [isPending, runAction] = useHttp();
     const [open, setOpen] = React.useState<boolean>(false);
@@ -105,16 +104,18 @@ const DeliveryModifyModal = ({ data, isAdmin }: { data: Omit<DeliveryResult, "us
                             <form className="space-y-4" autoComplete="on" onSubmit={handleSubmit}>
                                 <Tabs>
                                     <Tabs.ListContainer className="w-fit max-w-full">
-                                        <Tabs.List className="w-fit max-w-full *:w-fit *:whitespace-nowrap">
-                                            <Tabs.Tab id="blank" isDisabled={isPending}>
-                                                直接填写
-                                                <Tabs.Indicator />
-                                            </Tabs.Tab>
-                                            <Tabs.Tab id="book" isDisabled={isPending}>
-                                                从最近使用地址筛选
-                                                <Tabs.Indicator />
-                                            </Tabs.Tab>
-                                        </Tabs.List>
+                                        {addresses.length > 0 && (
+                                            <Tabs.List className="w-fit max-w-full *:w-fit *:whitespace-nowrap">
+                                                <Tabs.Tab id="blank" isDisabled={isPending}>
+                                                    直接填写
+                                                    <Tabs.Indicator />
+                                                </Tabs.Tab>
+                                                <Tabs.Tab id="book" isDisabled={isPending}>
+                                                    从最近使用地址筛选
+                                                    <Tabs.Indicator />
+                                                </Tabs.Tab>
+                                            </Tabs.List>
+                                        )}
                                     </Tabs.ListContainer>
                                     <Tabs.Panel id="blank" className="space-y-4 p-0">
                                         <TextField
@@ -254,7 +255,13 @@ const DeliveryModifyModal = ({ data, isAdmin }: { data: Omit<DeliveryResult, "us
     );
 };
 
-const DeliveryPushModal = ({ data, open, onChange }: ModalState<Omit<DeliveryResult, "user">>) => {
+export const DeliveryPushModal = ({
+    selected,
+    open,
+    onChange,
+}: ModalState & {
+    selected: number[];
+}) => {
     const [addresses, setAddresses] = React.useState<AddressResult[]>([]);
     const [isPending, runAction] = useHttp();
     React.useEffect(() => {
@@ -268,7 +275,7 @@ const DeliveryPushModal = ({ data, open, onChange }: ModalState<Omit<DeliveryRes
         const formData = new FormData(e.target);
         const addressId = Number(formData.get("addressId") as string);
         runAction(async () => {
-            await pushDelivery(data.id, addressId);
+            await pushDelivery(selected, addressId);
         });
     };
 
@@ -373,7 +380,6 @@ const DeliveryWithdrawModal = ({ data, open, onChange }: ModalState<Omit<Deliver
 };
 
 export const DeliveryModal = ({ data, isAdmin }: { data: Omit<DeliveryResult, "user">; isAdmin: boolean }) => {
-    const [push, setPush] = React.useState(false);
     const [remove, setRemove] = React.useState(false);
     const [withdraw, setWithdraw] = React.useState(false);
     const router = useRouter();
@@ -428,32 +434,19 @@ export const DeliveryModal = ({ data, isAdmin }: { data: Omit<DeliveryResult, "u
     };
 
     return (
-        <>
-            {data.status == "PENDING" && <DeliveryModifyModal data={data} isAdmin={isAdmin} />}
-            {isAdmin && ["PENDING", "PUSHED"].includes(data.status) && (
+        isAdmin &&
+        ["PENDING", "PUSHED"].includes(data.status) && (
+            <>
+                <Button isDisabled={loading || isPending} onClick={handlePrint}>
+                    打印运单
+                </Button>
                 <Dropdown>
-                    <Button isIconOnly variant="secondary">
+                    <Button isIconOnly>
                         <ButtonGroup.Separator />
                         <span className="icon-[ri--arrow-down-s-line]" />
                     </Button>
                     <Dropdown.Popover className="min-w-40" placement="bottom end">
                         <Dropdown.Menu>
-                            {data.status == "PENDING" && (
-                                <Dropdown.Item
-                                    onClick={() => {
-                                        if (!data.address || !data.phone || !data.recipient) {
-                                            toast.danger("推送失败：当前运单信息不完善");
-                                            return;
-                                        }
-                                        setPush(true);
-                                    }}
-                                >
-                                    <Label>推送</Label>
-                                </Dropdown.Item>
-                            )}
-                            <Dropdown.Item isDisabled={loading || isPending} onClick={handlePrint}>
-                                <Label>打印运单</Label>
-                            </Dropdown.Item>
                             <Dropdown.Item isDisabled={loading || isPending} onClick={handleDownload}>
                                 <Label>下载标签预览</Label>
                             </Dropdown.Item>
@@ -469,7 +462,6 @@ export const DeliveryModal = ({ data, isAdmin }: { data: Omit<DeliveryResult, "u
                             )}
                         </Dropdown.Menu>
                     </Dropdown.Popover>
-                    <DeliveryPushModal open={push} onChange={setPush} data={data} />
                     <DeliveryWithdrawModal open={withdraw} onChange={setWithdraw} data={data} />
                     <AlertModal
                         title="确认移除运单"
@@ -484,7 +476,7 @@ export const DeliveryModal = ({ data, isAdmin }: { data: Omit<DeliveryResult, "u
                         <div>该操作不可逆，请谨慎操作</div>
                     </AlertModal>
                 </Dropdown>
-            )}
-        </>
+            </>
+        )
     );
 };

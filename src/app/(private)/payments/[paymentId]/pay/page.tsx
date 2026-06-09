@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import notFound from "@/app/not-found";
-import { LinkButton } from "@/component/navigation/button";
+import { LinkButton } from "@/component/common/link";
 import { PaymentWeight } from "@/component/weight/payment";
 import { cancelOrder, generateUrl } from "@/service/client/jdpay";
 import { db } from "@/service/db";

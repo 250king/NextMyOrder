@@ -1,6 +1,6 @@
 "use client"
 import { Tabs } from "@heroui/react";
-import { LinkTab } from "@/component/navigation/tab";
+import { LinkTab } from "@/component/common/tab";
 import { PaymentResult } from "@/type/payment";
 
 export const PaymentTab = ({

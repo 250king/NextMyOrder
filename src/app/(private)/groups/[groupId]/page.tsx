@@ -1,8 +1,8 @@
 import React from "react";
 import { notFound } from "next/navigation";
-import { Alert, ButtonGroup, Chip, Surface } from "@heroui/react";
+import { Alert, Chip, Surface } from "@heroui/react";
 import { and, eq, exists } from "drizzle-orm";
-import { GroupModifyModal } from "@/component/modal/group";
+import { GroupLockModal, GroupModifyModal } from "@/component/modal/group";
 import { db } from "@/service/db";
 import { Group, List } from "@/service/db/schema";
 import { colorMap, statusMap } from "@/type/group";
@@ -41,6 +41,7 @@ const Page = async ({ params }: PageProps) => {
                             {statusMap[data.status]}
                         </Chip>
                     </div>
+                    <GroupLockModal data={data} />
                 </header>
                 {data.status == "PENDING" && (
                     <Alert status="warning">
@@ -54,11 +55,7 @@ const Page = async ({ params }: PageProps) => {
                 <Surface className="rounded-3xl p-4 shadow-sm">
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         <h2 className="text-base font-semibold">基础信息</h2>
-                        {context.isAdmin && data.status != "COMPLETED" && (
-                            <ButtonGroup>
-                                <GroupModifyModal data={data} />
-                            </ButtonGroup>
-                        )}
+                        {context.isAdmin && data.status != "COMPLETED" && <GroupModifyModal data={data} />}
                     </div>
                     <div className="mt-4 grid gap-4 text-sm md:grid-cols-3">
                         <div className="min-w-0">

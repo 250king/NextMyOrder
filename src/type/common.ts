@@ -1,5 +1,5 @@
 import { z } from "zod";
-import  { userSchema } from '@/type/user';
+import { userSchema } from "@/type/user";
 
 export type Context = {
     refreshToken: string | null;
@@ -17,8 +17,7 @@ export type Query<T> = T & {
     id?: number;
 };
 
-export type ModalState<T> = {
+export type ModalState<T = void> = {
     open: boolean;
     onChange: (value: boolean) => void;
-    data: T;
-}
+} & ([T] extends [void] ? object : { data: T });

@@ -34,6 +34,14 @@ export const companyMap: Record<DeliveryCompany, string> = {
     EMS: "中国邮政",
 };
 
+export const codeMap: Record<DeliveryCompany, string> = {
+    SF: "sf",
+    ZTO: "zhongtong",
+    YTO: "yuantong",
+    JD: "jd",
+    EMS: "ems",
+};
+
 export const statusMap: Record<DeliveryStatus, string> = {
     PENDING: "待推送",
     PUSHED: "已推送",

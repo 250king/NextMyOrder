@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
-import { Button, ButtonGroup, Dropdown, FieldError, Input, Label, Modal, TextField } from "@heroui/react";
+import { Button, FieldError, Input, Label, Modal, TextField } from "@heroui/react";
 import { parseZonedDateTime } from "@internationalized/date";
+import dayjs from "dayjs";
 import { AlertModal } from "@/component/common/alert";
 import { DateTimePicker } from "@/component/weight/picker";
 import { changeGroupLock, createGroup, saveGroup } from "@/service/group";
@@ -11,7 +12,7 @@ import { dataValue } from "@/util/cover";
 import { useHttp } from "@/util/request";
 
 const GroupForm = ({data, isPending, onSubmit}: {
-    data?: GroupResult;
+    data?: Partial<GroupResult>;
     isPending: boolean;
     onSubmit: (e: React.SubmitEvent<HTMLFormElement>) => void;
 }) => {
@@ -48,7 +49,6 @@ const GroupForm = ({data, isPending, onSubmit}: {
                 isDisabled={isPending}
                 variant="secondary"
                 type="url"
-                isRequired
                 fullWidth
             >
                 <Label>封面图</Label>
@@ -69,6 +69,32 @@ const GroupForm = ({data, isPending, onSubmit}: {
                 </Button>
             </div>
         </form>
+    );
+}
+
+export const GroupLockModal = ({data}: {
+    data: GroupResult;
+}) => {
+    return (
+        <AlertModal
+            title={`确定${data.status == "PENDING" ? "截单" : "重新开放"}？`}
+            status="warning"
+            trigger={
+                <Button className="ml-auto">
+                    <span className={data.status == "PENDING" ? "icon-[ri--stop-fill]" : "icon-[ri--play-fill]"} />
+                    {data.status == "PENDING" ? "截单" : "重新开放"}
+                </Button>
+            }
+            onConfirmed={async () => {
+                await changeGroupLock(data.id);
+            }}
+        >
+            <div>
+                {data.status == "PENDING"
+                    ? "截单后所有订单锁定无法修改，请确保所有订单内容无误后在进行。"
+                    : "重新开放后可能会导致数据对其错误，请确保的确有需要再进行。"}
+            </div>
+        </AlertModal>
     );
 }
 
@@ -99,55 +125,25 @@ export const GroupModifyModal = ({ data }: { data: GroupResult }) => {
     };
 
     return (
-        <>
-            <AlertModal
-                title={`确定${data.status == "PENDING" ? "截单" : "重新开放"}？`}
-                status="warning"
-                trigger={
-                    <Button variant="secondary">
-                        <span className={data.status == "PENDING" ? "icon-[ri--stop-fill]" : "icon-[ri--play-fill]"} />
-                        {data.status == "PENDING" ? "截单" : "重新开放"}
-                    </Button>
-                }
-                onConfirmed={async () => {
-                    await changeGroupLock(data.id);
-                }}
-            >
-                <div>
-                    {data.status == "PENDING"
-                        ? "截单后所有订单锁定无法修改，请确保所有订单内容无误后在进行。"
-                        : "重新开放后可能会导致数据对其错误，请确保的确有需要再进行。"}
-                </div>
-            </AlertModal>
-            <Dropdown>
-                <Modal isOpen={open} onOpenChange={setOpen}>
-                    <Modal.Backdrop>
-                        <Modal.Container placement="center">
-                            <Modal.Dialog>
-                                <Modal.CloseTrigger />
-                                <Modal.Header>
-                                    <Modal.Heading>修改信息</Modal.Heading>
-                                </Modal.Header>
-                                <Modal.Body className="p-2">
-                                    <GroupForm data={data} isPending={isPending} onSubmit={handleSubmit} />
-                                </Modal.Body>
-                            </Modal.Dialog>
-                        </Modal.Container>
-                    </Modal.Backdrop>
-                </Modal>
-                <Button isIconOnly variant="secondary">
-                    <ButtonGroup.Separator />
-                    <span className="icon-[ri--arrow-down-s-line]" />
-                </Button>
-                <Dropdown.Popover className="min-w-40" placement="bottom end">
-                    <Dropdown.Menu>
-                        <Dropdown.Item onClick={() => setOpen(true)}>
-                            <Label>编辑信息</Label>
-                        </Dropdown.Item>
-                    </Dropdown.Menu>
-                </Dropdown.Popover>
-            </Dropdown>
-        </>
+        <Modal isOpen={open} onOpenChange={setOpen}>
+            <Button variant="secondary">
+                <span className="icon-[ri--edit-box-fill]" />
+                编辑
+            </Button>
+            <Modal.Backdrop>
+                <Modal.Container placement="center">
+                    <Modal.Dialog>
+                        <Modal.CloseTrigger />
+                        <Modal.Header>
+                            <Modal.Heading>基础信息</Modal.Heading>
+                        </Modal.Header>
+                        <Modal.Body className="p-2">
+                            <GroupForm data={data} isPending={isPending} onSubmit={handleSubmit} />
+                        </Modal.Body>
+                    </Modal.Dialog>
+                </Modal.Container>
+            </Modal.Backdrop>
+        </Modal>
     );
 };
 
@@ -173,7 +169,7 @@ export const GroupCreateModal = () => {
 
     return (
         <Modal isOpen={open} onOpenChange={setOpen}>
-            <Button>新建团购</Button>
+            <Button className="ml-auto">新建团购</Button>
             <Modal.Backdrop>
                 <Modal.Container placement="center">
                     <Modal.Dialog>
@@ -182,7 +178,13 @@ export const GroupCreateModal = () => {
                             <Modal.Heading>新建团购</Modal.Heading>
                         </Modal.Header>
                         <Modal.Body className="p-2">
-                            <GroupForm isPending={isPending} onSubmit={handleSubmit} />
+                            <GroupForm
+                                isPending={isPending}
+                                onSubmit={handleSubmit}
+                                data={{
+                                    deadline: dayjs().add(7, "day").toDate(),
+                                }}
+                            />
                         </Modal.Body>
                     </Modal.Dialog>
                 </Modal.Container>

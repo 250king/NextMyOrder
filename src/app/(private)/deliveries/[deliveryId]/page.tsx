@@ -2,7 +2,7 @@ import React from "react";
 import { notFound } from "next/navigation";
 import { Alert, ButtonGroup, Chip, Surface } from "@heroui/react";
 import { and, eq } from "drizzle-orm";
-import { DeliveryModal } from "@/component/modal/delivery";
+import { DeliveryModal, DeliveryModifyModal } from "@/component/modal/delivery";
 import { DeliveryTab } from "@/component/tab/delivery";
 import { db } from "@/service/db";
 import { Delivery } from "@/service/db/schema";
@@ -49,6 +49,9 @@ const Page = async ({ params, searchParams }: PageProps) => {
                             {statusMap[data.status]}
                         </Chip>
                     </div>
+                    <ButtonGroup className="ml-auto">
+                        <DeliveryModal data={data} isAdmin={context.isAdmin} />
+                    </ButtonGroup>
                 </header>
                 {(!data.address || !data.recipient || !data.phone) && (
                     <Alert status="warning">
@@ -60,11 +63,9 @@ const Page = async ({ params, searchParams }: PageProps) => {
                     </Alert>
                 )}
                 <Surface className="rounded-3xl p-4 shadow-sm">
-                    <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex flex-wrap items-center justify-between">
                         <h2 className="text-base font-semibold">基础信息</h2>
-                        <ButtonGroup>
-                            <DeliveryModal data={data} isAdmin={context.isAdmin} />
-                        </ButtonGroup>
+                        {data.status == "PENDING" && <DeliveryModifyModal data={data} isAdmin={context.isAdmin} />}
                     </div>
                     <div className="mt-4 grid gap-4 text-sm md:grid-cols-3">
                         <div className="min-w-0">

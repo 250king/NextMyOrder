@@ -1,4 +1,4 @@
-import { LinkButton } from "@/component/navigation/button";
+import { LinkButton } from "@/component/common/link";
 
 const Page = () => {
     return (
