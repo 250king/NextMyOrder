@@ -25,61 +25,73 @@ const addComment = (comment: string | null, line: string, pattern: RegExp) => {
 };
 
 export const POST = async (req: NextRequest) => {
-    const query = await req.formData();
-    const str = query.get("param") + env.KD100_NONCE;
-    const sign = createHash("md5").update(str).digest("hex").toUpperCase();
-    if (sign !== query.get("sign")) {
-        return Response.json({ result: true, returnCode: "403", message: "Invalid signature" }, { status: 403 });
-    }
-    const delivery = await db.query.Delivery.findFirst({
-        where: eq(Delivery.taskId, query.get("taskId") as string),
-    });
-    if (!delivery) {
-        return Response.json({ result: true, returnCode: "400", message: "Delivery not found" }, { status: 404 });
-    }
-    const data = JSON.parse(query.get("param") as string);
-    let status = delivery.status;
-    let comment = delivery.comment;
-    switch (Number(data.data.status)) {
-        case 0:
-        case 1:
-        case 2:
-        case 200:
-        case 99:
-            status = "PUSHED";
-            comment = removeWarning(comment);
-            break;
-        case 10:
-        case 101:
-        case 400:
-            status = "DELIVERED";
-            comment = removeWarning(comment);
-            break;
-        case 13:
-            status = "ARRIVED";
-            comment = removeWarning(comment);
-            await db.delete(TicketLink).where(eq(TicketLink.deliveryId, delivery.id));
-            break;
-        default:
-            comment = addComment(comment, `快递状态异常，请重点关注：${data.data.status}`, warningPattern);
-            break;
-    }
-    if (data.data.pickupCode) {
-        const pattern = /取件码为[:：]?\s*\d+/;
-        comment = addComment(comment, `取件码为${data.data.pickupCode}`, pattern);
-    }
-    await db
-        .update(Delivery)
-        .set({
-            status,
-            comment: normalizeComment(comment),
-            ticketNum: data.kuaidinum || undefined,
-            queryToken: data.data.pollToken || undefined,
+    try {
+        const query = await req.formData();
+        const str = query.get("param") + env.KD100_NONCE;
+        const sign = createHash("md5").update(str).digest("hex").toUpperCase();
+        if (sign !== query.get("sign")) {
+            return Response.json({ result: false, returnCode: "403", message: "Invalid signature" }, { status: 403 });
+        }
+        const delivery = await db.query.Delivery.findFirst({
+            where: eq(Delivery.taskId, query.get("taskId") as string),
+        });
+        if (!delivery) {
+            return Response.json({ result: false, returnCode: "400", message: "Delivery not found" }, { status: 404 });
+        }
+        const data = JSON.parse(query.get("param") as string);
+        let status = delivery.status;
+        let comment = delivery.comment;
+        switch (Number(data.data.status)) {
+            case 0:
+            case 1:
+            case 2:
+            case 200:
+                status = "PUSHED";
+                comment = removeWarning(comment);
+                break;
+            case 10:
+            case 15:
+            case 101:
+            case 400:
+                status = "DELIVERED";
+                comment = removeWarning(comment);
+                break;
+            case 13:
+                status = "ARRIVED";
+                comment = removeWarning(comment);
+                await db.delete(TicketLink).where(eq(TicketLink.deliveryId, delivery.id));
+                break;
+            case 99:
+                status = "PENDING"
+                comment = addComment(comment, `订单已重置：${data.data.status}`, warningPattern);
+                break;
+            default:
+                comment = addComment(comment, `快递状态异常，请重点关注：${data.data.status}`, warningPattern);
+                break;
+        }
+        if (data.data.pickupCode) {
+            const pattern = /取件码为[:：]?\s*\d+/;
+            comment = addComment(comment, `取件码为${data.data.pickupCode}`, pattern);
+        }
+        await db
+            .update(Delivery)
+            .set({
+                status,
+                comment: normalizeComment(comment),
+                ticketNum: data.kuaidinum || undefined,
+                queryToken: data.data.pollToken || undefined,
+            })
+            .where(eq(Delivery.id, delivery.id));
+        return Response.json({
+            result: true,
+            returnCode: "200",
+            message: "ok",
+        });
+    } catch {
+        return Response.json({
+            result: false,
+            returnCode: "400",
+            message: "Bad request",
         })
-        .where(eq(Delivery.id, delivery.id));
-    return Response.json({
-        result: true,
-        returnCode: "200",
-        message: "ok",
-    });
+    }
 };

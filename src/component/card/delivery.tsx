@@ -5,10 +5,11 @@ import { EnumFilter, SearchFilter, useFilter } from "@/component/common/filter";
 import { LinkButton } from "@/component/common/link";
 import { Loading } from "@/component/common/loading";
 import { Pagination } from "@/component/common/pagination";
-import { DeliveryButton } from "@/component/navigation/delivery";
-import { DataCardProps } from "@/type/common";
+import { DeliveryButton, GoodsButton } from "@/component/navigation/delivery";
+import { DataCardProps, Query } from "@/type/common";
 import { colorMap, companyMap, DeliveryQuery, DeliveryResult, iconMap, statusMap } from "@/type/delivery";
-import { date } from "@/util/cover";
+import { OrderResult } from "@/type/order";
+import { currency, date } from "@/util/cover";
 import { useSelected } from "@/util/hook";
 
 export const DeliveryCard = ({
@@ -27,7 +28,11 @@ export const DeliveryCard = ({
     return (
         <div className="relative flex flex-col gap-4">
             {isPending && <Loading />}
-            <SearchFilter key={keyword || ""} initialValue={keyword} onSearch={(val) => updateFilter({ keyword: val })} />
+            <SearchFilter
+                key={keyword || ""}
+                initialValue={keyword}
+                onSearch={(val) => updateFilter({ keyword: val })}
+            />
             <EnumFilter
                 label="快递公司"
                 currentValue={company}
@@ -42,7 +47,10 @@ export const DeliveryCard = ({
             />
             <p className="text-default-500 text-sm">共找到{total}条记录</p>
             {isAdmin && <DeliveryButton items={items} />}
-            <CheckboxGroup value={selected} onChange={(val) => updateLocalFilter({ selected: val.length > 0 ? JSON.stringify(val): null })}>
+            <CheckboxGroup
+                value={selected}
+                onChange={(val) => updateLocalFilter({ selected: val.length > 0 ? JSON.stringify(val) : null })}
+            >
                 <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {items.map((item) => (
                         <Checkbox key={item.id} value={item.id.toString()} variant="secondary" className="mt-0">
@@ -93,6 +101,78 @@ export const DeliveryCard = ({
                                             详情
                                         </LinkButton>
                                     </Card.Footer>
+                                </Card>
+                            </Checkbox.Content>
+                        </Checkbox>
+                    ))}
+                </div>
+            </CheckboxGroup>
+            <Pagination startTransition={startTransition} total={total} page={page} />
+        </div>
+    );
+};
+
+export const GoodsGard = ({ items, total, page, data, isAdmin }: DataCardProps<Query, OrderResult> & {
+    data: Omit<DeliveryResult, "user">;
+}) => {
+    const [isPending, startTransition] = React.useTransition();
+    const { updateLocalFilter } = useFilter(startTransition);
+    const selected = useSelected();
+
+    return (
+        <div className="relative flex flex-col gap-4">
+            {isPending && <Loading />}
+            <p className="text-default-500 text-sm">共找到{total}条记录</p>
+            {isAdmin && <GoodsButton items={items} data={data} />}
+            <CheckboxGroup
+                value={selected}
+                onChange={(val) => updateLocalFilter({ selected: val.length > 0 ? JSON.stringify(val) : null })}
+            >
+                <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {items.map((item) => (
+                        <Checkbox key={item.id} value={item.id.toString()} variant="secondary" className="mt-0">
+                            <Checkbox.Content className="w-full">
+                                <Card className="h-full min-w-0 transition-shadow hover:shadow-lg w-full items-stretch md:flex-row">
+                                    <div className="relative h-35 w-full shrink-0 overflow-hidden rounded-2xl sm:h-30 sm:w-30">
+                                        <img
+                                            alt={item.item.name}
+                                            className="pointer-events-none absolute inset-0 h-full w-full scale-125 object-cover select-none"
+                                            loading="lazy"
+                                            src={
+                                                item.item.image ||
+                                                "https://static.250king.top/image/2026/04/i3f4xep2.png"
+                                            }
+                                        />
+                                    </div>
+                                    <div className="flex flex-1 flex-col gap-3 min-w-0">
+                                        <div className="flex flex-row justify-between gap-1 min-w-0">
+                                            <Card.Header className="min-w-0 flex-1">
+                                                <div className="min-w-0 flex-1">
+                                                    <Card.Title className="truncate">{item.item.name}</Card.Title>
+                                                    <Card.Description>#{item.id}</Card.Description>
+                                                </div>
+                                            </Card.Header>
+                                            <Checkbox.Control className="shrink-0">
+                                                <Checkbox.Indicator />
+                                            </Checkbox.Control>
+                                        </div>
+                                        <Card.Content className="flex flex-1 flex-col gap-2">
+                                            <div className="text-xl font-bold">
+                                                {currency(item.item.price, "JPY")}
+                                                <span className="px-1 align-baseline text-xs font-medium text-muted">
+                                                    × {item.count}
+                                                </span>
+                                            </div>
+                                        </Card.Content>
+                                        <Card.Footer className="mt-auto flex w-full justify-end gap-2">
+                                            <LinkButton
+                                                href={`/groups/${item.item.groupId}?tab=order`}
+                                                variant="secondary"
+                                            >
+                                                详情
+                                            </LinkButton>
+                                        </Card.Footer>
+                                    </div>
                                 </Card>
                             </Checkbox.Content>
                         </Checkbox>

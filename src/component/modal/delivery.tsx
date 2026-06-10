@@ -259,7 +259,7 @@ export const DeliveryPushModal = ({
     open,
     onChange,
 }: ModalState & {
-    selected: string[];
+    selected: number[];
 }) => {
     const [addresses, setAddresses] = React.useState<AddressResult[]>([]);
     const [isPending, runAction] = useHttp();

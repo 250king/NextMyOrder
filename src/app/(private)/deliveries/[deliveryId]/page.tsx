@@ -2,15 +2,15 @@ import React from "react";
 import { notFound } from "next/navigation";
 import { Alert, ButtonGroup, Chip, Surface, Tabs } from "@heroui/react";
 import { and, eq } from "drizzle-orm";
+import { GoodsGard } from "@/component/card/delivery";
 import { LinkTab } from "@/component/common/tab";
 import { DeliveryModal, DeliveryModifyModal } from "@/component/modal/delivery";
-import { GoodsPanel } from "@/component/tab/delivery";
 import { db } from "@/service/db";
-import { Delivery } from "@/service/db/schema";
-import { Query } from "@/type/common";
-import { colorMap, companyMap, iconMap, statusMap } from "@/type/delivery";
+import { Delivery, DeliveryToOrder } from "@/service/db/schema";
+import { PanelProps, Query } from "@/type/common";
+import { colorMap, companyMap, DeliveryResult, iconMap, statusMap } from "@/type/delivery";
 import { getContext } from "@/util/context";
-import { date } from "@/util/cover";
+import { date, toPagination } from "@/util/cover";
 
 type PageProps = {
     params: Promise<{
@@ -23,16 +23,39 @@ type PageProps = {
     >;
 };
 
+const GoodsPanel = async ({ data, isAdmin, ...query }: PanelProps<Omit<DeliveryResult, "user">> & Query) => {
+    const pagination = toPagination(query);
+    const [items, total] = await Promise.all([
+        db.query.DeliveryToOrder.findMany({
+            where: eq(DeliveryToOrder.deliveryId, data.id),
+            with: {
+                order: {
+                    with: {
+                        user: true,
+                        transit: true,
+                        item: {
+                            with: {
+                                group: true,
+                            },
+                        },
+                    },
+                },
+            },
+            ...pagination,
+        }),
+        db.$count(DeliveryToOrder, eq(DeliveryToOrder.deliveryId, data.id)),
+    ]);
+
+    return <GoodsGard items={items.map((i) => i.order)} total={total} data={data} isAdmin={isAdmin} />;
+};
+
 const Page = async ({ params, searchParams }: PageProps) => {
     const query = await params;
     const search = await searchParams;
     const context = await getContext();
     const currentTab = search.tab === "track" ? "track" : "goods";
     const data = await db.query.Delivery.findFirst({
-        where: and(
-            eq(Delivery.id, query.deliveryId),
-            ...(context.isAdmin ? [] : [eq(Delivery.userId, context.uid!)])
-        ),
+        where: and(eq(Delivery.id, query.deliveryId), ...(context.isAdmin ? [] : [eq(Delivery.userId, context.uid!)])),
     });
     if (!data) {
         return notFound();
