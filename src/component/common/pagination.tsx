@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { Pagination as HeroPagination } from "@heroui/react";
-import { useFilter } from "@/component/data/filter";
+import { useFilter } from "@/component/common/filter";
 
 type PaginationProps = {
     startTransition: React.TransitionStartFunction;

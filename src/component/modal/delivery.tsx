@@ -20,6 +20,7 @@ import {
 import { ImageEncoder } from "@mmote/niimbluelib";
 import clsx from "clsx";
 import { AlertModal } from "@/component/common/alert";
+import { useFilter } from "@/component/common/filter";
 import { usePrinter } from "@/component/weight/printer";
 import { DeliveryCompany as DeliveryCompanyEnum } from "@/service/db/schema";
 import {
@@ -104,18 +105,16 @@ export const DeliveryModifyModal = ({ data, isAdmin }: { data: Omit<DeliveryResu
                             <form className="space-y-4" autoComplete="on" onSubmit={handleSubmit}>
                                 <Tabs>
                                     <Tabs.ListContainer className="w-fit max-w-full">
-                                        {addresses.length > 0 && (
-                                            <Tabs.List className="w-fit max-w-full *:w-fit *:whitespace-nowrap">
-                                                <Tabs.Tab id="blank" isDisabled={isPending}>
-                                                    直接填写
-                                                    <Tabs.Indicator />
-                                                </Tabs.Tab>
-                                                <Tabs.Tab id="book" isDisabled={isPending}>
-                                                    从最近使用地址筛选
-                                                    <Tabs.Indicator />
-                                                </Tabs.Tab>
-                                            </Tabs.List>
-                                        )}
+                                        <Tabs.List className="w-fit max-w-full *:w-fit *:whitespace-nowrap">
+                                            <Tabs.Tab id="blank" isDisabled={isPending}>
+                                                直接填写
+                                                <Tabs.Indicator />
+                                            </Tabs.Tab>
+                                            <Tabs.Tab id="book" isDisabled={isPending || addresses.length === 0}>
+                                                从最近使用地址筛选
+                                                <Tabs.Indicator />
+                                            </Tabs.Tab>
+                                        </Tabs.List>
                                     </Tabs.ListContainer>
                                     <Tabs.Panel id="blank" className="space-y-4 p-0">
                                         <TextField
@@ -260,7 +259,7 @@ export const DeliveryPushModal = ({
     open,
     onChange,
 }: ModalState & {
-    selected: number[];
+    selected: string[];
 }) => {
     const [addresses, setAddresses] = React.useState<AddressResult[]>([]);
     const [isPending, runAction] = useHttp();
@@ -275,7 +274,8 @@ export const DeliveryPushModal = ({
         const formData = new FormData(e.target);
         const addressId = Number(formData.get("addressId") as string);
         runAction(async () => {
-            await pushDelivery(selected, addressId);
+            await pushDelivery(selected.map((i) => Number(i)), addressId);
+            onChange(false)
         });
     };
 
@@ -332,7 +332,9 @@ export const DeliveryPushModal = ({
 };
 
 const DeliveryWithdrawModal = ({ data, open, onChange }: ModalState<Omit<DeliveryResult, "user">>) => {
+    const [, startTransition] = React.useTransition();
     const [isPending, runAction] = useHttp();
+    const { updateLocalFilter } = useFilter(startTransition);
 
     const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -340,6 +342,10 @@ const DeliveryWithdrawModal = ({ data, open, onChange }: ModalState<Omit<Deliver
         const reason = formData.get("reason") as string;
         runAction(async () => {
             await withdrawDelivery(data.id, reason);
+            updateLocalFilter({
+                selected: null
+            })
+            onChange(false)
         });
     };
 

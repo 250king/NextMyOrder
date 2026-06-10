@@ -5,7 +5,7 @@ import { db } from "@/service/db";
 import { Delivery } from "@/service/db/schema";
 import { DeliveryQuery } from "@/type/delivery";
 import { getContext } from "@/util/context";
-import { getPagination } from "@/util/query";
+import { toPagination } from "@/util/cover";
 
 type PageProps = {
     searchParams: Promise<DeliveryQuery & {
@@ -16,7 +16,7 @@ type PageProps = {
 const Page = async ({ searchParams }: PageProps) => {
     const query = await searchParams;
     const context = await getContext();
-    const pagination = getPagination(query);
+    const pagination = toPagination(query);
     const filters: SQL[] = [];
     if (!context.isAdmin) {
         filters.push(eq(Delivery.userId, context.uid!));

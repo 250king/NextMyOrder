@@ -25,9 +25,10 @@ client.interceptors.request.use(async (config) => {
     return config;
 });
 
-export const createOrder = async (params: z.infer<typeof createOrderSchema>) => {
+const url = `https://poll.kuaidi100.com/order/borderapi.do`;
+
+export const createOrder = async (params: z.input<typeof createOrderSchema>) => {
     const data = createOrderSchema.parse(params);
-    const url = `${env.NODE_ENV === "development" ? "http://e-test.kuaidilab.com/api" : "https://poll.kuaidi100.com"}/order/borderapi.do`;
     const payload = new URLSearchParams({
         param: JSON.stringify(data),
         method: "bOrder",
@@ -37,7 +38,6 @@ export const createOrder = async (params: z.infer<typeof createOrderSchema>) => 
 
 export const cancelOrder = async (params: z.infer<typeof cancelOrderSchema>) => {
     const data = cancelOrderSchema.parse(params);
-    const url = `${env.NODE_ENV === "development" ? "http://e-test.kuaidilab.com/api" : "https://poll.kuaidi100.com"}/order/borderapi.do`;
     const payload = new URLSearchParams({
         param: JSON.stringify(data),
         method: "cancel"

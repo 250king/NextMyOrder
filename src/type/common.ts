@@ -8,7 +8,7 @@ export type Context = {
     user: z.infer<typeof userSchema> | null;
 };
 
-export type Query<T> = T & {
+export type Query<T = void> = ([T] extends [void] ? object : T) & {
     order?: string;
     sort?: string;
     page?: number;
@@ -17,7 +17,18 @@ export type Query<T> = T & {
     id?: number;
 };
 
-export type ModalState<T = void> = {
+export type PanelProps<T> = {
+    data: T;
+    isAdmin: boolean;
+}
+
+export type ModalState<T = void> = ([T] extends [void] ? object : { data: T }) & {
     open: boolean;
     onChange: (value: boolean) => void;
-} & ([T] extends [void] ? object : { data: T });
+};
+
+export type DataCardProps<T, R> = T & {
+    items: R[],
+    total: number,
+    isAdmin: boolean
+}

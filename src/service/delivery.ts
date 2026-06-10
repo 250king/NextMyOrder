@@ -23,7 +23,7 @@ const getDelivery = async (deliveryId: number) => {
         throw new Error("运单不存在");
     }
     return delivery;
-}
+};
 
 export const getAddresses = async (params: number) => {
     const context = await getContext();
@@ -142,6 +142,9 @@ export const pushDelivery = async (p1: number[], p2: number) => {
             recManName: i.recipient,
             recManMobile: i.phone,
         });
+        if (!res.data.result) {
+            continue;
+        }
         await db
             .update(Delivery)
             .set({

@@ -1,15 +1,24 @@
 "use client";
 import React from "react";
 import { Avatar, Card, Chip } from "@heroui/react";
+import { EnumFilter, useFilter } from "@/component/common/filter";
 import { LinkButton } from "@/component/common/link";
 import { Loading } from "@/component/common/loading";
 import { Pagination } from "@/component/common/pagination";
-import { EnumFilter, useFilter } from "@/component/data/filter";
-import { CardProps } from "@/type/card";
-import { colorMap, iconMap, methodMap, PaymentQuery, PaymentResult, typeIconMap, typeMap } from "@/type/payment";
+import { DataCardProps } from "@/type/common";
+import {
+    colorMap,
+    iconMap,
+    methodMap,
+    PaymentQuery,
+    PaymentResult,
+    statusMap,
+    typeIconMap,
+    typeMap,
+} from "@/type/payment";
 import { currency, date } from "@/util/cover";
 
-export const PaymentCard = ({ items, total, page, method, type }: CardProps<PaymentQuery, PaymentResult>) => {
+export const PaymentCard = ({ items, total, page, method, isPaid, type }: DataCardProps<PaymentQuery, PaymentResult>) => {
     const [isPending, startTransition] = React.useTransition();
     const { updateFilter } = useFilter(startTransition);
 
@@ -27,6 +36,12 @@ export const PaymentCard = ({ items, total, page, method, type }: CardProps<Paym
                 currentValue={method}
                 options={methodMap}
                 onChange={(val) => updateFilter({ method: val })}
+            />
+            <EnumFilter
+                label="支付状态"
+                currentValue={isPaid}
+                options={statusMap}
+                onChange={(val) => updateFilter({ isPaid: val })}
             />
             <p className="text-default-500 text-sm">共找到{total}条记录</p>
             <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 lg:grid-cols-3">

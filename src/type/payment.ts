@@ -10,6 +10,7 @@ export type PaymentQuery = Query<{
     type?: PaymentType;
     method?: PaymentMethod;
     userId?: number;
+    isPaid?: string;
 }>;
 
 export type PaymentResult = typeof Payment.$inferSelect & {
@@ -30,6 +31,11 @@ export const typeMap: Record<PaymentType, string> = {
     LIST: "需求单",
     TRANSIT: "国际运费",
 };
+
+export const statusMap: Record<string, string> = {
+    true: "已支付",
+    false: "未支付"
+}
 
 export const typeIconMap: Record<PaymentType, string> = {
     DELIVERY: "icon-[ri--box-1-fill]",

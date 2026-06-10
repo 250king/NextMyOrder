@@ -4,7 +4,7 @@ import { db } from "@/service/db";
 import { Group, List } from "@/service/db/schema";
 import { GroupQuery } from "@/type/group";
 import { getContext } from "@/util/context";
-import { getPagination } from "@/util/query";
+import { toPagination } from "@/util/cover";
 
 type PageProps = {
     searchParams: Promise<GroupQuery>;
@@ -13,7 +13,7 @@ type PageProps = {
 const Page = async ({ searchParams }: PageProps) => {
     const query = await searchParams;
     const context = await getContext();
-    const pagination = getPagination(query);
+    const pagination = toPagination(query);
     const filters: SQL[] = [];
     if (!context.isAdmin) {
         filters.push(

@@ -3,7 +3,7 @@ import React from "react";
 import { useSearchParams } from "next/navigation";
 import { Button, ButtonGroup, Dropdown, Label, toast } from "@heroui/react";
 import { LinkButton } from "@/component/common/link";
-import { SelectAll } from "@/component/data/select";
+import { SelectAll } from "@/component/common/select";
 import { DeliveryPushModal } from "@/component/modal/delivery";
 import { DeliveryResult } from "@/type/delivery";
 

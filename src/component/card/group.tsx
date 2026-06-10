@@ -1,16 +1,16 @@
 "use client";
 import React from "react";
 import { Card, Chip } from "@heroui/react";
+import { EnumFilter, SearchFilter, useFilter } from "@/component/common/filter";
 import { LinkButton } from "@/component/common/link";
 import { Loading } from "@/component/common/loading";
 import { Pagination } from "@/component/common/pagination";
-import { EnumFilter, SearchFilter, useFilter } from "@/component/data/filter";
 import { GroupCreateModal } from "@/component/modal/group";
 import { CardImage } from "@/component/weight/image";
-import { CardProps } from "@/type/card";
+import { DataCardProps } from "@/type/common";
 import { colorMap, GroupQuery, GroupResult, statusMap } from "@/type/group";
 
-export const GroupCard = ({ items, total, status, page, keyword, isAdmin }: CardProps<GroupQuery, GroupResult>) => {
+export const GroupCard = ({ items, total, status, page, keyword, isAdmin }: DataCardProps<GroupQuery, GroupResult>) => {
     const [isPending, startTransition] = React.useTransition();
     const { updateFilter } = useFilter(startTransition);
 

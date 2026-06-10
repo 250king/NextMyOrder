@@ -35,7 +35,7 @@ export const companyMap: Record<DeliveryCompany, string> = {
 };
 
 export const codeMap: Record<DeliveryCompany, string> = {
-    SF: "sf",
+    SF: "shunfeng",
     ZTO: "zhongtong",
     YTO: "yuantong",
     JD: "jd",
@@ -113,9 +113,9 @@ export const createOrderSchema = z.object({
         .string()
         .regex(/^[A-Za-z0-9 \u4e00-\u9fff（）()#\-、，。,./]+$/)
         .nonempty(),
-    callBackUrl: z.url().default(env.KD100_CALLBACK_URL).optional(),
-    cargo: z.string().default("动漫周边").optional(),
-    salt: z.string().default(env.KD100_NONCE).optional(),
+    callBackUrl: z.url().default(env.KD100_CALLBACK_URL),
+    cargo: z.string().default("动漫周边"),
+    salt: z.string().default(env.KD100_NONCE),
 });
 
 export const cancelOrderSchema = z.object({

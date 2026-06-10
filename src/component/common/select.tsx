@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
-import { Checkbox, Label } from "@heroui/react";
-import { useFilter } from "@/component/data/filter";
+import { Button, Checkbox, Label } from "@heroui/react";
+import { useFilter } from "@/component/common/filter";
+import { useSelected } from "@/util/hook";
 
 type SelectAllProps<T> = {
     items: T[];
@@ -18,30 +19,16 @@ export const SelectAll = <T,>({
     isDisabled = false,
 }: SelectAllProps<T>) => {
     const [, startTransition] = React.useTransition();
-    const { searchParams, updateLocalFilter } = useFilter(startTransition);
-
-    const selected = React.useMemo(() => {
-        try {
-            const current = searchParams.get("selected");
-            return current ? (JSON.parse(current) as string[]) : [];
-        } catch {
-            return [];
-        }
-    }, [searchParams]);
-
+    const { updateLocalFilter } = useFilter(startTransition);
+    const selected = useSelected();
     const currentIds = React.useMemo(() => items.map((item) => String(getKey(item))), [items, getKey]);
-
     const currentIdSet = React.useMemo(() => new Set(currentIds), [currentIds]);
-
     const selectedSet = React.useMemo(() => new Set(selected), [selected]);
-
     const selectedCountOnPage = React.useMemo(
         () => currentIds.filter((id) => selectedSet.has(id)).length,
         [currentIds, selectedSet]
     );
-
     const isSelected = currentIds.length > 0 && selectedCountOnPage === currentIds.length;
-
     const isIndeterminate = selectedCountOnPage > 0 && selectedCountOnPage < currentIds.length;
 
     const handleChange = (checked: boolean) => {
@@ -60,18 +47,37 @@ export const SelectAll = <T,>({
     };
 
     return (
-        <Checkbox
-            isSelected={isSelected}
-            isIndeterminate={isIndeterminate}
-            isDisabled={isDisabled || currentIds.length === 0}
-            onChange={handleChange}
-        >
-            <Checkbox.Control>
-                <Checkbox.Indicator />
-            </Checkbox.Control>
-            <Checkbox.Content>
-                <Label>{label}</Label>
-            </Checkbox.Content>
-        </Checkbox>
+        <div className="flex flex-row gap-2 items-center">
+            <Checkbox
+                isSelected={isSelected}
+                isIndeterminate={isIndeterminate}
+                isDisabled={isDisabled || currentIds.length === 0}
+                onChange={handleChange}
+            >
+                <Checkbox.Control>
+                    <Checkbox.Indicator />
+                </Checkbox.Control>
+                <Checkbox.Content>
+                    <Label>{label}</Label>
+                </Checkbox.Content>
+            </Checkbox>
+            {selected.length > 0 && (
+                <>
+                    <div className="text-muted text-xs">已选{selected.length}项</div>
+                    <Button
+                        isIconOnly
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => {
+                            updateLocalFilter({
+                                selected: null,
+                            });
+                        }}
+                    >
+                        <span className="icon-[ri--close-fill]" />
+                    </Button>
+                </>
+            )}
+        </div>
     );
 };

@@ -79,18 +79,23 @@ const Page = async ({ params, searchParams }: PageProps) => {
                         <h2 className="text-base font-semibold">基础信息</h2>
                         {context.isAdmin && (
                             <ButtonGroup>
-                                {data.requestId ? (
+                                {data.paidAt ? (
                                     <Button variant="danger-soft">
                                         <span className="icon-[ri--refund-fill]" />
                                         退款
                                     </Button>
+                                ) : data.requestId ? (
+                                    <Button variant="danger-soft">
+                                        <span className="icon-[ri--close-fill]" />
+                                        取消订单
+                                    </Button>
                                 ) : (
-                                    <Button>
+                                    <Button variant="secondary">
                                         <span className="icon-[ri--edit-box-fill]" />
                                         编辑
                                     </Button>
                                 )}
-                                {!data.paidAt && (
+                                {!data.requestId && (
                                     <Dropdown>
                                         <Button isIconOnly variant="secondary">
                                             <ButtonGroup.Separator />
@@ -99,7 +104,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
                                         <Dropdown.Popover className="min-w-40" placement="bottom end">
                                             <Dropdown.Menu>
                                                 <Dropdown.Item variant="danger">
-                                                    <Label>取消订单</Label>
+                                                    <Label>删除</Label>
                                                 </Dropdown.Item>
                                             </Dropdown.Menu>
                                         </Dropdown.Popover>

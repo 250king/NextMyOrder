@@ -8,12 +8,8 @@ type LinkTabProps = React.ComponentProps<typeof Tabs.Tab> & {
     href: LinkProps["href"];
 };
 
-const renderNextLink = (props: unknown) => (
-    <NextLink {...(props as Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, keyof LinkProps> & LinkProps)} />
-);
-
 export const LinkTab = ({ children, ...props }: LinkTabProps) => (
-    <Tabs.Tab {...props} render={renderNextLink}>
+    <Tabs.Tab {...props} render={(p) => <NextLink {...(p as any)} replace />}>
         {children}
     </Tabs.Tab>
 );

@@ -44,7 +44,7 @@ export const useFilter = (startTransition: React.TransitionStartFunction) => {
                 params.delete("page");
             }
             startTransition(() => {
-                router.push(buildUrl(params), { scroll: false });
+                router.replace(buildUrl(params), { scroll: false });
             });
         },
         [buildUrl, router, searchParams, startTransition]

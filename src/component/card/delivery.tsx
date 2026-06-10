@@ -1,14 +1,15 @@
 "use client";
 import React from "react";
 import { Avatar, Card, Checkbox, CheckboxGroup, Chip } from "@heroui/react";
+import { EnumFilter, SearchFilter, useFilter } from "@/component/common/filter";
 import { LinkButton } from "@/component/common/link";
 import { Loading } from "@/component/common/loading";
 import { Pagination } from "@/component/common/pagination";
-import { EnumFilter, SearchFilter, useFilter } from "@/component/data/filter";
 import { DeliveryButton } from "@/component/navigation/delivery";
-import { CardProps } from "@/type/card";
+import { DataCardProps } from "@/type/common";
 import { colorMap, companyMap, DeliveryQuery, DeliveryResult, iconMap, statusMap } from "@/type/delivery";
 import { date } from "@/util/cover";
+import { useSelected } from "@/util/hook";
 
 export const DeliveryCard = ({
     items,
@@ -18,17 +19,10 @@ export const DeliveryCard = ({
     keyword,
     page,
     isAdmin,
-}: CardProps<DeliveryQuery, DeliveryResult>) => {
+}: DataCardProps<DeliveryQuery, DeliveryResult>) => {
     const [isPending, startTransition] = React.useTransition();
-    const { updateFilter, updateLocalFilter, searchParams } = useFilter(startTransition);
-    const selected = React.useMemo(() => {
-        try {
-            const current = searchParams.get("selected");
-            return current ? (JSON.parse(current) as string[]) : [];
-        } catch {
-            return [];
-        }
-    }, [searchParams]);
+    const { updateFilter, updateLocalFilter } = useFilter(startTransition);
+    const selected = useSelected();
 
     return (
         <div className="relative flex flex-col gap-4">

@@ -45,6 +45,7 @@ export const POST = async (req: NextRequest) => {
         case 1:
         case 2:
         case 200:
+        case 99:
             status = "PUSHED";
             comment = removeWarning(comment);
             break;

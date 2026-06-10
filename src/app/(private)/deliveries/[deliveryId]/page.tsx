@@ -1,11 +1,13 @@
 import React from "react";
 import { notFound } from "next/navigation";
-import { Alert, ButtonGroup, Chip, Surface } from "@heroui/react";
+import { Alert, ButtonGroup, Chip, Surface, Tabs } from "@heroui/react";
 import { and, eq } from "drizzle-orm";
+import { LinkTab } from "@/component/common/tab";
 import { DeliveryModal, DeliveryModifyModal } from "@/component/modal/delivery";
-import { DeliveryTab } from "@/component/tab/delivery";
+import { GoodsPanel } from "@/component/tab/delivery";
 import { db } from "@/service/db";
 import { Delivery } from "@/service/db/schema";
+import { Query } from "@/type/common";
 import { colorMap, companyMap, iconMap, statusMap } from "@/type/delivery";
 import { getContext } from "@/util/context";
 import { date } from "@/util/cover";
@@ -14,15 +16,18 @@ type PageProps = {
     params: Promise<{
         deliveryId: number;
     }>;
-    searchParams: Promise<{
-        tab?: string;
-    }>;
+    searchParams: Promise<
+        Query & {
+            tab?: string;
+        }
+    >;
 };
 
 const Page = async ({ params, searchParams }: PageProps) => {
     const query = await params;
     const search = await searchParams;
     const context = await getContext();
+    const currentTab = search.tab === "track" ? "track" : "goods";
     const data = await db.query.Delivery.findFirst({
         where: and(
             eq(Delivery.id, query.deliveryId),
@@ -102,7 +107,28 @@ const Page = async ({ params, searchParams }: PageProps) => {
                         </div>
                     </div>
                 </Surface>
-                <DeliveryTab data={data} search={search} />
+                <Tabs selectedKey={currentTab} className="w-full gap-4">
+                    <Tabs.ListContainer className="w-fit max-w-full">
+                        <Tabs.List className="w-fit max-w-full *:w-fit *:whitespace-nowrap">
+                            <LinkTab href={`/deliveries/${data.id}?tab=goods`} id="goods">
+                                已绑定商品
+                                <Tabs.Indicator />
+                            </LinkTab>
+                            <LinkTab href={`/deliveries/${data.id}?tab=track`} id="track">
+                                物流跟踪
+                                <Tabs.Indicator />
+                            </LinkTab>
+                        </Tabs.List>
+                    </Tabs.ListContainer>
+                    <div className="w-full">
+                        <Tabs.Panel className="p-0" id="goods">
+                            <GoodsPanel data={data} isAdmin={context.isAdmin} />
+                        </Tabs.Panel>
+                        <Tabs.Panel className="p-0" id="track">
+                            <div className="min-h-48 rounded-lg border border-dashed border-separator p-6" />
+                        </Tabs.Panel>
+                    </div>
+                </Tabs>
             </div>
         </div>
     );
