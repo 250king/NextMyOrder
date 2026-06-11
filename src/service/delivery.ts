@@ -132,6 +132,7 @@ export const pushDelivery = async (p1: number[], p2: number) => {
             company: i.company! in codeMap ? codeMap[i.company!] : null,
         }))
         .filter((i) => !!i.company);
+    const finished = []
     for (const i of deliveries) {
         const res = await createOrder({
             kuaidicom: i.company!,
@@ -155,7 +156,9 @@ export const pushDelivery = async (p1: number[], p2: number) => {
                 queryToken: res.data.data.pollToken || null,
             })
             .where(eq(Delivery.id, i.id));
+        finished.push(i.id);
     }
+    return finished;
 };
 
 export const withdrawDelivery = async (params: number, reason: string) => {

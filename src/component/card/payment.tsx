@@ -3,8 +3,8 @@ import React from "react";
 import { Avatar, Card, Chip } from "@heroui/react";
 import { EnumFilter, useFilter } from "@/component/common/filter";
 import { LinkButton } from "@/component/common/link";
-import { Loading } from "@/component/common/loading";
-import { Pagination } from "@/component/common/pagination";
+import { Loading } from "@/component/weight/loading";
+import { Pagination } from "@/component/weight/pagination";
 import { DataCardProps } from "@/type/common";
 import {
     colorMap,

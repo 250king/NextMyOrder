@@ -1,12 +1,9 @@
 "use client";
 import React from "react";
-import { useRouter } from "next/navigation";
 import {
     Button,
-    ButtonGroup,
     Checkbox,
     Description,
-    Dropdown,
     FieldError,
     Input,
     Label,
@@ -17,28 +14,16 @@ import {
     TextArea,
     TextField,
 } from "@heroui/react";
-import { ImageEncoder } from "@mmote/niimbluelib";
 import clsx from "clsx";
-import { AlertModal } from "@/component/common/alert";
 import { useFilter } from "@/component/common/filter";
-import { usePrinter } from "@/component/weight/printer";
 import { DeliveryCompany as DeliveryCompanyEnum } from "@/service/db/schema";
-import {
-    generateQrCode,
-    getAddresses,
-    getSenderAddresses,
-    pushDelivery,
-    removeDelivery,
-    saveDelivery,
-    withdrawDelivery,
-} from "@/service/delivery";
+import { getAddresses, getSenderAddresses, pushDelivery, saveDelivery, withdrawDelivery } from "@/service/delivery";
 import { AddressResult } from "@/type/address";
 import { ModalState } from "@/type/common";
 import { companyMap, DeliveryCompany, DeliveryResult, iconMap } from "@/type/delivery";
-import { createLabelCanvas, downloadCanvas } from "@/util/print";
 import { useHttp } from "@/util/request";
 
-export const DeliveryModifyModal = ({ data, isAdmin }: { data: Omit<DeliveryResult, "user">; isAdmin: boolean }) => {
+export const DeliveryModifyModal = ({ data, isAdmin }: { data: DeliveryResult; isAdmin: boolean }) => {
     const [addresses, setAddresses] = React.useState<AddressResult[]>([]);
     const [isPending, runAction] = useHttp();
     const [open, setOpen] = React.useState<boolean>(false);
@@ -95,8 +80,8 @@ export const DeliveryModifyModal = ({ data, isAdmin }: { data: Omit<DeliveryResu
                 编辑
             </Button>
             <Modal.Backdrop>
-                <Modal.Container placement="center">
-                    <Modal.Dialog className="sm:max-w-2xl">
+                <Modal.Container placement="center" scroll="outside" size="lg">
+                    <Modal.Dialog>
                         <Modal.CloseTrigger />
                         <Modal.Header>
                             <Modal.Heading>修改信息</Modal.Heading>
@@ -262,7 +247,10 @@ export const DeliveryPushModal = ({
     selected: number[];
 }) => {
     const [addresses, setAddresses] = React.useState<AddressResult[]>([]);
+    const [, startTransition] = React.useTransition();
     const [isPending, runAction] = useHttp();
+    const { updateLocalFilter } = useFilter(startTransition);
+
     React.useEffect(() => {
         getSenderAddresses().then((r) => {
             setAddresses(r);
@@ -274,16 +262,22 @@ export const DeliveryPushModal = ({
         const formData = new FormData(e.target);
         const addressId = Number(formData.get("addressId") as string);
         runAction(async () => {
-            await pushDelivery(selected.map((i) => Number(i)), addressId);
-            onChange(false)
+            const result = await pushDelivery(
+                selected.map((i) => Number(i)),
+                addressId
+            );
+            updateLocalFilter({
+                selected: JSON.stringify(selected.filter((i) => !result.includes(i))),
+            });
+            onChange(false);
         });
     };
 
     return (
         <Modal isOpen={open} onOpenChange={onChange}>
             <Modal.Backdrop>
-                <Modal.Container placement="center">
-                    <Modal.Dialog className="sm:max-w-2xl">
+                <Modal.Container placement="center" size="lg">
+                    <Modal.Dialog>
                         <Modal.CloseTrigger />
                         <Modal.Header>
                             <Modal.Heading>推送运单</Modal.Heading>
@@ -331,10 +325,8 @@ export const DeliveryPushModal = ({
     );
 };
 
-const DeliveryWithdrawModal = ({ data, open, onChange }: ModalState<Omit<DeliveryResult, "user">>) => {
-    const [, startTransition] = React.useTransition();
+export const DeliveryWithdrawModal = ({ data, open, onChange }: ModalState<DeliveryResult>) => {
     const [isPending, runAction] = useHttp();
-    const { updateLocalFilter } = useFilter(startTransition);
 
     const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -342,10 +334,7 @@ const DeliveryWithdrawModal = ({ data, open, onChange }: ModalState<Omit<Deliver
         const reason = formData.get("reason") as string;
         runAction(async () => {
             await withdrawDelivery(data.id, reason);
-            updateLocalFilter({
-                selected: null
-            })
-            onChange(false)
+            onChange(false);
         });
     };
 
@@ -353,7 +342,7 @@ const DeliveryWithdrawModal = ({ data, open, onChange }: ModalState<Omit<Deliver
         <Modal isOpen={open} onOpenChange={onChange}>
             <Modal.Backdrop>
                 <Modal.Container placement="center">
-                    <Modal.Dialog className="sm:max-w-2xl">
+                    <Modal.Dialog>
                         <Modal.CloseTrigger />
                         <Modal.Header>
                             <Modal.Heading>撤回运单</Modal.Heading>
@@ -385,104 +374,25 @@ const DeliveryWithdrawModal = ({ data, open, onChange }: ModalState<Omit<Deliver
     );
 };
 
-export const DeliveryModal = ({ data, isAdmin }: { data: Omit<DeliveryResult, "user">; isAdmin: boolean }) => {
-    const [remove, setRemove] = React.useState(false);
-    const [withdraw, setWithdraw] = React.useState(false);
-    const router = useRouter();
-    const { getClient, isPending } = usePrinter();
-    const [loading, runAction] = useHttp();
-
-    const createDeliveryCanvas = async () => {
-        if (!data.company || !data.recipient || !data.phone) {
-            throw new Error("请完善运单信息");
-        }
-        const result = await generateQrCode(data.id);
-        return createLabelCanvas({
-            url: result.url,
-            carrierName: companyMap[data.company],
-            receiverName: data.recipient,
-            receiverPhone: data.phone,
-            receiverCity: result.city || "",
-        });
-    };
-
-    const handlePrint = () => {
-        runAction(
-            async () => {
-                const client = await getClient();
-                const canvas = await createDeliveryCanvas();
-                const image = ImageEncoder.encodeCanvas(canvas, "top");
-                const printTask = client.abstraction.newPrintTask("B1", {
-                    totalPages: 1,
-                    statusPollIntervalMs: 100,
-                    statusTimeoutMs: 8000,
-                });
-
-                try {
-                    await printTask.printInit();
-                    await printTask.printPage(image, 1);
-                    await printTask.waitForFinished();
-                } finally {
-                    await printTask.printEnd();
-                }
-            },
-            {
-                success: "测试标签已发送",
-            }
-        );
-    };
-
-    const handleDownload = () => {
-        runAction(async () => {
-            const canvas = await createDeliveryCanvas();
-            downloadCanvas(canvas, `delivery-${data.id}-label.png`);
-        });
-    };
-
+export const GoodsModal = ({ data }: { data: DeliveryResult }) => {
     return (
-        isAdmin &&
-        ["PENDING", "PUSHED"].includes(data.status) && (
-            <>
-                <Button isDisabled={loading || isPending} onClick={handlePrint}>
-                    打印运单
-                </Button>
-                <Dropdown>
-                    <Button isIconOnly>
-                        <ButtonGroup.Separator />
-                        <span className="icon-[ri--arrow-down-s-line]" />
-                    </Button>
-                    <Dropdown.Popover className="min-w-40" placement="bottom end">
-                        <Dropdown.Menu>
-                            <Dropdown.Item isDisabled={loading || isPending} onClick={handleDownload}>
-                                <Label>下载标签预览</Label>
-                            </Dropdown.Item>
-                            {data.status == "PUSHED" && (
-                                <Dropdown.Item variant="danger" onClick={() => setWithdraw(true)}>
-                                    <Label>撤回</Label>
-                                </Dropdown.Item>
-                            )}
-                            {data.status == "PENDING" && (
-                                <Dropdown.Item variant="danger" onClick={() => setRemove(true)}>
-                                    <Label>删除</Label>
-                                </Dropdown.Item>
-                            )}
-                        </Dropdown.Menu>
-                    </Dropdown.Popover>
-                    <DeliveryWithdrawModal open={withdraw} onChange={setWithdraw} data={data} />
-                    <AlertModal
-                        title="确认移除运单"
-                        status="danger"
-                        open={remove}
-                        onOpenChange={setRemove}
-                        onConfirmed={async () => {
-                            await removeDelivery(data.id);
-                            router.replace("/deliveries");
-                        }}
-                    >
-                        <div>该操作不可逆，请谨慎操作</div>
-                    </AlertModal>
-                </Dropdown>
-            </>
-        )
+        <Modal>
+            <Button>绑定订单</Button>
+            <Modal.Backdrop>
+                <Modal.Container placement="center">
+                    <Modal.Dialog>
+                        <Modal.CloseTrigger />
+                        <Modal.Header>
+                            <Modal.Heading>绑定订单</Modal.Heading>
+                        </Modal.Header>
+                        <Modal.Body className="p-2">
+                            <form className="space-y-4">
+
+                            </form>
+                        </Modal.Body>
+                    </Modal.Dialog>
+                </Modal.Container>
+            </Modal.Backdrop>
+        </Modal>
     );
 };

@@ -1,10 +1,11 @@
 import React from "react";
 import { notFound } from "next/navigation";
-import { Alert, ButtonGroup, Chip, Surface, Tabs } from "@heroui/react";
+import { Alert, Avatar, Chip, Surface, Tabs } from "@heroui/react";
 import { and, eq } from "drizzle-orm";
 import { GoodsGard } from "@/component/card/delivery";
 import { LinkTab } from "@/component/common/tab";
-import { DeliveryModal, DeliveryModifyModal } from "@/component/modal/delivery";
+import { DeliveryModifyModal } from "@/component/modal/delivery";
+import { DeliveryDetailButton } from "@/component/navigation/delivery";
 import { db } from "@/service/db";
 import { Delivery, DeliveryToOrder } from "@/service/db/schema";
 import { PanelProps, Query } from "@/type/common";
@@ -23,7 +24,7 @@ type PageProps = {
     >;
 };
 
-const GoodsPanel = async ({ data, isAdmin, ...query }: PanelProps<Omit<DeliveryResult, "user">> & Query) => {
+const GoodsPanel = async ({ data, isAdmin, ...query }: PanelProps<DeliveryResult> & Query) => {
     const pagination = toPagination(query);
     const [items, total] = await Promise.all([
         db.query.DeliveryToOrder.findMany({
@@ -56,6 +57,9 @@ const Page = async ({ params, searchParams }: PageProps) => {
     const currentTab = search.tab === "track" ? "track" : "goods";
     const data = await db.query.Delivery.findFirst({
         where: and(eq(Delivery.id, query.deliveryId), ...(context.isAdmin ? [] : [eq(Delivery.userId, context.uid!)])),
+        with: {
+            user: true
+        }
     });
     if (!data) {
         return notFound();
@@ -77,9 +81,9 @@ const Page = async ({ params, searchParams }: PageProps) => {
                             {statusMap[data.status]}
                         </Chip>
                     </div>
-                    <ButtonGroup className="ml-auto">
-                        <DeliveryModal data={data} isAdmin={context.isAdmin} />
-                    </ButtonGroup>
+                    {(context.isAdmin && ["PENDING", "PUSHED"].includes(data.status)) && (
+                        <DeliveryDetailButton data={data} />
+                    )}
                 </header>
                 {(!data.address || !data.recipient || !data.phone) && (
                     <Alert status="warning">
@@ -98,7 +102,15 @@ const Page = async ({ params, searchParams }: PageProps) => {
                     <div className="mt-4 grid gap-4 text-sm md:grid-cols-3">
                         <div className="min-w-0">
                             <div className="text-muted">收件人</div>
-                            <div className="truncate font-medium">{data.recipient || "-"}</div>
+                            <div className="flex items-center gap-3">
+                                <Avatar size="sm">
+                                    <Avatar.Image src={`https://q.qlogo.cn/g?b=qq&nk=${data.user.qq}&s=100`} />
+                                </Avatar>
+                                <div className="min-w-0">
+                                    <div className="truncate font-medium">{data.user.name}</div>
+                                    <div className="text-default-500 text-xs truncate text-muted">{data.user.qq}</div>
+                                </div>
+                            </div>
                         </div>
                         <div className="min-w-0">
                             <div className="text-muted">手机</div>
@@ -107,10 +119,6 @@ const Page = async ({ params, searchParams }: PageProps) => {
                         <div className="min-w-0">
                             <div className="text-muted">地址</div>
                             <div className="font-medium">{data.address || "-"}</div>
-                        </div>
-                        <div className="min-w-0">
-                            <div className="text-muted">快递公司</div>
-                            <div className="font-medium">{data.company ? companyMap[data.company] : "-"}</div>
                         </div>
                         <div className="min-w-0">
                             <div className="text-muted">快递单号</div>

@@ -3,9 +3,10 @@ import React from "react";
 import { Avatar, Card, Checkbox, CheckboxGroup, Chip } from "@heroui/react";
 import { EnumFilter, SearchFilter, useFilter } from "@/component/common/filter";
 import { LinkButton } from "@/component/common/link";
-import { Loading } from "@/component/common/loading";
-import { Pagination } from "@/component/common/pagination";
 import { DeliveryButton, GoodsButton } from "@/component/navigation/delivery";
+import { ImagePreview } from "@/component/weight/image";
+import { Loading } from "@/component/weight/loading";
+import { Pagination } from "@/component/weight/pagination";
 import { DataCardProps, Query } from "@/type/common";
 import { colorMap, companyMap, DeliveryQuery, DeliveryResult, iconMap, statusMap } from "@/type/delivery";
 import { OrderResult } from "@/type/order";
@@ -113,7 +114,7 @@ export const DeliveryCard = ({
 };
 
 export const GoodsGard = ({ items, total, page, data, isAdmin }: DataCardProps<Query, OrderResult> & {
-    data: Omit<DeliveryResult, "user">;
+    data: DeliveryResult;
 }) => {
     const [isPending, startTransition] = React.useTransition();
     const { updateLocalFilter } = useFilter(startTransition);
@@ -132,16 +133,15 @@ export const GoodsGard = ({ items, total, page, data, isAdmin }: DataCardProps<Q
                     {items.map((item) => (
                         <Checkbox key={item.id} value={item.id.toString()} variant="secondary" className="mt-0">
                             <Checkbox.Content className="w-full">
-                                <Card className="h-full min-w-0 transition-shadow hover:shadow-lg w-full items-stretch md:flex-row">
-                                    <div className="relative h-35 w-full shrink-0 overflow-hidden rounded-2xl sm:h-30 sm:w-30">
-                                        <img
+                                <Card className="h-full min-w-0 transition-shadow hover:shadow-lg w-full items-stretch flex-row">
+                                    <div className="relative shrink-0 overflow-hidden rounded-2xl h-30 w-30">
+                                        <ImagePreview
                                             alt={item.item.name}
-                                            className="pointer-events-none absolute inset-0 h-full w-full scale-125 object-cover select-none"
-                                            loading="lazy"
                                             src={
                                                 item.item.image ||
                                                 "https://static.250king.top/image/2026/04/i3f4xep2.png"
                                             }
+                                            className="pointer-events-none h-full w-full scale-125 object-cover select-none"
                                         />
                                     </div>
                                     <div className="flex flex-1 flex-col gap-3 min-w-0">
