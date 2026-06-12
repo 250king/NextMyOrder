@@ -2,7 +2,9 @@
 import React from "react";
 import {
     Button,
+    Card,
     Checkbox,
+    CheckboxGroup,
     Description,
     FieldError,
     Input,
@@ -16,11 +18,16 @@ import {
 } from "@heroui/react";
 import clsx from "clsx";
 import { useFilter } from "@/component/common/filter";
+import { LinkButton } from "@/component/common/link";
+import { ImagePreview } from "@/component/weight/image";
 import { DeliveryCompany as DeliveryCompanyEnum } from "@/service/db/schema";
 import { getAddresses, getSenderAddresses, pushDelivery, saveDelivery, withdrawDelivery } from "@/service/delivery";
+import { getOrders } from "@/service/order";
 import { AddressResult } from "@/type/address";
 import { ModalState } from "@/type/common";
 import { companyMap, DeliveryCompany, DeliveryResult, iconMap } from "@/type/delivery";
+import { OrderResult } from "@/type/order";
+import { currency } from "@/util/cover";
 import { useHttp } from "@/util/request";
 
 export const DeliveryModifyModal = ({ data, isAdmin }: { data: DeliveryResult; isAdmin: boolean }) => {
@@ -375,11 +382,20 @@ export const DeliveryWithdrawModal = ({ data, open, onChange }: ModalState<Deliv
 };
 
 export const GoodsModal = ({ data }: { data: DeliveryResult }) => {
+    const [orders, setOrders] = React.useState<OrderResult[]>([]);
+    React.useEffect(() => {
+        getOrders({
+            userId: data.user.id,
+        }).then((result) => {
+            setOrders(result.items);
+        });
+    }, [data.user.id]);
+
     return (
         <Modal>
             <Button>绑定订单</Button>
             <Modal.Backdrop>
-                <Modal.Container placement="center">
+                <Modal.Container placement="center" size="cover">
                     <Modal.Dialog>
                         <Modal.CloseTrigger />
                         <Modal.Header>
@@ -387,7 +403,64 @@ export const GoodsModal = ({ data }: { data: DeliveryResult }) => {
                         </Modal.Header>
                         <Modal.Body className="p-2">
                             <form className="space-y-4">
-
+                                <CheckboxGroup name="orderIds">
+                                    <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                        {orders.map((item) => (
+                                            <Checkbox
+                                                key={item.id}
+                                                value={item.id.toString()}
+                                                variant="secondary"
+                                                className="mt-0"
+                                            >
+                                                <Checkbox.Content className="w-full">
+                                                    <Card className="h-full min-w-0 transition-shadow hover:shadow-lg w-full items-stretch flex-row" variant="secondary">
+                                                        <div className="relative shrink-0 overflow-hidden rounded-2xl h-30 w-30">
+                                                            <ImagePreview
+                                                                alt={item.item.name}
+                                                                src={
+                                                                    item.item.image ||
+                                                                    "https://static.250king.top/image/2026/04/i3f4xep2.png"
+                                                                }
+                                                                className="pointer-events-none h-full w-full scale-125 object-cover select-none"
+                                                            />
+                                                        </div>
+                                                        <div className="flex flex-1 flex-col gap-3 min-w-0">
+                                                            <div className="flex flex-row justify-between gap-1 min-w-0">
+                                                                <Card.Header className="min-w-0 flex-1">
+                                                                    <div className="min-w-0 flex-1">
+                                                                        <Card.Title className="truncate">
+                                                                            {item.item.name}
+                                                                        </Card.Title>
+                                                                        <Card.Description>#{item.id}</Card.Description>
+                                                                    </div>
+                                                                </Card.Header>
+                                                                <Checkbox.Control className="shrink-0">
+                                                                    <Checkbox.Indicator />
+                                                                </Checkbox.Control>
+                                                            </div>
+                                                            <Card.Content className="flex flex-1 flex-col gap-2">
+                                                                <div className="text-xl font-bold">
+                                                                    {currency(item.item.price, "JPY")}
+                                                                    <span className="px-1 align-baseline text-xs font-medium text-muted">
+                                                                        × {item.count}
+                                                                    </span>
+                                                                </div>
+                                                            </Card.Content>
+                                                            <Card.Footer className="mt-auto flex w-full justify-end gap-2">
+                                                                <LinkButton
+                                                                    href={`/groups/${item.item.groupId}?tab=order`}
+                                                                    variant="secondary"
+                                                                >
+                                                                    详情
+                                                                </LinkButton>
+                                                            </Card.Footer>
+                                                        </div>
+                                                    </Card>
+                                                </Checkbox.Content>
+                                            </Checkbox>
+                                        ))}
+                                    </div>
+                                </CheckboxGroup>
                             </form>
                         </Modal.Body>
                     </Modal.Dialog>

@@ -32,3 +32,12 @@ export type DataCardProps<T, R> = T & {
     total: number,
     isAdmin: boolean
 }
+
+export const query = z.object({
+    order: z.enum(["asc", "desc"]).default("asc"),
+    sort: z.string().default("id"),
+    page: z.int().positive().default(1),
+    size: z.int().positive().max(100).default(10),
+    keyword: z.string().optional(),
+    id: z.number().int().positive().optional(),
+})
