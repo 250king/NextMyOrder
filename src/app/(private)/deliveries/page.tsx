@@ -18,11 +18,7 @@ const Page = async ({ searchParams }: PageProps) => {
     const context = await getContext();
     const pagination = toPagination(query);
     const filters: SQL[] = [];
-    if (!context.isAdmin) {
-        filters.push(eq(Delivery.userId, context.uid!));
-    } else if (query.userId) {
-        filters.push(eq(Delivery.userId, query.userId));
-    }
+    filters.push(eq(Delivery.userId, context.uid!));
     if (query.status) {
         filters.push(eq(Delivery.status, query.status));
     }
@@ -46,7 +42,7 @@ const Page = async ({ searchParams }: PageProps) => {
         <div className="container mx-auto p-6">
             <div className="flex flex-col gap-4">
                 <h1 className="text-2xl font-bold">分发</h1>
-                <DeliveryCard {...query} items={items} total={total} isAdmin={context.isAdmin} />
+                <DeliveryCard {...query} items={items} total={total} />
             </div>
         </div>
     );

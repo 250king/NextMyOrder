@@ -1,12 +1,12 @@
 import React from "react";
 import { notFound } from "next/navigation";
-import { Alert, Button, ButtonGroup, Chip, Dropdown, Label, Surface } from "@heroui/react";
+import { Alert, Button, Chip, Surface } from "@heroui/react";
 import { and, eq } from "drizzle-orm";
 import { LinkButton } from "@/component/common/link";
 import { PaymentTab } from "@/component/tab/payment";
 import { db } from "@/service/db";
 import { Payment } from "@/service/db/schema";
-import { colorMap, iconMap, methodMap, typeIconMap, typeMap } from "@/type/payment";
+import { colorMap, iconMap, methodMap } from "@/type/payment";
 import { getContext } from "@/util/context";
 import { currency, date } from "@/util/cover";
 
@@ -24,7 +24,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
     const search = await searchParams;
     const context = await getContext();
     const data = await db.query.Payment.findFirst({
-        where: and(eq(Payment.id, query.paymentId), ...(context.isAdmin ? [] : [eq(Payment.userId, context.uid!)])),
+        where: and(eq(Payment.id, query.paymentId), eq(Payment.userId, context.uid!)),
     });
     if (!data) {
         return notFound();
@@ -36,12 +36,6 @@ const Page = async ({ params, searchParams }: PageProps) => {
                 <header className="flex flex-col gap-3">
                     <h1 className="text-2xl font-bold">账单管理 #{data.id}</h1>
                     <div className="flex flex-wrap items-center gap-2">
-                        <Chip>
-                            <span className={`shrink-0 ${typeIconMap[data.type]}`} />
-                            <Chip.Label className="truncate">
-                                {typeMap[data.type]} #{data.refId}
-                            </Chip.Label>
-                        </Chip>
                         {data.paidAt ? (
                             <Chip variant="primary" color={colorMap[data.method!]}>
                                 <span className={`shrink-0 ${iconMap[data.method!]}`} />
@@ -63,54 +57,19 @@ const Page = async ({ params, searchParams }: PageProps) => {
                         </Alert.Content>
                     </Alert>
                 )}
-                {data.paidAt ? (
-                    <Button className="ml-auto">
-                        <span className="icon-[ri--receipt-fill]" />
-                        索取凭证
-                    </Button>
-                ) : (
-                    <LinkButton href={`/payments/${data.id}/pay`} className="ml-auto">
-                        <span className="icon-[ri--money-cny-circle-fill]" />
-                        前往支付
-                    </LinkButton>
-                )}
                 <Surface className="rounded-3xl p-4 shadow-sm">
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         <h2 className="text-base font-semibold">基础信息</h2>
-                        {context.isAdmin && (
-                            <ButtonGroup>
-                                {data.paidAt ? (
-                                    <Button variant="danger-soft">
-                                        <span className="icon-[ri--refund-fill]" />
-                                        退款
-                                    </Button>
-                                ) : data.requestId ? (
-                                    <Button variant="danger-soft">
-                                        <span className="icon-[ri--close-fill]" />
-                                        取消订单
-                                    </Button>
-                                ) : (
-                                    <Button variant="secondary">
-                                        <span className="icon-[ri--edit-box-fill]" />
-                                        编辑
-                                    </Button>
-                                )}
-                                {!data.requestId && (
-                                    <Dropdown>
-                                        <Button isIconOnly variant="secondary">
-                                            <ButtonGroup.Separator />
-                                            <span className="icon-[ri--arrow-down-s-line]" />
-                                        </Button>
-                                        <Dropdown.Popover className="min-w-40" placement="bottom end">
-                                            <Dropdown.Menu>
-                                                <Dropdown.Item variant="danger">
-                                                    <Label>删除</Label>
-                                                </Dropdown.Item>
-                                            </Dropdown.Menu>
-                                        </Dropdown.Popover>
-                                    </Dropdown>
-                                )}
-                            </ButtonGroup>
+                        {data.paidAt ? (
+                            <Button variant="secondary">
+                                <span className="icon-[ri--receipt-fill]" />
+                                索取凭证
+                            </Button>
+                        ) : (
+                            <LinkButton href={`/payments/${data.id}/pay`} variant="secondary">
+                                <span className="icon-[ri--money-cny-circle-fill]" />
+                                前往支付
+                            </LinkButton>
                         )}
                     </div>
                     <div className="mt-4 grid gap-4 text-sm md:grid-cols-3">

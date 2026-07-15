@@ -1,11 +1,10 @@
 import React from "react";
 import { notFound } from "next/navigation";
-import { Alert, Avatar, Chip, Surface, Tabs } from "@heroui/react";
+import { Alert, Chip, Surface, Tabs } from "@heroui/react";
 import { and, eq } from "drizzle-orm";
 import { GoodsGard } from "@/component/card/delivery";
 import { LinkTab } from "@/component/common/tab";
 import { DeliveryModifyModal } from "@/component/modal/delivery";
-import { DeliveryDetailButton } from "@/component/navigation/delivery";
 import { db } from "@/service/db";
 import { Delivery, DeliveryToOrder } from "@/service/db/schema";
 import { PanelProps, Query } from "@/type/common";
@@ -24,7 +23,7 @@ type PageProps = {
     >;
 };
 
-const GoodsPanel = async ({ data, isAdmin, ...query }: PanelProps<DeliveryResult> & Query) => {
+const GoodsPanel = async ({ data, ...query }: PanelProps<DeliveryResult> & Query) => {
     const pagination = toPagination(query);
     const [items, total] = await Promise.all([
         db.query.DeliveryToOrder.findMany({
@@ -47,16 +46,15 @@ const GoodsPanel = async ({ data, isAdmin, ...query }: PanelProps<DeliveryResult
         db.$count(DeliveryToOrder, eq(DeliveryToOrder.deliveryId, data.id)),
     ]);
 
-    return <GoodsGard items={items.map((i) => i.order)} total={total} data={data} isAdmin={isAdmin} />;
+    return <GoodsGard items={items.map((i) => i.order)} total={total} data={data} />;
 };
 
 const Page = async ({ params, searchParams }: PageProps) => {
-    const query = await params;
+    const path = await params;
     const search = await searchParams;
     const context = await getContext();
-    const currentTab = search.tab === "track" ? "track" : "goods";
     const data = await db.query.Delivery.findFirst({
-        where: and(eq(Delivery.id, query.deliveryId), ...(context.isAdmin ? [] : [eq(Delivery.userId, context.uid!)])),
+        where: and(eq(Delivery.id, path.deliveryId)),
         with: {
             user: true
         }
@@ -81,9 +79,6 @@ const Page = async ({ params, searchParams }: PageProps) => {
                             {statusMap[data.status]}
                         </Chip>
                     </div>
-                    {(context.isAdmin && ["PENDING", "PUSHED"].includes(data.status)) && (
-                        <DeliveryDetailButton data={data} />
-                    )}
                 </header>
                 {(!data.address || !data.recipient || !data.phone) && (
                     <Alert status="warning">
@@ -97,20 +92,12 @@ const Page = async ({ params, searchParams }: PageProps) => {
                 <Surface className="rounded-3xl p-4 shadow-sm">
                     <div className="flex flex-wrap items-center justify-between">
                         <h2 className="text-base font-semibold">基础信息</h2>
-                        {data.status == "PENDING" && <DeliveryModifyModal data={data} isAdmin={context.isAdmin} />}
+                        {data.status == "PENDING" && <DeliveryModifyModal data={data} />}
                     </div>
                     <div className="mt-4 grid gap-4 text-sm md:grid-cols-3">
                         <div className="min-w-0">
                             <div className="text-muted">收件人</div>
-                            <div className="flex items-center gap-3">
-                                <Avatar size="sm">
-                                    <Avatar.Image src={`https://q.qlogo.cn/g?b=qq&nk=${data.user.qq}&s=100`} />
-                                </Avatar>
-                                <div className="min-w-0">
-                                    <div className="truncate font-medium">{data.user.name}</div>
-                                    <div className="text-default-500 text-xs truncate text-muted">{data.user.qq}</div>
-                                </div>
-                            </div>
+                            <div className="truncate font-medium">{data.user.name}</div>
                         </div>
                         <div className="min-w-0">
                             <div className="text-muted">手机</div>
@@ -138,10 +125,10 @@ const Page = async ({ params, searchParams }: PageProps) => {
                         </div>
                     </div>
                 </Surface>
-                <Tabs selectedKey={currentTab} className="w-full gap-4">
+                <Tabs selectedKey={search.tab ?? "order"} className="w-full gap-4">
                     <Tabs.ListContainer className="w-fit max-w-full">
                         <Tabs.List className="w-fit max-w-full *:w-fit *:whitespace-nowrap">
-                            <LinkTab href={`/deliveries/${data.id}?tab=goods`} id="goods">
+                            <LinkTab href={`/deliveries/${data.id}?tab=order`} id="order">
                                 已绑定商品
                                 <Tabs.Indicator />
                             </LinkTab>
@@ -152,7 +139,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
                         </Tabs.List>
                     </Tabs.ListContainer>
                     <div className="w-full">
-                        <Tabs.Panel className="p-0" id="goods">
+                        <Tabs.Panel className="p-0" id="order">
                             <GoodsPanel data={data} isAdmin={context.isAdmin} />
                         </Tabs.Panel>
                         <Tabs.Panel className="p-0" id="track">

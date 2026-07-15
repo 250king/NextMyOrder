@@ -15,19 +15,14 @@ const Page = async ({ searchParams }: PageProps) => {
     const context = await getContext();
     const pagination = toPagination(query);
     const filters: SQL[] = [];
-    if (!context.isAdmin) {
-        filters.push(
-            exists(
-                db.select().from(List).where(and(eq(List.groupId, Group.id), eq(List.userId, context.uid!)))
-            )
-        );
-    } else if (query.userId) {
-        filters.push(
-            exists(
-                db.select().from(List).where(and(eq(List.groupId, Group.id), eq(List.userId, query.userId)))
-            )
-        );
-    }
+    filters.push(
+        exists(
+            db
+                .select()
+                .from(List)
+                .where(and(eq(List.groupId, Group.id), eq(List.userId, context.uid!)))
+        )
+    );
     if (query.status) {
         filters.push(eq(Group.status, query.status));
     }
@@ -46,7 +41,7 @@ const Page = async ({ searchParams }: PageProps) => {
                 <header className="flex flex-col gap-3">
                     <h1 className="text-2xl font-bold">团购</h1>
                 </header>
-                <GroupCard {...query} items={items} total={total} isAdmin={context.isAdmin} />
+                <GroupCard {...query} items={items} total={total} />
             </div>
         </div>
     );

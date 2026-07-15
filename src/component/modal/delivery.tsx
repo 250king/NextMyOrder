@@ -30,7 +30,7 @@ import { OrderResult } from "@/type/order";
 import { currency } from "@/util/cover";
 import { useHttp } from "@/util/request";
 
-export const DeliveryModifyModal = ({ data, isAdmin }: { data: DeliveryResult; isAdmin: boolean }) => {
+export const DeliveryModifyModal = ({ data }: { data: DeliveryResult }) => {
     const [addresses, setAddresses] = React.useState<AddressResult[]>([]);
     const [isPending, runAction] = useHttp();
     const [open, setOpen] = React.useState<boolean>(false);
@@ -147,18 +147,6 @@ export const DeliveryModifyModal = ({ data, isAdmin }: { data: DeliveryResult; i
                                             <TextArea autoComplete="street-address" />
                                             <FieldError />
                                         </TextField>
-                                        {isAdmin && (
-                                            <TextField
-                                                fullWidth
-                                                name="comment"
-                                                variant="secondary"
-                                                defaultValue={data.comment ?? undefined}
-                                                isDisabled={isPending}
-                                            >
-                                                <Label>备注</Label>
-                                                <TextArea />
-                                            </TextField>
-                                        )}
                                         <Checkbox id="save" name="save" variant="secondary" isDisabled={isPending}>
                                             <Checkbox.Control>
                                                 <Checkbox.Indicator />

@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { Avatar, Card, Chip } from "@heroui/react";
+import { Card, Chip } from "@heroui/react";
 import { EnumFilter, useFilter } from "@/component/common/filter";
 import { LinkButton } from "@/component/common/link";
 import { Loading } from "@/component/weight/loading";
@@ -13,7 +13,6 @@ import {
     PaymentQuery,
     PaymentResult,
     statusMap,
-    typeIconMap,
     typeMap,
 } from "@/type/payment";
 import { currency, date } from "@/util/cover";
@@ -48,25 +47,7 @@ export const PaymentCard = ({ items, total, page, method, isPaid, type }: DataCa
                 {items.map((item) => (
                     <Card key={item.id} className="h-full min-w-0 transition-shadow hover:shadow-lg">
                         <Card.Header className="flex w-full flex-row items-start justify-between gap-3">
-                            <div className="flex items-center gap-3">
-                                <Avatar>
-                                    <Avatar.Image src={`https://q.qlogo.cn/g?b=qq&nk=${item.user.qq}&s=100`} />
-                                </Avatar>
-                                <div className="min-w-0">
-                                    <Card.Title>{item.user.name}</Card.Title>
-                                    <Card.Description>{item.user.qq}</Card.Description>
-                                </div>
-                            </div>
-                            <span className="text-default-500 shrink-0 font-mono text-sm">#{item.id}</span>
-                        </Card.Header>
-                        <Card.Content className="flex flex-1 flex-col gap-2">
                             <div className="flex flex-row items-center gap-2">
-                                <Chip>
-                                    <span className={`shrink-0 ${typeIconMap[item.type]}`} />
-                                    <Chip.Label className="truncate">
-                                        {typeMap[item.type]} #{item.refId}
-                                    </Chip.Label>
-                                </Chip>
                                 {item.paidAt ? (
                                     <Chip variant="primary" color={colorMap[item.method!]}>
                                         <span className={`shrink-0 ${iconMap[item.method!]}`} />
@@ -78,6 +59,9 @@ export const PaymentCard = ({ items, total, page, method, isPaid, type }: DataCa
                                     </Chip>
                                 )}
                             </div>
+                            <span className="text-default-500 shrink-0 font-mono text-sm">#{item.id}</span>
+                        </Card.Header>
+                        <Card.Content className="flex flex-1 flex-col gap-2">
                             <div className="text-default-500 text-sm">创建时间：{date(item.createdAt)}</div>
                             {item.paidAt && (
                                 <div className="text-default-too text-sm">支付时间：{date(item.paidAt)}</div>

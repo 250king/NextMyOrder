@@ -30,7 +30,6 @@ export type ModalState<T = void> = ([T] extends [void] ? object : { data: T }) &
 export type DataCardProps<T, R> = T & {
     items: R[],
     total: number,
-    isAdmin: boolean
 }
 
 export const query = z.object({

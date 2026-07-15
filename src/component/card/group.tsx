@@ -3,14 +3,13 @@ import React from "react";
 import { Card, Chip } from "@heroui/react";
 import { EnumFilter, SearchFilter, useFilter } from "@/component/common/filter";
 import { LinkButton } from "@/component/common/link";
-import { GroupCreateModal } from "@/component/modal/group";
 import { CardImage } from "@/component/weight/image";
 import { Loading } from "@/component/weight/loading";
 import { Pagination } from "@/component/weight/pagination";
 import { DataCardProps } from "@/type/common";
 import { colorMap, GroupQuery, GroupResult, statusMap } from "@/type/group";
 
-export const GroupCard = ({ items, total, status, page, keyword, isAdmin }: DataCardProps<GroupQuery, GroupResult>) => {
+export const GroupCard = ({ items, total, status, page, keyword }: DataCardProps<GroupQuery, GroupResult>) => {
     const [isPending, startTransition] = React.useTransition();
     const { updateFilter } = useFilter(startTransition);
 
@@ -25,7 +24,6 @@ export const GroupCard = ({ items, total, status, page, keyword, isAdmin }: Data
                 onChange={(val) => updateFilter({ status: val })}
             />
             <p className="text-default-500 text-sm">共找到{total}条记录</p>
-            {isAdmin && <GroupCreateModal />}
             <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {items.map((item) => (
                     <Card
