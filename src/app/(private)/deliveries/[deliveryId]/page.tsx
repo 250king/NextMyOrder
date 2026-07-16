@@ -52,6 +52,7 @@ const GoodsPanel = async ({ data, ...query }: PanelProps<DeliveryResult> & Query
 const Page = async ({ params, searchParams }: PageProps) => {
     const path = await params;
     const search = await searchParams;
+    const currentTab = search.tab === "track" ? "track" : "order";
     const context = await getContext();
     const data = await db.query.Delivery.findFirst({
         where: and(eq(Delivery.id, path.deliveryId)),
@@ -125,7 +126,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
                         </div>
                     </div>
                 </Surface>
-                <Tabs selectedKey={search.tab ?? "order"} className="w-full gap-4">
+                <Tabs selectedKey={currentTab} className="w-full gap-4">
                     <Tabs.ListContainer className="w-fit max-w-full">
                         <Tabs.List className="w-fit max-w-full *:w-fit *:whitespace-nowrap">
                             <LinkTab href={`/deliveries/${data.id}?tab=order`} id="order">
@@ -140,7 +141,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
                     </Tabs.ListContainer>
                     <div className="w-full">
                         <Tabs.Panel className="p-0" id="order">
-                            <GoodsPanel data={data} isAdmin={context.isAdmin} />
+                            <GoodsPanel data={data} userId={context.uid!} {...search} />
                         </Tabs.Panel>
                         <Tabs.Panel className="p-0" id="track">
                             <div className="min-h-48 rounded-lg border border-dashed border-separator p-6" />

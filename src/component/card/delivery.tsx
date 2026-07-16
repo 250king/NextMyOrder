@@ -98,56 +98,56 @@ export const DeliveryCard = ({
     );
 };
 
-export const GoodsGard = ({ items, total, page }: DataCardProps<Query, OrderResult> & {
+export const GoodsGard = ({
+    items,
+    total,
+    page,
+}: DataCardProps<Query, OrderResult> & {
     data: DeliveryResult;
 }) => {
     const [isPending, startTransition] = React.useTransition();
-    const { updateLocalFilter } = useFilter(startTransition);
-    const selected = useSelected();
 
     return (
         <div className="relative flex flex-col gap-4">
             {isPending && <Loading />}
             <p className="text-default-500 text-sm">共找到{total}条记录</p>
-            <CheckboxGroup
-                value={selected}
-                onChange={(val) => updateLocalFilter({ selected: val.length > 0 ? JSON.stringify(val) : null })}
-            >
-                <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {items.map((item) => (
-                        <Card key={item.id} className="h-full min-w-0 transition-shadow hover:shadow-lg w-full items-stretch flex-row">
-                            <div className="relative shrink-0 overflow-hidden rounded-2xl h-30 w-30">
-                                <ImagePreview
-                                    alt={item.item.name}
-                                    src={item.item.image || "https://static.250king.top/image/2026/04/i3f4xep2.png"}
-                                    className="pointer-events-none h-full w-full scale-125 object-cover select-none"
-                                />
-                            </div>
-                            <div className="flex flex-1 flex-col gap-3 min-w-0">
-                                <Card.Header className="min-w-0 flex-1">
-                                    <div className="min-w-0 flex-1">
-                                        <Card.Title className="truncate">{item.item.name}</Card.Title>
-                                        <Card.Description>#{item.id}</Card.Description>
-                                    </div>
-                                </Card.Header>
-                                <Card.Content className="flex flex-1 flex-col gap-2">
-                                    <div className="text-xl font-bold">
-                                        {currency(item.item.price, "JPY")}
-                                        <span className="px-1 align-baseline text-xs font-medium text-muted">
-                                            × {item.count}
-                                        </span>
-                                    </div>
-                                </Card.Content>
-                                <Card.Footer className="mt-auto flex w-full justify-end gap-2">
-                                    <LinkButton href={`/groups/${item.item.groupId}?tab=order`} variant="secondary">
-                                        详情
-                                    </LinkButton>
-                                </Card.Footer>
-                            </div>
-                        </Card>
-                    ))}
-                </div>
-            </CheckboxGroup>
+            <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {items.map((item) => (
+                    <Card
+                        key={item.id}
+                        className="h-full min-w-0 transition-shadow hover:shadow-lg w-full items-stretch flex-row"
+                    >
+                        <div className="relative shrink-0 overflow-hidden rounded-2xl h-30 w-30">
+                            <ImagePreview
+                                alt={item.item.name}
+                                src={item.item.image || "https://static.250king.top/image/2026/04/i3f4xep2.png"}
+                                className="pointer-events-none h-full w-full scale-125 object-cover select-none"
+                            />
+                        </div>
+                        <div className="flex flex-1 flex-col gap-3 min-w-0">
+                            <Card.Header className="min-w-0 flex-1">
+                                <div className="min-w-0 flex-1">
+                                    <Card.Title className="truncate">{item.item.name}</Card.Title>
+                                    <Card.Description>#{item.id}</Card.Description>
+                                </div>
+                            </Card.Header>
+                            <Card.Content className="flex flex-1 flex-col gap-2">
+                                <div className="text-xl font-bold">
+                                    {currency(item.item.price, "JPY")}
+                                    <span className="px-1 align-baseline text-xs font-medium text-muted">
+                                        × {item.count}
+                                    </span>
+                                </div>
+                            </Card.Content>
+                            <Card.Footer className="mt-auto flex w-full justify-end gap-2">
+                                <LinkButton href={`/groups/${item.item.groupId}?tab=order`} variant="secondary">
+                                    详情
+                                </LinkButton>
+                            </Card.Footer>
+                        </div>
+                    </Card>
+                ))}
+            </div>
             <Pagination startTransition={startTransition} total={total} page={page} />
         </div>
     );

@@ -51,11 +51,11 @@ export const statusMap: Record<DeliveryStatus, string> = {
 };
 
 export const colorMap: Record<DeliveryStatus, "default" | "success" | "warning" | "accent"> = {
-    PENDING: "warning",
-    PUSHED: "accent",
+    PENDING: "default",
+    PUSHED: "default",
     DELIVERED: "accent",
     ARRIVED: "success",
-    CANCELED: "default",
+    CANCELED: "warning",
 };
 
 const baseSchema = z.object({

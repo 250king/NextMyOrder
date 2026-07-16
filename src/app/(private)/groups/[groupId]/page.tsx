@@ -1,21 +1,83 @@
 import React from "react";
 import { notFound } from "next/navigation";
-import { Alert, Chip, Surface } from "@heroui/react";
-import { and, eq, exists } from "drizzle-orm";
+import { Alert, Chip, Surface, Tabs } from "@heroui/react";
+import { and, count, eq, exists, getTableColumns, isNotNull, SQL, sql } from "drizzle-orm";
+import { BuyCard, TransitCard } from "@/component/card/group";
+import { LinkTab } from "@/component/common/tab";
 import { db } from "@/service/db";
-import { Group, List } from "@/service/db/schema";
-import { colorMap, statusMap } from "@/type/group";
+import { Group, Item, List, Order, Transit } from "@/service/db/schema";
+import { PanelProps, Query } from "@/type/common";
+import { colorMap, GroupResult, statusMap } from "@/type/group";
+import type { OrderStatus } from "@/type/order";
 import { getContext } from "@/util/context";
-import { date } from "@/util/cover";
+import { date, toPagination } from "@/util/cover";
 
 type PageProps = {
     params: Promise<{
         groupId: number;
     }>;
+    searchParams: Promise<{
+        tab?: string;
+    }>;
 };
 
-const Page = async ({ params }: PageProps) => {
+const BuyPanel = async ({ data, userId, ...query }: PanelProps<GroupResult> & Query) => {
+    const pagination = toPagination(query);
+    const filters: SQL[] = [eq(Item.groupId, data.id)];
+    if (data.status !== "PENDING") {
+        filters.push(isNotNull(Order.id));
+    }
+    const orderJoin = and(eq(Order.itemId, Item.id), eq(Order.userId, userId));
+    const [items, [total]] = await Promise.all([
+        db
+            .select({
+                ...getTableColumns(Item),
+                selected: sql<number>`
+                    coalesce(${Order.count}, 0)
+                `.mapWith(Number),
+                status: sql<OrderStatus>`
+                    coalesce(${Order.status}, 'PENDING'::"OrderStatus")
+                `,
+            })
+            .from(Item)
+            .leftJoin(Order, orderJoin)
+            .where(and(...filters))
+            .limit(pagination.limit)
+            .offset(pagination.offset),
+        db
+            .select({
+                total: count(Item.id),
+            })
+            .from(Item)
+            .leftJoin(Order, orderJoin)
+            .where(and(...filters)),
+    ]);
+
+    return <BuyCard items={items} total={total.total} data={data} {...query} />;
+};
+
+const TransitPanel = async ({ data, userId, ...query }: PanelProps<GroupResult> & Query) => {
+    const pagination = toPagination(query);
+    const hasCurrentUserOrder = exists(
+        db
+            .select({
+                id: Order.id,
+            })
+            .from(Order)
+            .innerJoin(Item, eq(Item.id, Order.itemId))
+            .where(and(eq(Order.transitId, Transit.id), eq(Order.userId, userId), eq(Item.groupId, data.id)))
+    );
+    const [items, total] = await Promise.all([
+        db.select().from(Transit).where(hasCurrentUserOrder).limit(pagination.limit).offset(pagination.offset),
+        db.$count(Transit, hasCurrentUserOrder),
+    ]);
+
+    return <TransitCard items={items} total={total} data={data} {...query} />;
+};
+
+const Page = async ({ params, searchParams }: PageProps) => {
     const path = await params;
+    const search = await searchParams;
     const context = await getContext();
     const sql = exists(
         db
@@ -23,6 +85,7 @@ const Page = async ({ params }: PageProps) => {
             .from(List)
             .where(and(eq(List.groupId, Group.id), eq(List.userId, context.uid!)))
     );
+    const currentTab = search.tab === "track" ? "track" : "buy";
     const data = await db.query.Group.findFirst({
         where: and(eq(Group.id, path.groupId), ...(context.isAdmin ? [] : [sql])),
     });
@@ -73,6 +136,28 @@ const Page = async ({ params }: PageProps) => {
                         </div>
                     </div>
                 </Surface>
+                <Tabs selectedKey={currentTab} className="w-full gap-4">
+                    <Tabs.ListContainer className="w-fit max-w-full">
+                        <Tabs.List className="w-fit max-w-full *:w-fit *:whitespace-nowrap">
+                            <LinkTab href={`/groups/${data.id}?tab=buy`} id="buy">
+                                需求单
+                                <Tabs.Indicator />
+                            </LinkTab>
+                            <LinkTab href={`/groups/${data.id}?tab=track`} id="track">
+                                国际运单
+                                <Tabs.Indicator />
+                            </LinkTab>
+                        </Tabs.List>
+                    </Tabs.ListContainer>
+                    <div className="w-full">
+                        <Tabs.Panel className="p-0" id="buy">
+                            <BuyPanel data={data} userId={context.uid!} {...search} />
+                        </Tabs.Panel>
+                        <Tabs.Panel className="p-0" id="track">
+                            <TransitPanel data={data} userId={context.uid!} {...search} />
+                        </Tabs.Panel>
+                    </div>
+                </Tabs>
             </div>
         </div>
     );

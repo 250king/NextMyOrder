@@ -25,18 +25,15 @@ export const OrderStatus = pgEnum("OrderStatus", [
     "ARRIVED",
     "DELIVERING",
     "COMPLETED",
-    "CANCELLED",
+    "CANCELED",
 ]);
 export const PaymentMethod = pgEnum("PaymentMethod", ["WECHAT", "ALIPAY", "JDPAY", "UNIONPAY", "CASH"]);
 export const PaymentType = pgEnum("PaymentType", ["LIST", "TAX", "TRANSIT", "DELIVERY"]);
 export const TransitStatus = pgEnum("TransitStatus", [
     "PENDING",
-    "DISPATCHED_TRANSIT",
-    "OVERSEA_TRANSIT",
-    "CUSTOMS",
-    "DELIVERED_TRANSIT",
+    "DISPATCHED",
     "ARRIVED",
-    "CANCELLED",
+    "CANCELED",
 ]);
 export const TransitType = pgEnum("TransitType", ["LOGISTICS", "PERSONAL"]);
 

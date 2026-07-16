@@ -1,13 +1,13 @@
 import React from "react";
 import { notFound } from "next/navigation";
-import { Alert, Button, Chip, Surface } from "@heroui/react";
+import { Alert, Button, Chip, Surface, Tabs } from "@heroui/react";
 import { and, eq } from "drizzle-orm";
 import { LinkButton } from "@/component/common/link";
-import { PaymentTab } from "@/component/tab/payment";
+import { LinkTab } from "@/component/common/tab";
 import { db } from "@/service/db";
 import { Payment } from "@/service/db/schema";
 import { colorMap, iconMap, methodMap } from "@/type/payment";
-import { getContext } from "@/util/context";
+//import { getContext } from "@/util/context";
 import { currency, date } from "@/util/cover";
 
 type PageProps = {
@@ -22,9 +22,10 @@ type PageProps = {
 const Page = async ({ params, searchParams }: PageProps) => {
     const query = await params;
     const search = await searchParams;
-    const context = await getContext();
+    //const context = await getContext();
+    const currentTab = search.tab === "refund" ? "refund" : "detail";
     const data = await db.query.Payment.findFirst({
-        where: and(eq(Payment.id, query.paymentId), eq(Payment.userId, context.uid!)),
+        where: and(eq(Payment.id, query.paymentId)),
     });
     if (!data) {
         return notFound();
@@ -108,7 +109,28 @@ const Page = async ({ params, searchParams }: PageProps) => {
                         </div>
                     </div>
                 </Surface>
-                <PaymentTab data={data} search={search} />
+                <Tabs selectedKey={currentTab} className="w-full">
+                    <Tabs.ListContainer className="w-fit max-w-full">
+                        <Tabs.List className="w-fit max-w-full *:w-fit *:whitespace-nowrap">
+                            <LinkTab href={`/payments/${data.id}?tab=detail`} id="detail">
+                                收款明细
+                                <Tabs.Indicator />
+                            </LinkTab>
+                            <LinkTab href={`/payments/${data.id}?tab=refund`} id="refund">
+                                退款详情
+                                <Tabs.Indicator />
+                            </LinkTab>
+                        </Tabs.List>
+                    </Tabs.ListContainer>
+                    <div className="w-full">
+                        <Tabs.Panel className="pt-4" id="detail">
+                            <div className="min-h-48 rounded-lg border border-dashed border-separator p-6" />
+                        </Tabs.Panel>
+                        <Tabs.Panel className="pt-4" id="refund">
+                            <div className="min-h-48 rounded-lg border border-dashed border-separator p-6" />
+                        </Tabs.Panel>
+                    </div>
+                </Tabs>
             </div>
         </div>
     );

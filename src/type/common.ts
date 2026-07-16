@@ -19,7 +19,7 @@ export type Query<T = void> = ([T] extends [void] ? object : T) & {
 
 export type PanelProps<T> = {
     data: T;
-    isAdmin: boolean;
+    userId: number
 }
 
 export type ModalState<T = void> = ([T] extends [void] ? object : { data: T }) & {
