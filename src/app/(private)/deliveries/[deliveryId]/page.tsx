@@ -70,10 +70,10 @@ const Page = async ({ params, searchParams }: PageProps) => {
                 <header className="flex flex-col gap-3">
                     <h1 className="text-2xl font-bold">分发管理 #{data.id}</h1>
                     <div className="flex flex-wrap items-center gap-2">
-                        {data.ticketNum && (
+                        {data.company && (
                             <Chip variant="primary">
-                                <span className={iconMap[data.company!]} />
-                                <Chip.Label>{companyMap[data.company!]}</Chip.Label>
+                                <span className={iconMap[data.company]} />
+                                <Chip.Label>{companyMap[data.company]}</Chip.Label>
                             </Chip>
                         )}
                         <Chip variant="primary" color={colorMap[data.status]}>

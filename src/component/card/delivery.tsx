@@ -9,7 +9,7 @@ import { Pagination } from "@/component/weight/pagination";
 import { DataCardProps, Query } from "@/type/common";
 import { colorMap, companyMap, DeliveryQuery, DeliveryResult, iconMap, statusMap } from "@/type/delivery";
 import { OrderResult } from "@/type/order";
-import { currency } from "@/util/cover";
+import { currency, date } from "@/util/cover";
 import { useSelected } from "@/util/hook";
 
 export const DeliveryCard = ({
@@ -59,10 +59,10 @@ export const DeliveryCard = ({
                                             物流信息未完善
                                         </Chip>
                                     )}
-                                    {item.ticketNum && (
+                                    {item.company && (
                                         <Chip variant="primary">
-                                            <span className={iconMap[item.company!]} />
-                                            <Chip.Label>{item.ticketNum}</Chip.Label>
+                                            <span className={iconMap[item.company]} />
+                                            <Chip.Label>{companyMap[item.company]}</Chip.Label>
                                         </Chip>
                                     )}
                                     <Chip variant="primary" color={colorMap[item.status]}>
@@ -76,13 +76,11 @@ export const DeliveryCard = ({
                                 </div>
                             </Card.Header>
                             <Card.Content className="flex flex-1 flex-col gap-2">
-                                <div className="flex items-center gap-3">
-                                    <div className="min-w-0">
-                                        <Card.Title>{item.user.name}</Card.Title>
-                                        <Card.Description>{item.user.qq}</Card.Description>
-                                    </div>
-                                </div>
-                                <div className="text-default-500 text-sm">{item.address}</div>
+                                {item.ticketNum && (
+                                    <div className="text-default-500 text-sm">快递单号：{item.ticketNum}</div>
+                                )}
+                                <div className="text-default-500 text-sm">创建时间：{date(item.createdAt)}</div>
+                                <div className="text-default-500 text-sm">更新时间：{date(item.updatedAt)}</div>
                             </Card.Content>
                             <Card.Footer className="mt-auto flex w-full justify-end gap-2">
                                 <LinkButton href={`/deliveries/${item.id}`} variant="secondary">
