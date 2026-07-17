@@ -97,13 +97,15 @@ export const BuyCard = ({
                         </div>
                         <div className="flex flex-1 flex-col gap-2 min-w-0">
                             <Card.Header className="min-w-0 flex-1">
-                                <div className="min-w-0 flex-1 gap-2">
+                                <div className="min-w-0 flex-1 space-y-2">
                                     <Card.Title className="truncate">{item.name}</Card.Title>
                                     <div className="flex flex-row items-center justify-between gap-2">
                                         <Chip variant="primary" color={orderColorMap[item.status]}>
                                             {orderStatusMap[item.status]}
                                         </Chip>
-                                        <div className="text-default-500 shrink-0 font-mono text-sm">#{item.id}</div>
+                                        {item.orderId && (
+                                            <div className="text-muted shrink-0 font-mono text-sm">#{item.orderId}</div>
+                                        )}
                                     </div>
                                 </div>
                             </Card.Header>

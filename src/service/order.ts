@@ -1,9 +1,9 @@
 "use server"
 
-import { and, eq, SQL } from "drizzle-orm";
+import { and, eq, notExists, SQL } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/service/db";
-import { Order } from "@/service/db/schema";
+import { DeliveryToOrder, Order } from "@/service/db/schema";
 import { orderQuery } from "@/type/order";
 import { getContext } from "@/util/context";
 import { toPagination } from "@/util/cover";
@@ -13,13 +13,23 @@ export const getOrders = async (params: z.input<typeof orderQuery>) => {
     if (!context.isAdmin) {
         throw new Error("非管理员无权限");
     }
-    const { userId, ...extend } = orderQuery.parse(params);
+    const { userId, notInDelivery, ...extend } = orderQuery.parse(params);
     const pagination = toPagination(extend);
     const filters: SQL[] = [
         eq(Order.status, "ARRIVED"),
     ];
     if (userId) {
         filters.push(eq(Order.userId, userId));
+    }
+    if (notInDelivery) {
+        filters.push(
+            notExists(
+                db
+                    .select({ id: DeliveryToOrder.orderId })
+                    .from(DeliveryToOrder)
+                    .where(and(eq(DeliveryToOrder.orderId, Order.id), eq(DeliveryToOrder.deliveryId, notInDelivery)))
+            )
+        );
     }
     const [items, count] = await Promise.all([
         db.query.Order.findMany({

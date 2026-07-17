@@ -37,4 +37,5 @@ export type OrderResult = typeof Order.$inferSelect & {
 
 export const orderQuery = query.extend({
     userId: z.int().positive().optional(),
+    notInDelivery: z.int().positive().optional(),
 })

@@ -5,7 +5,7 @@ import { z } from "zod";
 import { parseAddress } from "@/service/client/amap";
 import { cancelOrder, createOrder } from "@/service/client/kd100";
 import { db } from "@/service/db";
-import { Address, Delivery, DeliveryToOrder, TicketLink } from "@/service/db/schema";
+import { Address, Delivery, DeliveryToOrder, Order, TicketLink } from "@/service/db/schema";
 import { codeMap, deliveryDetailSchema } from "@/type/delivery";
 import { getContext } from "@/util/context";
 import { randomStr } from "@/util/cover";
@@ -162,6 +162,10 @@ export const pushDelivery = async (p1: number[], p2: number) => {
 };
 
 export const withdrawDelivery = async (params: number, reason: string) => {
+    const context = await getContext();
+    if (!context.isAdmin) {
+        throw new Error("非管理员无权限");
+    }
     const deliveryId = z.int().positive().parse(params);
     const delivery = await getDelivery(deliveryId);
     if (delivery.status != "PUSHED") {
@@ -184,6 +188,10 @@ export const withdrawDelivery = async (params: number, reason: string) => {
 };
 
 export const removeDelivery = async (params: number) => {
+    const context = await getContext();
+    if (!context.isAdmin) {
+        throw new Error("非管理员无权限");
+    }
     const deliveryId = z.int().positive().parse(params);
     const delivery = await getDelivery(deliveryId);
     if (delivery.status != "PENDING") {
@@ -195,6 +203,10 @@ export const removeDelivery = async (params: number) => {
 };
 
 export const generateQrCode = async (params: number) => {
+    const context = await getContext();
+    if (!context.isAdmin) {
+        throw new Error("非管理员无权限");
+    }
     const deliveryId = z.int().positive().parse(params);
     const delivery = await getDelivery(deliveryId);
     if (delivery.status == "DELIVERED") {
@@ -216,3 +228,25 @@ export const generateQrCode = async (params: number) => {
         city: result.data?.geocodes?.[0]?.city || null,
     };
 };
+
+export const bindOrders = async (p1: number, p2: number[]) => {
+    const context = await getContext();
+    if (!context.isAdmin) {
+        throw new Error("非管理员无权限");
+    }
+    const deliveryId = z.int().positive().parse(p1);
+    const orderIds = z.int().positive().array().parse(p2);
+    const delivery = await getDelivery(deliveryId);
+    if (delivery.status != "PENDING") {
+        throw new Error("当前运单无法绑定订单");
+    }
+    const orders = await db.query.Order.findMany({
+        where: inArray(Order.id, orderIds),
+    })
+    await db.insert(DeliveryToOrder).values(
+        orders.map((i) => ({
+            deliveryId,
+            orderId: i.id,
+        }))
+    );
+}

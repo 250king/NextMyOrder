@@ -38,6 +38,9 @@ const BuyPanel = async ({ data, userId, ...query }: PanelProps<GroupResult> & Qu
                 status: sql<OrderStatus>`
                     coalesce(${Order.status}, 'PENDING'::"OrderStatus")
                 `,
+                orderId: sql<number>`
+                    coalesce(${Order.id}, NULL)
+                `
             })
             .from(Item)
             .leftJoin(Order, orderJoin)

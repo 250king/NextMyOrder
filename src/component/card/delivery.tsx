@@ -128,7 +128,9 @@ export const GoodsGard = ({
                             <Card.Header className="min-w-0 flex-1">
                                 <div className="min-w-0 flex-1">
                                     <Card.Title className="truncate">{item.item.name}</Card.Title>
-                                    <Card.Description>#{item.id}</Card.Description>
+                                    <div className="text-muted shrink-0 font-mono text-sm">
+                                        #{item.id}
+                                    </div>
                                 </div>
                             </Card.Header>
                             <Card.Content className="flex flex-1 flex-col gap-2">
