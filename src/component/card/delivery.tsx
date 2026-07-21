@@ -111,24 +111,19 @@ export const GoodsGard = ({
             <p className="text-default-500 text-sm">共找到{total}条记录</p>
             <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {items.map((item) => (
-                    <Card
-                        key={item.id}
-                        className="h-full min-w-0 transition-shadow hover:shadow-lg w-full items-stretch flex-row"
-                    >
-                        <div className="relative shrink-0 overflow-hidden rounded-2xl h-30 w-30">
+                    <Card key={item.id} className="w-full items-stretch md:flex-row">
+                        <div className="relative h-35 w-full shrink-0 overflow-hidden rounded-2xl sm:h-30 sm:w-30">
                             <ImagePreview
                                 alt={item.item.name}
                                 src={item.item.image || "https://static.250king.top/image/2026/04/i3f4xep2.png"}
-                                className="pointer-events-none h-full w-full scale-125 object-cover select-none"
+                                className="h-full w-full scale-125 object-cover select-none"
                             />
                         </div>
-                        <div className="flex flex-1 flex-col gap-3 min-w-0">
-                            <Card.Header className="min-w-0 flex-1">
-                                <div className="min-w-0 flex-1">
-                                    <Card.Title className="truncate">{item.item.name}</Card.Title>
-                                    <div className="text-muted shrink-0 font-mono text-sm">
-                                        #{item.id}
-                                    </div>
+                        <div className="flex min-w-0 flex-1 flex-col gap-3">
+                            <Card.Header className="gap-1">
+                                <Card.Title className="truncate">{item.item.name}</Card.Title>
+                                <div className="flex flex-row items-center gap-2">
+                                    <div className="text-muted shrink-0 font-mono text-sm">#{item.id}</div>
                                 </div>
                             </Card.Header>
                             <Card.Content className="flex flex-1 flex-col gap-2">

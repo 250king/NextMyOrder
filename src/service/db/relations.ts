@@ -8,6 +8,7 @@ import {
     List,
     Order,
     Payment,
+    PaymentItem,
     RefundRequest,
     TicketLink,
     Transit,
@@ -80,6 +81,14 @@ export const paymentRelations = relations(Payment, ({ one, many }) => ({
         references: [User.id],
     }),
     refundRequests: many(RefundRequest),
+    items: many(PaymentItem),
+}));
+
+export const paymentItemRelations = relations(PaymentItem, ({ one }) => ({
+    payment: one(Payment, {
+        fields: [PaymentItem.paymentId],
+        references: [Payment.id],
+    }),
 }));
 
 export const refundRequestRelations = relations(RefundRequest, ({ one }) => ({

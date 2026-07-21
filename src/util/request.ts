@@ -3,7 +3,7 @@
 import React from "react";
 import { toast } from "@heroui/react";
 
-const getErrorMessage = (error: unknown) => {
+export const getErrorMessage = (error: unknown) => {
     if (error instanceof Error) return error.message;
     if (typeof error === "string") return error;
     return "操作失败，请稍后重试";

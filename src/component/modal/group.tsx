@@ -6,12 +6,16 @@ import { parseZonedDateTime } from "@internationalized/date";
 import dayjs from "dayjs";
 import { AlertModal } from "@/component/common/alert";
 import { DateTimePicker } from "@/component/weight/picker";
-import { changeGroupLock, createGroup, saveGroup } from "@/service/group";
+import { changeGroupLock, confirmGroupOrder, createGroup, saveGroup } from "@/service/group";
 import { GroupResult } from "@/type/group";
 import { dataValue } from "@/util/cover";
 import { useHttp } from "@/util/request";
 
-const GroupForm = ({data, isPending, onSubmit}: {
+const GroupForm = ({
+    data,
+    isPending,
+    onSubmit,
+}: {
     data?: Partial<GroupResult>;
     isPending: boolean;
     onSubmit: (e: React.SubmitEvent<HTMLFormElement>) => void;
@@ -57,7 +61,7 @@ const GroupForm = ({data, isPending, onSubmit}: {
             </TextField>
             <DateTimePicker
                 name="deadline"
-                defaultValue={data?.deadline ? dataValue(data?.deadline): undefined}
+                defaultValue={data?.deadline ? dataValue(data?.deadline) : undefined}
                 isDisabled={isPending}
                 className="w-full"
                 isRequired
@@ -70,11 +74,24 @@ const GroupForm = ({data, isPending, onSubmit}: {
             </div>
         </form>
     );
-}
+};
 
-export const GroupLockModal = ({data}: {
-    data: GroupResult;
-}) => {
+export const GroupOrderConfirmModal = ({ data }: { data: GroupResult }) => {
+    return (
+        <AlertModal
+            title="确定确认订单？"
+            status="warning"
+            trigger={<Button>确认订单</Button>}
+            onConfirmed={async () => {
+                await confirmGroupOrder(data.id);
+            }}
+        >
+            确认后，在已下单的情况下非特殊情况不得退款，所以请务必确认订单内容无误
+        </AlertModal>
+    );
+};
+
+export const GroupLockModal = ({ data }: { data: GroupResult }) => {
     return (
         <AlertModal
             title={`确定${data.status == "PENDING" ? "截单" : "重新开放"}？`}
@@ -96,7 +113,7 @@ export const GroupLockModal = ({data}: {
             </div>
         </AlertModal>
     );
-}
+};
 
 export const GroupModifyModal = ({ data }: { data: GroupResult }) => {
     const [isPending, runAction] = useHttp();
@@ -164,8 +181,8 @@ export const GroupCreateModal = () => {
         runAction(async () => {
             await createGroup({ name, qq, deadline, image });
             setOpen(false);
-        })
-    }
+        });
+    };
 
     return (
         <Modal isOpen={open} onOpenChange={setOpen}>
@@ -191,4 +208,4 @@ export const GroupCreateModal = () => {
             </Modal.Backdrop>
         </Modal>
     );
-}
+};

@@ -52,11 +52,11 @@ export const ImagePreview = ({ src, alt, className }: ImagePreviewProps) => {
                     setOpen(true);
                 }}
             >
-                <img src={src} alt={alt} className={className} loading="lazy" />
+                <img src={src} alt={alt} className={className} loading="lazy"  />
             </button>
             <Modal isOpen={open} onOpenChange={setOpen}>
                 <Modal.Backdrop>
-                    <Modal.Container>
+                    <Modal.Container placement="center">
                         <Modal.Dialog className="bg-transparent shadow-none">
                             <Modal.CloseTrigger />
                             <Modal.Body className="p-0">

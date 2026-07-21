@@ -60,8 +60,8 @@ export const Group = pgTable(
 export const List = pgTable(
     "List",
     {
-        userId: bigint({ mode: "number" }).notNull(),
-        groupId: bigint({ mode: "number" }).notNull(),
+        userId: bigint({ mode: "number" }).notNull().references(() => User.id),
+        groupId: bigint({ mode: "number" }).notNull().references(() => Group.id),
         joinedAt: timestamp({ mode: "date" })
             .default(sql`CURRENT_TIMESTAMP`)
             .notNull(),
@@ -70,14 +70,6 @@ export const List = pgTable(
         primaryKey({
             columns: [table.userId, table.groupId],
         }),
-        foreignKey({
-            columns: [table.groupId],
-            foreignColumns: [Group.id],
-        }).onDelete("cascade"),
-        foreignKey({
-            columns: [table.userId],
-            foreignColumns: [User.id],
-        }).onDelete("cascade"),
     ]
 );
 
@@ -85,7 +77,7 @@ export const Item = pgTable(
     "Item",
     {
         id: bigserial({ mode: "number" }).primaryKey().notNull(),
-        groupId: bigint({ mode: "number" }).notNull(),
+        groupId: bigint({ mode: "number" }).notNull().references(() => Group.id),
         name: text().notNull(),
         url: text().notNull(),
         image: text(),
@@ -102,10 +94,6 @@ export const Item = pgTable(
     },
     (table) => [
         uniqueIndex().using("btree", table.groupId, table.url, table.name, table.price),
-        foreignKey({
-            columns: [table.groupId],
-            foreignColumns: [Group.id],
-        }).onDelete("cascade"),
     ]
 );
 
@@ -113,9 +101,9 @@ export const Order = pgTable(
     "Order",
     {
         id: bigserial({ mode: "number" }).primaryKey().notNull(),
-        userId: bigint({ mode: "number" }).notNull(),
-        itemId: bigint({ mode: "number" }).notNull(),
-        transitId: bigint({ mode: "number" }),
+        userId: bigint({ mode: "number" }).notNull().references(() => User.id),
+        itemId: bigint({ mode: "number" }).notNull().references(() => Item.id),
+        transitId: bigint({ mode: "number" }).references(() => Transit.id),
         count: integer().default(1).notNull(),
         status: OrderStatus().default("PENDING").notNull(),
         createdAt: timestamp({ mode: "date" })
@@ -129,18 +117,6 @@ export const Order = pgTable(
     },
     (table) => [
         uniqueIndex().using("btree", table.userId, table.itemId),
-        foreignKey({
-            columns: [table.itemId],
-            foreignColumns: [Item.id],
-        }).onDelete("cascade"),
-        foreignKey({
-            columns: [table.userId],
-            foreignColumns: [User.id],
-        }).onDelete("cascade"),
-        foreignKey({
-            columns: [table.transitId],
-            foreignColumns: [Transit.id],
-        }).onDelete("cascade"),
     ]
 );
 
@@ -149,7 +125,7 @@ export const Transit = pgTable(
     {
         id: bigserial({ mode: "number" }).primaryKey().notNull(),
         type: TransitType().default("LOGISTICS").notNull(),
-        ticketNum: text(),
+        ticketNum: text().unique(),
         carrier: text().notNull(),
         tax: decimal({ mode: "number" }),
         fee: decimal({ mode: "number" }),
@@ -163,14 +139,13 @@ export const Transit = pgTable(
             .notNull(),
         comment: text(),
     },
-    (table) => [uniqueIndex().using("btree", table.ticketNum)]
 );
 
 export const Delivery = pgTable(
     "Delivery",
     {
         id: bigserial({ mode: "number" }).primaryKey().notNull(),
-        userId: bigint({ mode: "number" }).notNull(),
+        userId: bigint({ mode: "number" }).notNull().references(() => User.id),
         recipient: text().notNull(),
         phone: text(),
         address: text(),
@@ -180,7 +155,7 @@ export const Delivery = pgTable(
             .default(sql`CURRENT_TIMESTAMP`)
             .notNull(),
         comment: text(),
-        taskId: text(),
+        taskId: text().unique(),
         ticketId: text(),
         ticketNum: text(),
         queryToken: text(),
@@ -189,21 +164,14 @@ export const Delivery = pgTable(
             .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
             .notNull(),
     },
-    (table) => [
-        uniqueIndex().using("btree", table.taskId),
-        foreignKey({
-            columns: [table.userId],
-            foreignColumns: [User.id],
-        }).onDelete("cascade"),
-    ]
 );
 
 export const Payment = pgTable(
     "Payment",
     {
         id: bigserial({ mode: "number" }).primaryKey().notNull(),
-        userId: bigint({ mode: "number" }).notNull(),
-        requestId: text(),
+        userId: bigint({ mode: "number" }).notNull().references(() => User.id),
+        requestId: text().unique(),
         refId: bigint({ mode: "number" }).notNull(),
         type: PaymentType().notNull(),
         amount: decimal({ mode: "number" }).notNull(),
@@ -216,42 +184,42 @@ export const Payment = pgTable(
         paidAt: timestamp({ mode: "date" }),
         comment: text(),
     },
-    (table) => [
-        uniqueIndex().using("btree", table.requestId),
-        foreignKey({
-            columns: [table.userId],
-            foreignColumns: [User.id],
-        }).onDelete("cascade"),
-    ]
 );
+
+export const PaymentItem = pgTable("PaymentItem", {
+    id: bigserial({ mode: "number" }),
+    paymentId: bigserial({ mode: "number" }).references(() => Payment.id),
+    name: text().notNull(),
+    image: text(),
+    description: text(),
+    price: decimal({ mode: "number" }).notNull(),
+    count: integer().default(1).notNull(),
+    total: decimal({ mode: "number" }).notNull(),
+    unit: text().default("个").notNull(),
+    currency: text().default("CNY").notNull(),
+    currencyRate: decimal({ mode: "number" }).default(1).notNull(),
+});
 
 export const RefundRequest = pgTable(
     "RefundRequest",
     {
         id: bigserial({ mode: "number" }).primaryKey().notNull(),
-        paymentId: bigint({ mode: "number" }).notNull(),
-        requestId: text().notNull(),
+        paymentId: bigint({ mode: "number" }).notNull().references(() => Payment.id),
+        requestId: text().notNull().unique(),
         amount: decimal({ mode: "number" }).notNull(),
         createdAt: timestamp({ mode: "date" })
             .default(sql`CURRENT_TIMESTAMP`)
             .notNull(),
     },
-    (table) => [
-        uniqueIndex().using("btree", table.requestId),
-        foreignKey({
-            columns: [table.paymentId],
-            foreignColumns: [Payment.id],
-        }).onDelete("cascade"),
-    ]
 );
 
 export const User = pgTable(
     "User",
     {
         id: bigserial({ mode: "number" }).primaryKey().notNull(),
-        name: text().notNull(),
-        qq: text().notNull(),
-        email: text(),
+        name: text().notNull().unique(),
+        qq: text().notNull().unique(),
+        email: text().unique(),
         createdAt: timestamp({ mode: "date" })
             .default(sql`CURRENT_TIMESTAMP`)
             .notNull(),
@@ -260,36 +228,27 @@ export const User = pgTable(
             .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
             .notNull(),
     },
-    (table) => [
-        uniqueIndex().using("btree", table.email),
-        uniqueIndex().using("btree", table.name),
-        uniqueIndex().using("btree", table.qq),
-    ]
 );
 
 export const Address = pgTable(
     "Address",
     {
         id: bigserial({ mode: "number" }).primaryKey().notNull(),
-        userId: bigint({ mode: "number" }).notNull(),
+        userId: bigint({ mode: "number" }).notNull().references(() => User.id),
         recipient: text().notNull(),
         phone: text().notNull(),
         address: text().notNull(),
     },
     (table) => [
         uniqueIndex().using("btree", table.userId, table.recipient, table.phone, table.address),
-        foreignKey({
-            columns: [table.userId],
-            foreignColumns: [User.id],
-        }).onDelete("cascade"),
     ]
 );
 
 export const DeliveryToOrder = pgTable(
     "_DeliveryToOrder",
     {
-        deliveryId: bigint("A", { mode: "number" }).notNull(),
-        orderId: bigint("B", { mode: "number" }).notNull(),
+        deliveryId: bigint("A", { mode: "number" }).notNull().references(() => Delivery.id),
+        orderId: bigint("B", { mode: "number" }).notNull().references(() => Order.id),
     },
     (table) => [
         foreignKey({
@@ -308,14 +267,7 @@ export const TicketLink = pgTable(
     "TicketLink",
     {
         id: bigserial({ mode: "number" }).primaryKey().notNull(),
-        code: text().notNull(),
-        deliveryId: bigint({ mode: "number" }).notNull(),
+        code: text().notNull().unique(),
+        deliveryId: bigint({ mode: "number" }).notNull().references(() => Delivery.id),
     },
-    (table) => [
-        foreignKey({
-            columns: [table.deliveryId],
-            foreignColumns: [Delivery.id]
-        }),
-        uniqueIndex().using("btree", table.code),
-    ]
 )

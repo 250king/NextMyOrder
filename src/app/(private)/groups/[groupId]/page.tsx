@@ -4,6 +4,7 @@ import { Alert, Chip, Surface, Tabs } from "@heroui/react";
 import { and, count, eq, exists, getTableColumns, isNotNull, SQL, sql } from "drizzle-orm";
 import { BuyCard, TransitCard } from "@/component/card/group";
 import { LinkTab } from "@/component/common/tab";
+import { GroupOrderConfirmModal } from "@/component/modal/group";
 import { db } from "@/service/db";
 import { Group, Item, List, Order, Transit } from "@/service/db/schema";
 import { PanelProps, Query } from "@/type/common";
@@ -40,7 +41,7 @@ const BuyPanel = async ({ data, userId, ...query }: PanelProps<GroupResult> & Qu
                 `,
                 orderId: sql<number>`
                     coalesce(${Order.id}, NULL)
-                `
+                `,
             })
             .from(Item)
             .leftJoin(Order, orderJoin)
@@ -92,6 +93,12 @@ const Page = async ({ params, searchParams }: PageProps) => {
     const data = await db.query.Group.findFirst({
         where: and(eq(Group.id, path.groupId), ...(context.isAdmin ? [] : [sql])),
     });
+    const [noConfirmed] = await db
+        .select({ id: Order.id })
+        .from(Order)
+        .innerJoin(Item, eq(Item.id, Order.itemId))
+        .where(and(eq(Item.groupId, path.groupId), eq(Order.userId, context.uid!), eq(Order.status, "PENDING")))
+        .limit(1);
     if (!data) {
         notFound();
     }
@@ -113,6 +120,17 @@ const Page = async ({ params, searchParams }: PageProps) => {
                         <Alert.Content>
                             <Alert.Title>团购截止时间为 {date(data.deadline)}</Alert.Title>
                             <Alert.Description>请在截止时间前完成选购，过后将无法进行选购操作。</Alert.Description>
+                        </Alert.Content>
+                    </Alert>
+                )}
+                {data.status == "CLOSED" && noConfirmed && (
+                    <Alert status="warning">
+                        <Alert.Indicator />
+                        <Alert.Content>
+                            <Alert.Title>请尽快确认订单</Alert.Title>
+                            <Alert.Description>
+                                若不及时确认订单，将会视作弃权处理。若信息有误，请及时联系管理员修改。
+                            </Alert.Description>
                         </Alert.Content>
                     </Alert>
                 )}
@@ -140,18 +158,26 @@ const Page = async ({ params, searchParams }: PageProps) => {
                     </div>
                 </Surface>
                 <Tabs selectedKey={currentTab} className="w-full gap-4">
-                    <Tabs.ListContainer className="w-fit max-w-full">
-                        <Tabs.List className="w-fit max-w-full *:w-fit *:whitespace-nowrap">
-                            <LinkTab href={`/groups/${data.id}?tab=buy`} id="buy">
-                                需求单
-                                <Tabs.Indicator />
-                            </LinkTab>
-                            <LinkTab href={`/groups/${data.id}?tab=track`} id="track">
-                                国际运单
-                                <Tabs.Indicator />
-                            </LinkTab>
-                        </Tabs.List>
-                    </Tabs.ListContainer>
+                    {data.status !== "PENDING" &&
+                        (!noConfirmed ? (
+                            <Tabs.ListContainer className="w-fit">
+                                <Tabs.List className="w-fit max-w-full *:w-fit *:whitespace-nowrap">
+                                    <LinkTab href={`/groups/${data.id}?tab=buy`} id="buy">
+                                        需求单
+                                        <Tabs.Indicator />
+                                    </LinkTab>
+                                    <LinkTab href={`/groups/${data.id}?tab=track`} id="track">
+                                        国际运单
+                                        <Tabs.Indicator />
+                                    </LinkTab>
+                                </Tabs.List>
+                            </Tabs.ListContainer>
+                        ) : (
+                            <div className="flex w-full justify-end">
+                                <GroupOrderConfirmModal data={data} />
+                            </div>
+                        ))
+                    }
                     <div className="w-full">
                         <Tabs.Panel className="p-0" id="buy">
                             <BuyPanel data={data} userId={context.uid!} {...search} />

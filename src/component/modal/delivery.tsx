@@ -2,10 +2,8 @@
 import React from "react";
 import {
     Button,
-    Card,
     Checkbox,
-    CheckboxGroup,
-    Description, EmptyState,
+    Description,
     FieldError,
     Input,
     Label,
@@ -18,15 +16,17 @@ import {
 } from "@heroui/react";
 import clsx from "clsx";
 import { useFilter } from "@/component/common/filter";
-import { ImagePreview } from "@/component/weight/image";
 import { DeliveryCompany as DeliveryCompanyEnum } from "@/service/db/schema";
-import {bindOrders, getAddresses, getSenderAddresses, pushDelivery, saveDelivery, withdrawDelivery } from "@/service/delivery";
-import { getOrders } from "@/service/order";
+import {
+    getAddresses,
+    getSenderAddresses,
+    pushDelivery,
+    saveDelivery,
+    withdrawDelivery,
+} from "@/service/delivery";
 import { AddressResult } from "@/type/address";
 import { ModalState } from "@/type/common";
 import { companyMap, DeliveryCompany, DeliveryResult, iconMap } from "@/type/delivery";
-import { OrderResult } from "@/type/order";
-import { currency } from "@/util/cover";
 import { useHttp } from "@/util/request";
 
 export const DeliveryModifyModal = ({ data }: { data: DeliveryResult }) => {
@@ -360,121 +360,6 @@ export const DeliveryWithdrawModal = ({ data, open, onChange }: ModalState<Deliv
                                     </Button>
                                 </div>
                             </form>
-                        </Modal.Body>
-                    </Modal.Dialog>
-                </Modal.Container>
-            </Modal.Backdrop>
-        </Modal>
-    );
-};
-
-export const GoodsModal = ({ data }: { data: DeliveryResult }) => {
-    const [orders, setOrders] = React.useState<OrderResult[]>([]);
-    const [open, setOpen] = React.useState(false);
-    const [isPending, runAction] = useHttp();
-    React.useEffect(() => {
-        getOrders({
-            userId: data.user.id,
-            notInDelivery: data.id,
-        }).then((result) => {
-            setOrders(result.items);
-        });
-    }, [data.id, data.user.id, open]);
-
-    const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        if (isPending) {
-            return;
-        }
-        const formData = new FormData(e.target);
-        const orderIds = formData.getAll("orderIds").map((id) => Number(id));
-        runAction(async () => {
-            await bindOrders(data.id, orderIds);
-            setOpen(false);
-        });
-    }
-
-    return (
-        <Modal isOpen={open} onOpenChange={setOpen}>
-            <Button>绑定订单</Button>
-            <Modal.Backdrop>
-                <Modal.Container placement="center" size="cover">
-                    <Modal.Dialog>
-                        <Modal.CloseTrigger />
-                        <Modal.Header>
-                            <Modal.Heading>绑定订单</Modal.Heading>
-                        </Modal.Header>
-                        <Modal.Body className="min-h-0 flex-1 p-2 flex flex-row items-center justify-center">
-                            {orders.length > 0 ? (
-                                <form className="flex h-full min-h-0 flex-col space-x-4" onSubmit={handleSubmit}>
-                                    <CheckboxGroup name="orderIds" className="min-h-0 flex-1">
-                                        <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                            {orders.map((item) => (
-                                                <Checkbox
-                                                    key={item.id}
-                                                    value={item.id.toString()}
-                                                    variant="secondary"
-                                                    className="mt-0"
-                                                >
-                                                    <Checkbox.Content className="w-full">
-                                                        <Card
-                                                            className="h-full min-w-0 transition-shadow hover:shadow-lg w-full items-center flex-row"
-                                                            variant="secondary"
-                                                        >
-                                                            <div className="relative shrink-0 overflow-hidden rounded-2xl h-30 w-30">
-                                                                <ImagePreview
-                                                                    alt={item.item.name}
-                                                                    src={
-                                                                        item.item.image ||
-                                                                        "https://static.250king.top/image/2026/04/i3f4xep2.png"
-                                                                    }
-                                                                    className="pointer-events-none h-full w-full scale-125 object-cover select-none"
-                                                                />
-                                                            </div>
-                                                            <div className="flex flex-1 flex-col gap-3 min-w-0">
-                                                                <div className="flex flex-row justify-between gap-1 min-w-0">
-                                                                    <Card.Header className="min-w-0 flex-1">
-                                                                        <div className="min-w-0 flex-1">
-                                                                            <Card.Title className="truncate">
-                                                                                {item.item.name}
-                                                                            </Card.Title>
-                                                                            <Card.Description>
-                                                                                #{item.id}
-                                                                            </Card.Description>
-                                                                        </div>
-                                                                    </Card.Header>
-                                                                    <Checkbox.Control className="shrink-0">
-                                                                        <Checkbox.Indicator />
-                                                                    </Checkbox.Control>
-                                                                </div>
-                                                                <Card.Content className="flex flex-1 flex-col gap-2">
-                                                                    <div className="text-foreground">
-                                                                        {item.item.group.name}
-                                                                    </div>
-                                                                    <div className="text-xl font-bold text-foreground">
-                                                                        {currency(item.item.price, "JPY")}
-                                                                        <span className="px-1 align-baseline text-xs font-medium text-muted">
-                                                                            × {item.count}
-                                                                        </span>
-                                                                    </div>
-                                                                </Card.Content>
-                                                            </div>
-                                                        </Card>
-                                                    </Checkbox.Content>
-                                                </Checkbox>
-                                            ))}
-                                        </div>
-                                    </CheckboxGroup>
-                                    <div className="flex flex-row justify-end gap-2">
-                                        <Button type="submit">提交</Button>
-                                    </div>
-                                </form>
-                            ) : (
-                                <EmptyState className="flex flex-col items-center gap-2">
-                                    <span className="icon-[ri--inbox-2-line] text-lg" />
-                                    <div className="text-sm text-muted">没有可用的订单</div>
-                                </EmptyState>
-                            )}
                         </Modal.Body>
                     </Modal.Dialog>
                 </Modal.Container>

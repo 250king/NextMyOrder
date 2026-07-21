@@ -39,3 +39,8 @@ export const orderQuery = query.extend({
     userId: z.int().positive().optional(),
     notInDelivery: z.int().positive().optional(),
 })
+
+export const changeCountSchema = z.object({
+    itemId: z.int().positive(),
+    count: z.int().nonnegative(),
+})

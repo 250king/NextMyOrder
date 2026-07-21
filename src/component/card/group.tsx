@@ -1,11 +1,12 @@
 "use client";
 import React from "react";
-import { Card, Chip, NumberField } from "@heroui/react";
+import { Card, Chip, NumberField, toast } from "@heroui/react";
 import { EnumFilter, SearchFilter, useFilter } from "@/component/common/filter";
 import { LinkButton } from "@/component/common/link";
 import { CardImage, ImagePreview } from "@/component/weight/image";
 import { Loading } from "@/component/weight/loading";
 import { Pagination } from "@/component/weight/pagination";
+import { changeCount } from "@/service/order";
 import { DataCardProps, Query } from "@/type/common";
 import { colorMap as groupColorMap, statusMap as groupStatusMap, GroupQuery, GroupResult } from "@/type/group";
 import { ItemResult } from "@/type/item";
@@ -18,6 +19,7 @@ import {
     TransitResult,
 } from "@/type/transit";
 import { currency } from "@/util/cover";
+import { getErrorMessage } from "@/util/request";
 
 export const GroupCard = ({ items, total, status, page, keyword }: DataCardProps<GroupQuery, GroupResult>) => {
     const [isPending, startTransition] = React.useTransition();
@@ -75,7 +77,9 @@ export const BuyCard = ({
     items,
     total,
     page,
-}: DataCardProps<Query, ItemResult & { selected: number; status: OrderStatus }> & { data: GroupResult }) => {
+}: DataCardProps<Query, ItemResult & { selected: number; status: OrderStatus; orderId: number }> & {
+    data: GroupResult;
+}) => {
     const [isPending, startTransition] = React.useTransition();
 
     return (
@@ -84,30 +88,25 @@ export const BuyCard = ({
             <p className="text-default-500 text-sm">共找到{total}条记录</p>
             <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {items.map((item) => (
-                    <Card
-                        key={item.id}
-                        className="h-full min-w-0 transition-shadow hover:shadow-lg w-full items-center flex-row"
-                    >
-                        <div className="relative shrink-0 overflow-hidden rounded-2xl h-30 w-30">
+                    <Card key={item.id} className="w-full items-stretch md:flex-row">
+                        <div className="relative h-35 w-full shrink-0 overflow-hidden rounded-2xl sm:h-30 sm:w-30">
                             <ImagePreview
                                 alt={item.name}
                                 src={item.image || "https://static.250king.top/image/2026/04/i3f4xep2.png"}
-                                className="pointer-events-none h-full w-full scale-125 object-cover select-none"
+                                className="h-full w-full scale-125 object-cover select-none"
                             />
                         </div>
-                        <div className="flex flex-1 flex-col gap-2 min-w-0">
-                            <Card.Header className="min-w-0 flex-1">
-                                <div className="min-w-0 flex-1 space-y-2">
-                                    <Card.Title className="truncate">{item.name}</Card.Title>
+                        <div className="flex min-w-0 flex-1 flex-col gap-3">
+                            <Card.Header className="gap-1">
+                                <Card.Title className="truncate">{item.name}</Card.Title>
+                                {item.orderId && (
                                     <div className="flex flex-row items-center justify-between gap-2">
                                         <Chip variant="primary" color={orderColorMap[item.status]}>
                                             {orderStatusMap[item.status]}
                                         </Chip>
-                                        {item.orderId && (
-                                            <div className="text-muted shrink-0 font-mono text-sm">#{item.orderId}</div>
-                                        )}
+                                        <div className="text-muted shrink-0 font-mono text-sm">#{item.orderId}</div>
                                     </div>
-                                </div>
+                                )}
                             </Card.Header>
                             <Card.Content className="flex flex-1 flex-col gap-2">
                                 <div className="text-xl font-bold">{currency(item.price, "JPY")}</div>
@@ -125,6 +124,17 @@ export const BuyCard = ({
                                     maxValue={99}
                                     formatOptions={{
                                         maximumFractionDigits: 0,
+                                    }}
+                                    onChange={async (value) => {
+                                        try {
+                                            await changeCount({
+                                                itemId: item.id,
+                                                count: value,
+                                            });
+                                        } catch (error) {
+                                            console.error(error);
+                                            toast.danger(getErrorMessage(error));
+                                        }
                                     }}
                                     name="count"
                                 >
