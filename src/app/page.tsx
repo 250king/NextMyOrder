@@ -2,10 +2,12 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 
-export default function Home() {
+const Page = () => {
     const router = useRouter();
 
     React.useEffect(() => {
-        router.replace("/payments")
+        router.replace("/groups")
     }, [router])
 }
+
+export default Page;

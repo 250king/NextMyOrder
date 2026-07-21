@@ -1,6 +1,6 @@
+import { LinkButton } from "@/component/common/link";
 import { Footer } from "@/component/layout/footer";
 import { Navbar } from "@/component/layout/navbar";
-import { LinkButton } from "@/component/navigation/button";
 import { getContext } from "@/util/context";
 
 const Page = async () => {

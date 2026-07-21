@@ -1,12 +1,19 @@
 import { createHash } from "crypto";
-import { notFound } from "next/navigation";
 import { NextRequest } from "next/server";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import { eq } from "drizzle-orm";
+import { queryResult } from "@/service/client/jdpay";
 import { db } from "@/service/db";
-import { payment } from "@/service/db/schema";
-import { queryResult } from "@/service/jdpay";
+import { Payment } from "@/service/db/schema";
 import { PaymentMethod } from "@/type/payment";
 import { env } from "@/util/env";
+
+dayjs.extend(customParseFormat);
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export const GET = async (req: NextRequest) => {
     const sign = req.headers.get("token");
@@ -14,21 +21,21 @@ export const GET = async (req: NextRequest) => {
     const str = `secretKey=${env.JD_SECRET}&timestamp=${timestamp}`;
     const hash = createHash("sha1").update(str).digest("hex").toUpperCase();
     if (hash !== sign) {
-        throw new Error("Invalid signature");
+        return Response.json({ error: "invalid sign" }, { status: 403 });
     }
-    const requestId = req.nextUrl.searchParams.get("requestId") || "";
-    const data = await db.query.payment.findFirst({
-        where: eq(payment.requestId, requestId),
+    const requestId = req.nextUrl.searchParams.get("requestNum") || "";
+    const payment = await db.query.Payment.findFirst({
+        where: eq(Payment.requestId, requestId),
     })
-    if (!data) {
-        return notFound()
+    if (!payment) {
+        return Response.json({ error: "payment not found" }, { status: 404 });
     }
     const result = await queryResult(requestId);
     let method: PaymentMethod;
-    switch (result.data.payWayEnum) {
+    switch (result.data.data.payWayEnum) {
         case "GUOTONG_PAY_ALIPAY":
         case "GUOTONG_PAY_ALIPAY_SCAN":
-            method = "ALIPAY"
+            method = "ALIPAY";
             break;
         case "GUOTONG_PAY_WX":
         case "GUOTONG_PAY_WX_SCAN":
@@ -43,11 +50,13 @@ export const GET = async (req: NextRequest) => {
             method = "JDPAY";
             break;
         default:
-            method = "CASH"
+            method = "CASH";
             break;
     }
-    await db.update(payment).set({
-        paidAt: result.data.data.completeTime,
+    await db.update(Payment).set({
+        paidAt: dayjs.tz(result.data.data.completeTime, "YYYY-MM-DD HH:mm:ss", "Asia/Shanghai").toDate(),
         method: method,
-    });
+    }).where(eq(Payment.id, payment.id));
+
+    return new Response(null, { status: 204 });
 };

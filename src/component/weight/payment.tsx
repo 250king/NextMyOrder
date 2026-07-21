@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import axios from "axios";
-import QRCode from "react-qr-code";
+import QRCode from "qrcode";
 import { PaymentResult } from "@/type/payment";
 
 type WeightProps = {
@@ -10,8 +10,21 @@ type WeightProps = {
 }
 
 export const PaymentWeight = ({url, data}: WeightProps) => {
+    const canvasRef = React.useRef<HTMLCanvasElement>(null);
     const [finished, setFinished] = React.useState(false);
     React.useEffect(() => {
+        if (!canvasRef.current) {
+            return;
+        }
+        void QRCode.toCanvas(canvasRef.current, url, {
+            errorCorrectionLevel: "M",
+            margin: 1,
+            width: 224,
+            color: {
+                dark: "#000000",
+                light: "#ffffff",
+            },
+        });
         const timer = setInterval(async () => {
             const result = await axios.get(`/api/payments/${data.id}`);
             if (result.data.finished) {
@@ -22,11 +35,11 @@ export const PaymentWeight = ({url, data}: WeightProps) => {
         return () => {
             clearInterval(timer);
         }
-    }, [data.id])
+    }, [url, data.id])
 
     return (
         <div className="relative size-64 overflow-hidden rounded-2xl bg-white p-4">
-            <QRCode className="size-full" value={url} />
+            <canvas ref={canvasRef} className="size-full" />
             {finished && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-white/95">
                     <div className="flex size-16 items-center justify-center rounded-full bg-success text-success-foreground">

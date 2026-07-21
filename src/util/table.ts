@@ -25,7 +25,7 @@ export const onSortChange = (
         params.set("order", nextOrder);
     }
     startTransition(() => {
-        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     })
 };
 
