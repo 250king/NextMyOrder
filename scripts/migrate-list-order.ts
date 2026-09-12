@@ -30,13 +30,13 @@ const preview = async () => {
     const tables = tableRows[0];
     const orders = orderRows[0];
 
-    console.log("List/order split migration");
+    console.log("List/order split + order snapshot migration");
     console.log(`List table: ${tables.list_exists ? "yes" : "no"}`);
     console.log(`Member table: ${tables.member_exists ? "yes" : "no"}`);
     console.log(`Legacy Demand table: ${tables.demand_exists ? "yes" : "no"}`);
     console.log(`Orders: ${orders.total}`);
     console.log(`Legacy pending orders to move to List only: ${orders.pending}`);
-    console.log(`Existing finalized orders to preserve: ${orders.finalized}`);
+    console.log(`Existing finalized orders to preserve and snapshot: ${orders.finalized}`);
 };
 
 const migrate = async () => {
@@ -99,9 +99,78 @@ const migrate = async () => {
               AND member."groupId" = finalized."groupId"
               AND member."finalizedAt" IS NULL
         `);
+
         const deleted = await client.query(`DELETE FROM "Order" WHERE "status" = 'PENDING'`);
+
+        await client.query(`
+            ALTER TABLE "Order"
+                ADD COLUMN IF NOT EXISTS "groupId" bigint,
+                ADD COLUMN IF NOT EXISTS "itemName" text,
+                ADD COLUMN IF NOT EXISTS "itemUrl" text,
+                ADD COLUMN IF NOT EXISTS "itemImage" text,
+                ADD COLUMN IF NOT EXISTS "itemPrice" numeric,
+                ADD COLUMN IF NOT EXISTS "itemWeight" numeric
+        `);
+
+        await client.query(`
+            UPDATE "Order" AS orders
+            SET
+                "groupId" = items."groupId",
+                "itemName" = items."name",
+                "itemUrl" = items."url",
+                "itemImage" = items."image",
+                "itemPrice" = items."price",
+                "itemWeight" = items."weight"
+            FROM "Item" AS items
+            WHERE items."id" = orders."itemId"
+              AND (
+                  orders."groupId" IS NULL
+                  OR orders."itemName" IS NULL
+                  OR orders."itemUrl" IS NULL
+                  OR orders."itemPrice" IS NULL
+              )
+        `);
+
+        const { rows: incompleteRows } = await client.query<{ count: string }>(`
+            SELECT count(*)::text AS count
+            FROM "Order"
+            WHERE "groupId" IS NULL
+               OR "itemName" IS NULL
+               OR "itemUrl" IS NULL
+               OR "itemPrice" IS NULL
+        `);
+
+        if (Number(incompleteRows[0]?.count ?? 0) > 0) {
+            throw new Error("Unable to backfill one or more order snapshots from Item");
+        }
+
+        await client.query(`
+            ALTER TABLE "Order"
+                ALTER COLUMN "groupId" SET NOT NULL,
+                ALTER COLUMN "itemName" SET NOT NULL,
+                ALTER COLUMN "itemUrl" SET NOT NULL,
+                ALTER COLUMN "itemPrice" SET NOT NULL
+        `);
+
+        await client.query(`
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1
+                    FROM pg_constraint
+                    WHERE conname = 'Order_groupId_Group_id_fk'
+                ) THEN
+                    ALTER TABLE "Order"
+                    ADD CONSTRAINT "Order_groupId_Group_id_fk"
+                    FOREIGN KEY ("groupId") REFERENCES "Group"("id");
+                END IF;
+            END
+            $$;
+        `);
+
         await client.query("COMMIT");
         console.log(`Migration completed. Removed ${deleted.rowCount ?? 0} legacy pending order row(s).`);
+        console.log("Existing finalized orders now carry immutable item snapshots.");
     } catch (error) {
         await client.query("ROLLBACK");
         throw error;
