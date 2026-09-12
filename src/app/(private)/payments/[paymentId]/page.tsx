@@ -6,8 +6,15 @@ import { LinkButton } from "@/component/common/link";
 import { LinkTab } from "@/component/common/tab";
 import { db } from "@/service/db";
 import { Payment } from "@/service/db/schema";
-import { colorMap, iconMap, methodMap } from "@/type/payment";
-//import { getContext } from "@/util/context";
+import {
+    colorMap,
+    iconMap,
+    methodMap,
+    referenceMap,
+    typeIconMap,
+    typeMap,
+} from "@/type/payment";
+import { getContext } from "@/util/context";
 import { currency, date } from "@/util/cover";
 
 type PageProps = {
@@ -22,11 +29,15 @@ type PageProps = {
 const Page = async ({ params, searchParams }: PageProps) => {
     const query = await params;
     const search = await searchParams;
-    //const context = await getContext();
+    const context = await getContext();
     const currentTab = search.tab === "refund" ? "refund" : "detail";
     const data = await db.query.Payment.findFirst({
-        where: and(eq(Payment.id, query.paymentId)),
+        where: and(eq(Payment.id, query.paymentId), eq(Payment.userId, context.uid!)),
+        with: {
+            items: true,
+        },
     });
+
     if (!data) {
         return notFound();
     }
@@ -35,7 +46,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
         <div className="container mx-auto p-6">
             <div className="flex flex-col gap-4">
                 <header className="flex flex-col gap-3">
-                    <h1 className="text-2xl font-bold">账单管理 #{data.id}</h1>
+                    <h1 className="text-2xl font-bold">账单 #{data.id}</h1>
                     <div className="flex flex-wrap items-center gap-2">
                         {data.paidAt ? (
                             <Chip variant="primary" color={colorMap[data.method!]}>
@@ -49,15 +60,17 @@ const Page = async ({ params, searchParams }: PageProps) => {
                         )}
                     </div>
                 </header>
+
                 {!data.paidAt && (
                     <Alert status="warning">
                         <Alert.Indicator />
                         <Alert.Content>
                             <Alert.Title>当前账单未付款</Alert.Title>
-                            <Alert.Description>请尽快确认账单是否无误并完成付款，以免影响下一步交易</Alert.Description>
+                            <Alert.Description>请确认下方各项费用无误后完成付款。</Alert.Description>
                         </Alert.Content>
                     </Alert>
                 )}
+
                 <Surface className="rounded-3xl p-4 shadow-sm">
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         <h2 className="text-base font-semibold">基础信息</h2>
@@ -74,14 +87,10 @@ const Page = async ({ params, searchParams }: PageProps) => {
                         )}
                     </div>
                     <div className="mt-4 grid gap-4 text-sm md:grid-cols-3">
-                        {data.currency != "CNY" && (
-                            <div className="min-w-0">
-                                <div className="text-muted">汇率</div>
-                                <div className="font-medium">
-                                    1 {data.currency} = {data.currencyRate} CNY
-                                </div>
-                            </div>
-                        )}
+                        <div className="min-w-0">
+                            <div className="text-muted">收款项</div>
+                            <div className="font-medium">{data.items.length} 项</div>
+                        </div>
                         <div className="min-w-0">
                             <div className="text-muted">创建时间</div>
                             <div className="font-medium">{date(data.createdAt)}</div>
@@ -97,18 +106,12 @@ const Page = async ({ params, searchParams }: PageProps) => {
                             <div className="font-medium">{data.comment || "-"}</div>
                         </div>
                         <div className="min-w-0">
-                            <div className="text-muted">总金额</div>
-                            <div className="text-xl font-bold">
-                                {currency(data.amount, data.currency)}
-                                {data.currency != "CNY" && (
-                                    <span className="px-1 align-baseline text-xs font-medium text-muted">
-                                        ≈ {currency(data.amount * data.currencyRate, "CNY")}
-                                    </span>
-                                )}
-                            </div>
+                            <div className="text-muted">应付金额</div>
+                            <div className="text-xl font-bold">{currency(data.amount, data.currency)}</div>
                         </div>
                     </div>
                 </Surface>
+
                 <Tabs selectedKey={currentTab} className="w-full">
                     <Tabs.ListContainer className="w-fit max-w-full">
                         <Tabs.List className="w-fit max-w-full *:w-fit *:whitespace-nowrap">
@@ -124,7 +127,54 @@ const Page = async ({ params, searchParams }: PageProps) => {
                     </Tabs.ListContainer>
                     <div className="w-full">
                         <Tabs.Panel className="pt-4" id="detail">
-                            <div className="min-h-48 rounded-lg border border-dashed border-separator p-6" />
+                            {data.items.length === 0 ? (
+                                <div className="py-10 text-center text-sm text-muted">暂无收款明细</div>
+                            ) : (
+                                <div>
+                                    {data.items.map((item) => (
+                                        <div
+                                            key={item.id}
+                                            className="flex flex-col gap-3 border-b border-separator py-4 first:pt-0 last:border-b-0 last:pb-0 sm:flex-row sm:items-start sm:justify-between"
+                                        >
+                                            <div className="min-w-0 space-y-2">
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <Chip variant="primary">
+                                                        <span className={typeIconMap[item.type]} />
+                                                        <Chip.Label>{typeMap[item.type]}</Chip.Label>
+                                                    </Chip>
+                                                    <span className="text-muted font-mono text-xs">
+                                                        {referenceMap[item.type]} #{item.refId}
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <div className="font-medium">{item.name}</div>
+                                                    {item.description && (
+                                                        <div className="mt-1 text-sm text-muted">{item.description}</div>
+                                                    )}
+                                                </div>
+                                                <div className="text-sm text-muted">
+                                                    {currency(item.price, item.currency)} × {item.count} {item.unit}
+                                                    {item.currency !== data.currency && (
+                                                        <span className="ml-2">
+                                                            · 1 {item.currency} = {item.currencyRate} {data.currency}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="shrink-0 sm:text-right">
+                                                {item.currency !== data.currency && (
+                                                    <div className="text-sm text-muted">
+                                                        {currency(item.total, item.currency)}
+                                                    </div>
+                                                )}
+                                                <div className="text-lg font-semibold">
+                                                    {currency(item.settledTotal, data.currency)}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </Tabs.Panel>
                         <Tabs.Panel className="pt-4" id="refund">
                             <div className="min-h-48 rounded-lg border border-dashed border-separator p-6" />
