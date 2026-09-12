@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Chip, Surface } from "@heroui/react";
 import { and, eq } from "drizzle-orm";
@@ -50,9 +51,9 @@ const Page = async ({ params }: PageProps) => {
                         </div>
                         <div className="min-w-0">
                             <div className="text-muted">团购</div>
-                            <LinkButton href={`/groups/${data.groupId}`} variant="ghost" className="h-auto p-0 font-medium">
+                            <Link href={`/groups/${data.groupId}`} className="font-medium text-focus hover:underline">
                                 #{data.groupId}
-                            </LinkButton>
+                            </Link>
                         </div>
                         <div className="min-w-0">
                             <div className="text-muted">单价</div>
@@ -70,13 +71,12 @@ const Page = async ({ params }: PageProps) => {
                             <div className="text-muted">国际运单</div>
                             <div className="font-medium">
                                 {data.transitId ? (
-                                    <LinkButton
+                                    <Link
                                         href={`/groups/${data.groupId}/transit/${data.transitId}`}
-                                        variant="ghost"
-                                        className="h-auto p-0 font-medium"
+                                        className="text-focus hover:underline"
                                     >
                                         #{data.transitId}
-                                    </LinkButton>
+                                    </Link>
                                 ) : (
                                     "-"
                                 )}
