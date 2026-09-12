@@ -2,20 +2,22 @@
 import React from "react";
 import axios from "axios";
 import QRCode from "qrcode";
-import { PaymentResult } from "@/type/payment";
+import { Payment } from "@/service/db/schema";
 
 type WeightProps = {
-    url: string,
-    data: Omit<PaymentResult, "user">
-}
+    url: string;
+    data: typeof Payment.$inferSelect;
+};
 
-export const PaymentWeight = ({url, data}: WeightProps) => {
+export const PaymentWeight = ({ url, data }: WeightProps) => {
     const canvasRef = React.useRef<HTMLCanvasElement>(null);
     const [finished, setFinished] = React.useState(false);
+
     React.useEffect(() => {
         if (!canvasRef.current) {
             return;
         }
+
         void QRCode.toCanvas(canvasRef.current, url, {
             errorCorrectionLevel: "M",
             margin: 1,
@@ -25,17 +27,19 @@ export const PaymentWeight = ({url, data}: WeightProps) => {
                 light: "#ffffff",
             },
         });
+
         const timer = setInterval(async () => {
             const result = await axios.get(`/api/payments/${data.id}`);
             if (result.data.finished) {
                 clearInterval(timer);
                 setFinished(true);
             }
-        }, 2000)
+        }, 2000);
+
         return () => {
             clearInterval(timer);
-        }
-    }, [url, data.id])
+        };
+    }, [url, data.id]);
 
     return (
         <div className="relative size-64 overflow-hidden rounded-2xl bg-white p-4">
@@ -50,4 +54,4 @@ export const PaymentWeight = ({url, data}: WeightProps) => {
             )}
         </div>
     );
-}
+};
