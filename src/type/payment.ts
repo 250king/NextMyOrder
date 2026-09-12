@@ -1,4 +1,4 @@
-import {
+import type {
     Payment,
     PaymentItem,
     PaymentMethod as PaymentMethodEnum,
@@ -8,6 +8,7 @@ import { Query } from "@/type/common";
 
 export type PaymentMethod = (typeof PaymentMethodEnum.enumValues)[number];
 export type PaymentType = (typeof PaymentTypeEnum.enumValues)[number];
+export type PaymentRow = typeof Payment.$inferSelect;
 export type PaymentItemResult = typeof PaymentItem.$inferSelect;
 
 export type PaymentQuery = Query<{
@@ -16,7 +17,7 @@ export type PaymentQuery = Query<{
     isPaid?: string;
 }>;
 
-export type PaymentResult = typeof Payment.$inferSelect & {
+export type PaymentResult = PaymentRow & {
     items: PaymentItemResult[];
 };
 
