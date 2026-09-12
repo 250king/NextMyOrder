@@ -1,5 +1,4 @@
 import { Order, OrderStatus } from "@/service/db/schema";
-import { ItemResult } from "@/type/item";
 import { TransitResult } from "@/type/transit";
 import { UserResult } from "@/type/user";
 
@@ -27,11 +26,9 @@ export const colorMap: Record<OrderStatus, "default" | "success" | "warning" | "
     CANCELED: "warning",
 };
 
-export type OrderWithItemResult = typeof Order.$inferSelect & {
-    item: ItemResult;
-};
+export type OrderSnapshotResult = typeof Order.$inferSelect;
 
-export type OrderResult = OrderWithItemResult & {
+export type OrderResult = OrderSnapshotResult & {
     user: UserResult;
     transit: TransitResult | null;
 };
