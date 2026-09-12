@@ -27,7 +27,6 @@ const GoodsPanel = async ({ data, ...query }: PanelProps<DeliveryResult> & Query
                     with: {
                         user: true,
                         transit: true,
-                        item: { with: { group: true } },
                     },
                 },
             },
