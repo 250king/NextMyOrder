@@ -1,4 +1,4 @@
-import type {
+import {
     Payment,
     PaymentItem,
     PaymentMethod as PaymentMethodEnum,
