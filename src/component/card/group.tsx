@@ -13,7 +13,7 @@ import { ItemResult } from "@/type/item";
 import {
     statusMap as orderStatusMap,
     colorMap as orderColorMap,
-    OrderWithItemResult,
+    OrderSnapshotResult,
 } from "@/type/order";
 import {
     statusMap as transitStatusMap,
@@ -162,7 +162,7 @@ export const OrderCard = ({
     items,
     total,
     page,
-}: DataCardProps<Query, OrderWithItemResult>) => {
+}: DataCardProps<Query, OrderSnapshotResult>) => {
     const [isPending, startTransition] = React.useTransition();
 
     return (
@@ -174,14 +174,14 @@ export const OrderCard = ({
                     <Card key={order.id} className="w-full items-stretch md:flex-row">
                         <div className="relative h-35 w-full shrink-0 overflow-hidden rounded-2xl sm:h-30 sm:w-30">
                             <ImagePreview
-                                alt={order.item.name}
-                                src={order.item.image || "https://static.250king.top/image/2026/04/i3f4xep2.png"}
+                                alt={order.itemName}
+                                src={order.itemImage || "https://static.250king.top/image/2026/04/i3f4xep2.png"}
                                 className="h-full w-full scale-125 object-cover select-none"
                             />
                         </div>
                         <div className="flex min-w-0 flex-1 flex-col gap-3">
                             <Card.Header className="gap-1">
-                                <Card.Title className="truncate">{order.item.name}</Card.Title>
+                                <Card.Title className="truncate">{order.itemName}</Card.Title>
                                 <div className="flex flex-row items-center justify-between gap-2">
                                     <Chip variant="primary" color={orderColorMap[order.status]}>
                                         {orderStatusMap[order.status]}
@@ -190,11 +190,11 @@ export const OrderCard = ({
                                 </div>
                             </Card.Header>
                             <Card.Content className="flex flex-1 flex-col gap-1">
-                                <div className="text-xl font-bold">{currency(order.item.price, "JPY")}</div>
+                                <div className="text-xl font-bold">{currency(order.itemPrice, "JPY")}</div>
                                 <div className="text-muted text-sm">数量 × {order.count}</div>
                             </Card.Content>
                             <Card.Footer className="mt-auto flex w-full justify-end gap-2">
-                                <LinkButton href={order.item.url} variant="secondary" isIconOnly>
+                                <LinkButton href={order.itemUrl} variant="secondary" isIconOnly>
                                     <span className="icon-[ri--external-link-line]" />
                                 </LinkButton>
                             </Card.Footer>
