@@ -1,20 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, desc, eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/service/db";
 import { Address, Delivery } from "@/service/db/schema";
 import { deliveryDetailSchema } from "@/type/delivery";
 import { getContext } from "@/util/context";
-
-export const getAddresses = async () => {
-    const context = await getContext();
-    return db.query.Address.findMany({
-        where: eq(Address.userId, context.uid!),
-        orderBy: [desc(Address.id)],
-    });
-};
 
 export const saveDelivery = async (params: z.infer<typeof deliveryDetailSchema>) => {
     const context = await getContext();

@@ -4,8 +4,9 @@ import React from "react";
 import { Button, Description, FieldError, Label, Modal, Radio, RadioGroup } from "@heroui/react";
 import clsx from "clsx";
 import { LinkButton } from "@/component/common/link";
+import { getAddresses } from "@/service/address";
 import { DeliveryCompany as DeliveryCompanyEnum } from "@/service/db/schema";
-import { getAddresses, saveDelivery } from "@/service/delivery";
+import { saveDelivery } from "@/service/delivery";
 import { AddressResult } from "@/type/address";
 import { companyMap, DeliveryCompany, DeliveryResult, iconMap } from "@/type/delivery";
 import { useHttp } from "@/util/request";
@@ -36,10 +37,13 @@ export const DeliveryModifyModal = ({ data }: { data: DeliveryResult }) => {
         const form = new FormData(event.currentTarget);
         const addressId = Number(form.get("addressId"));
         const company = (form.get("company") as DeliveryCompany | null) || null;
-        runAction(async () => {
-            await saveDelivery({ deliveryId: data.id, addressId, company });
-            setOpen(false);
-        }, { success: "分发信息已更新" });
+        runAction(
+            async () => {
+                await saveDelivery({ deliveryId: data.id, addressId, company });
+                setOpen(false);
+            },
+            { success: "分发信息已更新" }
+        );
     };
 
     return (
@@ -52,7 +56,9 @@ export const DeliveryModifyModal = ({ data }: { data: DeliveryResult }) => {
                 <Modal.Container placement="center" scroll="outside" size="lg">
                     <Modal.Dialog>
                         <Modal.CloseTrigger />
-                        <Modal.Header><Modal.Heading>修改分发信息</Modal.Heading></Modal.Header>
+                        <Modal.Header>
+                            <Modal.Heading>修改分发信息</Modal.Heading>
+                        </Modal.Header>
                         <Modal.Body className="p-2">
                             {addresses.length === 0 ? (
                                 <div className="flex flex-col items-start gap-3 py-4">
@@ -60,7 +66,9 @@ export const DeliveryModifyModal = ({ data }: { data: DeliveryResult }) => {
                                         <div className="font-medium">地址簿暂无可用地址</div>
                                         <div className="text-muted mt-1 text-sm">先添加一个常用地址，再回来选择。</div>
                                     </div>
-                                    <LinkButton href="/addresses" variant="secondary">前往地址簿</LinkButton>
+                                    <LinkButton href="/addresses" variant="secondary">
+                                        前往地址簿
+                                    </LinkButton>
                                 </div>
                             ) : (
                                 <form className="space-y-4" onSubmit={handleSubmit}>
@@ -127,7 +135,9 @@ export const DeliveryModifyModal = ({ data }: { data: DeliveryResult }) => {
                                         </div>
                                     </RadioGroup>
                                     <div className="flex justify-end">
-                                        <Button type="submit" isPending={isPending}>保存</Button>
+                                        <Button type="submit" isPending={isPending}>
+                                            保存
+                                        </Button>
                                     </div>
                                 </form>
                             )}
