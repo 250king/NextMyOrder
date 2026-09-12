@@ -49,14 +49,10 @@ const ListPanel = async ({ data, userId, ...query }: PanelProps<GroupResult> & Q
 
 const OrderPanel = async ({ data, userId, ...query }: PanelProps<GroupResult> & Query) => {
     const pagination = toPagination(query);
-    const belongsToGroup = exists(
-        db.select({ id: Item.id }).from(Item).where(and(eq(Item.id, Order.itemId), eq(Item.groupId, data.id)))
-    );
-    const filters = and(eq(Order.userId, userId), belongsToGroup);
+    const filters = and(eq(Order.userId, userId), eq(Order.groupId, data.id));
     const [items, total] = await Promise.all([
         db.query.Order.findMany({
             where: filters,
-            with: { item: true },
             ...pagination,
         }),
         db.$count(Order, filters),
@@ -71,8 +67,7 @@ const TransitPanel = async ({ data, userId, ...query }: PanelProps<GroupResult> 
         db
             .select({ id: Order.id })
             .from(Order)
-            .innerJoin(Item, eq(Item.id, Order.itemId))
-            .where(and(eq(Order.transitId, Transit.id), eq(Order.userId, userId), eq(Item.groupId, data.id)))
+            .where(and(eq(Order.transitId, Transit.id), eq(Order.userId, userId), eq(Order.groupId, data.id)))
     );
     const [items, total] = await Promise.all([
         db.select().from(Transit).where(hasCurrentUserOrder).limit(pagination.limit).offset(pagination.offset),
