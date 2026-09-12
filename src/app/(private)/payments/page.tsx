@@ -1,7 +1,7 @@
-import { and, eq, isNotNull, isNull, type SQL } from "drizzle-orm";
+import { and, eq, exists, isNotNull, isNull, type SQL } from "drizzle-orm";
 import { PaymentCard } from "@/component/card/payment";
 import { db } from "@/service/db";
-import { Payment } from "@/service/db/schema";
+import { Payment, PaymentItem } from "@/service/db/schema";
 import { PaymentQuery } from "@/type/payment";
 import { getContext } from "@/util/context";
 import { toPagination } from "@/util/cover";
@@ -14,27 +14,36 @@ const Page = async ({ searchParams }: PageProps) => {
     const query = await searchParams;
     const context = await getContext();
     const pagination = toPagination(query);
-    const filters: SQL[] = [];
-    filters.push(eq(Payment.userId, context.uid!));
+    const filters: SQL[] = [eq(Payment.userId, context.uid!)];
+
     if (query.method) {
         filters.push(eq(Payment.method, query.method));
     }
     if (query.type) {
-        filters.push(eq(Payment.type, query.type));
+        filters.push(
+            exists(
+                db
+                    .select({ id: PaymentItem.id })
+                    .from(PaymentItem)
+                    .where(and(eq(PaymentItem.paymentId, Payment.id), eq(PaymentItem.type, query.type)))
+            )
+        );
     }
     if (query.isPaid != undefined) {
-        filters.push(query.isPaid === "true"? isNotNull(Payment.paidAt) : isNull(Payment.paidAt));
+        filters.push(query.isPaid === "true" ? isNotNull(Payment.paidAt) : isNull(Payment.paidAt));
     }
+
+    const where = and(...filters);
     const [items, total] = await Promise.all([
         db.query.Payment.findMany({
-            where: and(...filters),
+            where,
             with: {
-                user: true,
+                items: true,
             },
             ...pagination,
             orderBy: (payment, { desc }) => [desc(payment.createdAt)],
         }),
-        db.$count(Payment, and(...filters)),
+        db.$count(Payment, where),
     ]);
 
     return (
