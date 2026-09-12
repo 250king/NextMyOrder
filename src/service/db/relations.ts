@@ -3,9 +3,10 @@ import {
     Address,
     Delivery,
     DeliveryToOrder,
+    Demand,
     Group,
     Item,
-    List,
+    Member,
     Order,
     Payment,
     PaymentItem,
@@ -15,24 +16,25 @@ import {
     User,
 } from "./schema";
 
-export const listRelations = relations(List, ({ one }) => ({
+export const memberRelations = relations(Member, ({ one }) => ({
     group: one(Group, {
-        fields: [List.groupId],
+        fields: [Member.groupId],
         references: [Group.id],
     }),
     user: one(User, {
-        fields: [List.userId],
+        fields: [Member.userId],
         references: [User.id],
     }),
 }));
 
 export const groupRelations = relations(Group, ({ many }) => ({
-    lists: many(List),
+    members: many(Member),
     items: many(Item),
 }));
 
 export const userRelations = relations(User, ({ many }) => ({
-    lists: many(List),
+    memberships: many(Member),
+    demands: many(Demand),
     orders: many(Order),
     deliveries: many(Delivery),
     payments: many(Payment),
@@ -44,7 +46,19 @@ export const itemRelations = relations(Item, ({ one, many }) => ({
         fields: [Item.groupId],
         references: [Group.id],
     }),
+    demands: many(Demand),
     orders: many(Order),
+}));
+
+export const demandRelations = relations(Demand, ({ one }) => ({
+    user: one(User, {
+        fields: [Demand.userId],
+        references: [User.id],
+    }),
+    item: one(Item, {
+        fields: [Demand.itemId],
+        references: [Item.id],
+    }),
 }));
 
 export const orderRelations = relations(Order, ({ one, many }) => ({

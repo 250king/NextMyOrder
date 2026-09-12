@@ -5,7 +5,7 @@ import { ItemResult } from "@/type/item";
 import { TransitResult } from "@/type/transit";
 import { UserResult } from "@/type/user";
 
-export type OrderStatus = (typeof OrderStatus.enumValues)[number]
+export type OrderStatus = (typeof OrderStatus.enumValues)[number];
 
 export const statusMap: Record<OrderStatus, string> = {
     PENDING: "待处理",
@@ -15,8 +15,8 @@ export const statusMap: Record<OrderStatus, string> = {
     ARRIVED: "已抵达仓库",
     DELIVERING: "已发出",
     COMPLETED: "已完成",
-    CANCELED: "已取消"
-}
+    CANCELED: "已取消",
+};
 
 export const colorMap: Record<OrderStatus, "default" | "success" | "warning" | "accent"> = {
     PENDING: "default",
@@ -29,18 +29,16 @@ export const colorMap: Record<OrderStatus, "default" | "success" | "warning" | "
     CANCELED: "warning",
 };
 
-export type OrderResult = typeof Order.$inferSelect & {
-    user: UserResult;
+export type OrderWithItemResult = typeof Order.$inferSelect & {
     item: ItemResult;
+};
+
+export type OrderResult = OrderWithItemResult & {
+    user: UserResult;
     transit: TransitResult | null;
-}
+};
 
 export const orderQuery = query.extend({
     userId: z.int().positive().optional(),
     notInDelivery: z.int().positive().optional(),
-})
-
-export const changeCountSchema = z.object({
-    itemId: z.int().positive(),
-    count: z.int().nonnegative(),
-})
+});

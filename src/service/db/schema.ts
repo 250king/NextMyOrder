@@ -57,14 +57,15 @@ export const Group = pgTable(
     (table) => [uniqueIndex().using("btree", table.name, table.qq)]
 );
 
-export const List = pgTable(
-    "List",
+export const Member = pgTable(
+    "Member",
     {
         userId: bigint({ mode: "number" }).notNull().references(() => User.id),
         groupId: bigint({ mode: "number" }).notNull().references(() => Group.id),
         joinedAt: timestamp({ mode: "date" })
             .default(sql`CURRENT_TIMESTAMP`)
             .notNull(),
+        finalizedAt: timestamp({ mode: "date" }),
     },
     (table) => [
         primaryKey({
@@ -94,6 +95,27 @@ export const Item = pgTable(
     },
     (table) => [
         uniqueIndex().using("btree", table.groupId, table.url, table.name, table.price),
+    ]
+);
+
+export const Demand = pgTable(
+    "Demand",
+    {
+        userId: bigint({ mode: "number" }).notNull().references(() => User.id),
+        itemId: bigint({ mode: "number" }).notNull().references(() => Item.id),
+        count: integer().default(1).notNull(),
+        createdAt: timestamp({ mode: "date" })
+            .default(sql`CURRENT_TIMESTAMP`)
+            .notNull(),
+        updatedAt: timestamp({ mode: "date" })
+            .default(sql`CURRENT_TIMESTAMP`)
+            .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
+            .notNull(),
+    },
+    (table) => [
+        primaryKey({
+            columns: [table.userId, table.itemId],
+        }),
     ]
 );
 

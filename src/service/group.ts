@@ -1,9 +1,9 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNotNull } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/service/db";
-import { Group, Item, List, Order } from "@/service/db/schema";
+import { Demand, Group, Item, Member, Order } from "@/service/db/schema";
 import { groupCreateSchema, groupDetailSchema } from "@/type/group";
 import { getContext } from "@/util/context";
 
@@ -49,32 +49,82 @@ export const changeGroupLock = async (params: number) => {
     if (data.status === "COMPLETED") {
         throw new Error("当前状态无法修改");
     }
+
+    if (data.status === "CLOSED") {
+        const finalized = await db.query.Member.findFirst({
+            where: and(eq(Member.groupId, id), isNotNull(Member.finalizedAt)),
+        });
+        if (finalized) {
+            throw new Error("已有成员生成订单，无法重新开放团购");
+        }
+    }
+
     await db
         .update(Group)
         .set({ status: data.status === "PENDING" ? "CLOSED" : "PENDING" })
         .where(eq(Group.id, id));
 };
 
-export const confirmGroupOrder = async (params: number) => {
+export const finalizeGroupDemand = async (params: number) => {
     const context = await getContext();
     const groupId = z.int().positive().parse(params);
 
-    const existed = await db.query.List.findFirst({
-        where: and(eq(List.userId, context.uid!), eq(List.groupId, groupId)),
+    await db.transaction(async (tx) => {
+        const [member] = await tx
+            .select({
+                userId: Member.userId,
+                finalizedAt: Member.finalizedAt,
+                groupStatus: Group.status,
+            })
+            .from(Member)
+            .innerJoin(Group, eq(Group.id, Member.groupId))
+            .where(and(eq(Member.userId, context.uid!), eq(Member.groupId, groupId)))
+            .for("update");
+
+        if (!member) {
+            throw new Error("团购不存在");
+        }
+        if (member.groupStatus !== "CLOSED") {
+            throw new Error("当前团购尚未进入确认阶段");
+        }
+        if (member.finalizedAt) {
+            return;
+        }
+
+        const existed = await tx
+            .select({ id: Order.id })
+            .from(Order)
+            .innerJoin(Item, eq(Item.id, Order.itemId))
+            .where(and(eq(Order.userId, context.uid!), eq(Item.groupId, groupId)))
+            .limit(1);
+
+        if (existed.length > 0) {
+            throw new Error("检测到已存在订单，请联系管理员处理");
+        }
+
+        const demands = await tx
+            .select({
+                itemId: Demand.itemId,
+                count: Demand.count,
+            })
+            .from(Demand)
+            .innerJoin(Item, eq(Item.id, Demand.itemId))
+            .where(and(eq(Demand.userId, context.uid!), eq(Item.groupId, groupId)));
+
+        if (demands.length > 0) {
+            await tx.insert(Order).values(
+                demands.map((demand) => ({
+                    userId: context.uid!,
+                    itemId: demand.itemId,
+                    count: demand.count,
+                    status: "CONFIRMED" as const,
+                }))
+            );
+        }
+
+        await tx
+            .update(Member)
+            .set({ finalizedAt: new Date() })
+            .where(and(eq(Member.userId, context.uid!), eq(Member.groupId, groupId)));
     });
-    if (!existed) {
-        throw new Error("团购不存在");
-    }
-    await db
-        .update(Order)
-        .set({ status: "CONFIRMED" })
-        .from(Item)
-        .where(
-            and(
-                eq(Order.itemId, Item.id),
-                eq(Item.groupId, groupId),
-                eq(Order.userId, context.uid!),
-                eq(Order.status, "PENDING")
-            )
-        );
 };

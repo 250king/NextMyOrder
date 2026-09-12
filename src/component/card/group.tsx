@@ -6,11 +6,15 @@ import { LinkButton } from "@/component/common/link";
 import { CardImage, ImagePreview } from "@/component/weight/image";
 import { Loading } from "@/component/weight/loading";
 import { Pagination } from "@/component/weight/pagination";
-import { changeCount } from "@/service/order";
+import { changeDemandCount } from "@/service/demand";
 import { DataCardProps, Query } from "@/type/common";
 import { colorMap as groupColorMap, statusMap as groupStatusMap, GroupQuery, GroupResult } from "@/type/group";
 import { ItemResult } from "@/type/item";
-import { statusMap as orderStatusMap, colorMap as orderColorMap, type OrderStatus } from "@/type/order";
+import {
+    statusMap as orderStatusMap,
+    colorMap as orderColorMap,
+    OrderWithItemResult,
+} from "@/type/order";
 import {
     statusMap as transitStatusMap,
     colorMap as transitColorMap,
@@ -72,20 +76,23 @@ export const GroupCard = ({ items, total, status, page, keyword }: DataCardProps
     );
 };
 
-export const BuyCard = ({
+export const DemandCard = ({
     data,
     items,
     total,
     page,
-}: DataCardProps<Query, ItemResult & { selected: number; status: OrderStatus; orderId: number }> & {
+}: DataCardProps<Query, ItemResult & { selected: number }> & {
     data: GroupResult;
 }) => {
     const [isPending, startTransition] = React.useTransition();
+    const isEditable = data.status === "PENDING";
 
     return (
         <div className="relative flex flex-col gap-4">
             {isPending && <Loading />}
-            <p className="text-default-500 text-sm">共找到{total}条记录</p>
+            <p className="text-default-500 text-sm">
+                {isEditable ? `共找到${total}件可选商品` : `当前需求共${total}项`}
+            </p>
             <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {items.map((item) => (
                     <Card key={item.id} className="w-full items-stretch md:flex-row">
@@ -99,51 +106,97 @@ export const BuyCard = ({
                         <div className="flex min-w-0 flex-1 flex-col gap-3">
                             <Card.Header className="gap-1">
                                 <Card.Title className="truncate">{item.name}</Card.Title>
-                                {item.orderId && (
-                                    <div className="flex flex-row items-center justify-between gap-2">
-                                        <Chip variant="primary" color={orderColorMap[item.status]}>
-                                            {orderStatusMap[item.status]}
-                                        </Chip>
-                                        <div className="text-muted shrink-0 font-mono text-sm">#{item.orderId}</div>
-                                    </div>
-                                )}
                             </Card.Header>
                             <Card.Content className="flex flex-1 flex-col gap-2">
                                 <div className="text-xl font-bold">{currency(item.price, "JPY")}</div>
                             </Card.Content>
-                            <Card.Footer className="mt-auto flex w-full justify-end gap-2">
+                            <Card.Footer className="mt-auto flex w-full items-center justify-end gap-2">
                                 <LinkButton href={item.url} variant="secondary" isIconOnly>
                                     <span className="icon-[ri--external-link-line]" />
                                 </LinkButton>
-                                <NumberField
-                                    variant="secondary"
-                                    className="w-32"
-                                    isDisabled={data.status !== "PENDING"}
-                                    defaultValue={item.selected ?? 0}
-                                    minValue={0}
-                                    maxValue={99}
-                                    formatOptions={{
-                                        maximumFractionDigits: 0,
-                                    }}
-                                    onChange={async (value) => {
-                                        try {
-                                            await changeCount({
-                                                itemId: item.id,
-                                                count: value,
-                                            });
-                                        } catch (error) {
-                                            console.error(error);
-                                            toast.danger(getErrorMessage(error));
-                                        }
-                                    }}
-                                    name="count"
-                                >
-                                    <NumberField.Group>
-                                        <NumberField.DecrementButton />
-                                        <NumberField.Input />
-                                        <NumberField.IncrementButton />
-                                    </NumberField.Group>
-                                </NumberField>
+                                {isEditable ? (
+                                    <NumberField
+                                        variant="secondary"
+                                        className="w-32"
+                                        defaultValue={item.selected ?? 0}
+                                        minValue={0}
+                                        maxValue={99}
+                                        formatOptions={{
+                                            maximumFractionDigits: 0,
+                                        }}
+                                        onChange={async (value) => {
+                                            try {
+                                                await changeDemandCount({
+                                                    itemId: item.id,
+                                                    count: value,
+                                                });
+                                            } catch (error) {
+                                                console.error(error);
+                                                toast.danger(getErrorMessage(error));
+                                            }
+                                        }}
+                                        name="count"
+                                    >
+                                        <NumberField.Group>
+                                            <NumberField.DecrementButton />
+                                            <NumberField.Input />
+                                            <NumberField.IncrementButton />
+                                        </NumberField.Group>
+                                    </NumberField>
+                                ) : (
+                                    <div className="text-muted text-sm">
+                                        数量 <span className="font-semibold">× {item.selected}</span>
+                                    </div>
+                                )}
+                            </Card.Footer>
+                        </div>
+                    </Card>
+                ))}
+            </div>
+            <Pagination startTransition={startTransition} total={total} page={page} />
+        </div>
+    );
+};
+
+export const OrderCard = ({
+    items,
+    total,
+    page,
+}: DataCardProps<Query, OrderWithItemResult>) => {
+    const [isPending, startTransition] = React.useTransition();
+
+    return (
+        <div className="relative flex flex-col gap-4">
+            {isPending && <Loading />}
+            <p className="text-default-500 text-sm">共生成{total}条订单</p>
+            <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {items.map((order) => (
+                    <Card key={order.id} className="w-full items-stretch md:flex-row">
+                        <div className="relative h-35 w-full shrink-0 overflow-hidden rounded-2xl sm:h-30 sm:w-30">
+                            <ImagePreview
+                                alt={order.item.name}
+                                src={order.item.image || "https://static.250king.top/image/2026/04/i3f4xep2.png"}
+                                className="h-full w-full scale-125 object-cover select-none"
+                            />
+                        </div>
+                        <div className="flex min-w-0 flex-1 flex-col gap-3">
+                            <Card.Header className="gap-1">
+                                <Card.Title className="truncate">{order.item.name}</Card.Title>
+                                <div className="flex flex-row items-center justify-between gap-2">
+                                    <Chip variant="primary" color={orderColorMap[order.status]}>
+                                        {orderStatusMap[order.status]}
+                                    </Chip>
+                                    <div className="text-muted shrink-0 font-mono text-sm">#{order.id}</div>
+                                </div>
+                            </Card.Header>
+                            <Card.Content className="flex flex-1 flex-col gap-1">
+                                <div className="text-xl font-bold">{currency(order.item.price, "JPY")}</div>
+                                <div className="text-muted text-sm">数量 × {order.count}</div>
+                            </Card.Content>
+                            <Card.Footer className="mt-auto flex w-full justify-end gap-2">
+                                <LinkButton href={order.item.url} variant="secondary" isIconOnly>
+                                    <span className="icon-[ri--external-link-line]" />
+                                </LinkButton>
                             </Card.Footer>
                         </div>
                     </Card>

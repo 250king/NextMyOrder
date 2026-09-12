@@ -1,12 +1,11 @@
 "use client";
-
 import React from "react";
 import { Button, FieldError, Input, Label, Modal, TextField } from "@heroui/react";
 import { parseZonedDateTime } from "@internationalized/date";
 import dayjs from "dayjs";
 import { AlertModal } from "@/component/common/alert";
 import { DateTimePicker } from "@/component/weight/picker";
-import { changeGroupLock, confirmGroupOrder, createGroup, saveGroup } from "@/service/group";
+import { changeGroupLock, createGroup, finalizeGroupDemand, saveGroup } from "@/service/group";
 import { GroupResult } from "@/type/group";
 import { dataValue } from "@/util/cover";
 import { useHttp } from "@/util/request";
@@ -76,17 +75,18 @@ const GroupForm = ({
     );
 };
 
-export const GroupOrderConfirmModal = ({ data }: { data: GroupResult }) => {
+export const GroupDemandFinalizeModal = ({ data }: { data: GroupResult }) => {
     return (
         <AlertModal
-            title="确定确认订单？"
+            title="确认需求并生成订单？"
             status="warning"
-            trigger={<Button>确认订单</Button>}
+            confirmLabel="生成订单"
+            trigger={<Button>确认需求</Button>}
             onConfirmed={async () => {
-                await confirmGroupOrder(data.id);
+                await finalizeGroupDemand(data.id);
             }}
         >
-            确认后，在已下单的情况下非特殊情况不得退款，所以请务必确认订单内容无误
+            确认后系统会按照当前需求生成正式订单，之后将无法自行修改商品和数量。请确认需求内容无误后再继续。
         </AlertModal>
     );
 };
@@ -96,6 +96,7 @@ export const GroupLockModal = ({ data }: { data: GroupResult }) => {
         <AlertModal
             title={`确定${data.status == "PENDING" ? "截单" : "重新开放"}？`}
             status="warning"
+            confirmVariant="danger"
             trigger={
                 <Button className="ml-auto">
                     <span className={data.status == "PENDING" ? "icon-[ri--stop-fill]" : "icon-[ri--play-fill]"} />
@@ -108,8 +109,8 @@ export const GroupLockModal = ({ data }: { data: GroupResult }) => {
         >
             <div>
                 {data.status == "PENDING"
-                    ? "截单后所有订单锁定无法修改，请确保所有订单内容无误后在进行。"
-                    : "重新开放后可能会导致数据对其错误，请确保的确有需要再进行。"}
+                    ? "截单后成员的需求将被冻结，成员可以核对需求并生成正式订单。"
+                    : "重新开放后成员可以继续修改需求；若已有成员生成订单，则系统会阻止重新开放。"}
             </div>
         </AlertModal>
     );
