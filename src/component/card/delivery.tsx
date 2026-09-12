@@ -1,76 +1,45 @@
 "use client";
 import React from "react";
 import { Card, Chip } from "@heroui/react";
-import { EnumFilter, SearchFilter, useFilter } from "@/component/common/filter";
 import { LinkButton } from "@/component/common/link";
 import { ImagePreview } from "@/component/weight/image";
 import { Loading } from "@/component/weight/loading";
 import { Pagination } from "@/component/weight/pagination";
 import { DataCardProps, Query } from "@/type/common";
-import { colorMap, companyMap, DeliveryQuery, DeliveryResult, iconMap, statusMap } from "@/type/delivery";
+import {
+    colorMap as deliveryColorMap,
+    DeliveryQuery,
+    DeliveryResult,
+    statusMap as deliveryStatusMap,
+} from "@/type/delivery";
 import { OrderResult } from "@/type/order";
 import { currency, date } from "@/util/cover";
 
-export const DeliveryCard = ({
-    items,
-    total,
-    company,
-    status,
-    keyword,
-    page,
-}: DataCardProps<DeliveryQuery, DeliveryResult>) => {
+export const DeliveryCard = ({ items, total, page }: DataCardProps<DeliveryQuery, DeliveryResult>) => {
     const [isPending, startTransition] = React.useTransition();
-    const { updateFilter } = useFilter(startTransition);
 
     return (
         <div className="relative flex flex-col gap-4">
             {isPending && <Loading />}
-            <SearchFilter
-                key={keyword || ""}
-                initialValue={keyword}
-                onSearch={(val) => updateFilter({ keyword: val })}
-            />
-            <EnumFilter
-                label="快递公司"
-                currentValue={company}
-                options={companyMap}
-                onChange={(val) => updateFilter({ company: val })}
-            />
-            <EnumFilter
-                label="分发状态"
-                currentValue={status}
-                options={statusMap}
-                onChange={(val) => updateFilter({ status: val })}
-            />
             <p className="text-default-500 text-sm">共找到{total}条记录</p>
             <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {items.map((item) => (
                     <Card key={item.id} className="h-full min-w-0 transition-shadow hover:shadow-lg">
                         <Card.Header className="flex w-full flex-row items-start justify-between gap-3">
-                            <div className="flex flex-wrap items-center gap-2">
-                                {(!item.address || !item.phone || !item.recipient) && (
-                                    <Chip variant="primary" color="warning">
-                                        物流信息未完善
-                                    </Chip>
-                                )}
-                                {item.company && (
-                                    <Chip variant="primary">
-                                        <span className={iconMap[item.company]} />
-                                        <Chip.Label>{companyMap[item.company]}</Chip.Label>
-                                    </Chip>
-                                )}
-                                <Chip variant="primary" color={colorMap[item.status]}>
-                                    {statusMap[item.status]}
+                            <div className="flex flex-row items-center gap-2">
+                                <Chip variant="primary" color={deliveryColorMap[item.status]}>
+                                    {deliveryStatusMap[item.status]}
                                 </Chip>
                             </div>
                             <span className="text-default-500 shrink-0 font-mono text-sm">#{item.id}</span>
                         </Card.Header>
                         <Card.Content className="flex flex-1 flex-col gap-2">
-                            {item.ticketNum && (
-                                <div className="text-default-500 text-sm">快递单号：{item.ticketNum}</div>
-                            )}
+                            <div>
+                                <Card.Title>{item.recipient}</Card.Title>
+                                <Card.Description>{item.phone}</Card.Description>
+                            </div>
+                            <div className="text-default-500 text-sm">{item.address}</div>
                             <div className="text-default-500 text-sm">创建时间：{date(item.createdAt)}</div>
-                            <div className="text-default-500 text-sm">更新时间：{date(item.updatedAt)}</div>
                         </Card.Content>
                         <Card.Footer className="mt-auto flex w-full justify-end gap-2">
                             <LinkButton href={`/deliveries/${item.id}`} variant="secondary">
@@ -122,7 +91,7 @@ export const GoodsGard = ({
                                 </div>
                             </Card.Content>
                             <Card.Footer className="mt-auto flex w-full justify-end gap-2">
-                                <LinkButton href={`/order?id=${item.id}`} variant="secondary">
+                                <LinkButton href={`/order/${item.id}`} variant="secondary">
                                     详情
                                 </LinkButton>
                             </Card.Footer>
