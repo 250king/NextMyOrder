@@ -35,8 +35,7 @@ export const finalizeGroupList = async (params: number) => {
         const existed = await tx
             .select({ id: Order.id })
             .from(Order)
-            .innerJoin(Item, eq(Item.id, Order.itemId))
-            .where(and(eq(Order.userId, context.uid!), eq(Item.groupId, groupId)))
+            .where(and(eq(Order.userId, context.uid!), eq(Order.groupId, groupId)))
             .limit(1);
 
         if (existed.length > 0) {
@@ -47,6 +46,12 @@ export const finalizeGroupList = async (params: number) => {
             .select({
                 itemId: List.itemId,
                 count: List.count,
+                groupId: Item.groupId,
+                itemName: Item.name,
+                itemUrl: Item.url,
+                itemImage: Item.image,
+                itemPrice: Item.price,
+                itemWeight: Item.weight,
             })
             .from(List)
             .innerJoin(Item, eq(Item.id, List.itemId))
@@ -56,7 +61,13 @@ export const finalizeGroupList = async (params: number) => {
             await tx.insert(Order).values(
                 listItems.map((item) => ({
                     userId: context.uid!,
+                    groupId: item.groupId,
                     itemId: item.itemId,
+                    itemName: item.itemName,
+                    itemUrl: item.itemUrl,
+                    itemImage: item.itemImage,
+                    itemPrice: item.itemPrice,
+                    itemWeight: item.itemWeight,
                     count: item.count,
                     status: "CONFIRMED" as const,
                 }))
