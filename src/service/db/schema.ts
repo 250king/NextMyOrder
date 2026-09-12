@@ -92,7 +92,13 @@ export const Order = pgTable(
     {
         id: bigserial({ mode: "number" }).primaryKey().notNull(),
         userId: bigint({ mode: "number" }).notNull().references(() => User.id),
+        groupId: bigint({ mode: "number" }).notNull().references(() => Group.id),
         itemId: bigint({ mode: "number" }).notNull().references(() => Item.id),
+        itemName: text().notNull(),
+        itemUrl: text().notNull(),
+        itemImage: text(),
+        itemPrice: decimal({ mode: "number" }).notNull(),
+        itemWeight: decimal({ mode: "number" }),
         transitId: bigint({ mode: "number" }).references(() => Transit.id),
         count: integer().default(1).notNull(),
         status: OrderStatus().default("PENDING").notNull(),
