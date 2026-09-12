@@ -23,7 +23,6 @@ export const memberRelations = relations(Member, ({ one }) => ({
 export const groupRelations = relations(Group, ({ many }) => ({
     members: many(Member),
     items: many(Item),
-    orders: many(Order),
 }));
 
 export const userRelations = relations(User, ({ many }) => ({
@@ -47,7 +46,6 @@ export const listRelations = relations(List, ({ one }) => ({
 }));
 
 export const orderRelations = relations(Order, ({ one, many }) => ({
-    group: one(Group, { fields: [Order.groupId], references: [Group.id] }),
     item: one(Item, { fields: [Order.itemId], references: [Item.id] }),
     user: one(User, { fields: [Order.userId], references: [User.id] }),
     transit: one(Transit, { fields: [Order.transitId], references: [Transit.id] }),
