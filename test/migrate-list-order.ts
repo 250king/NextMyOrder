@@ -38,12 +38,12 @@ const preview = async () => {
     const tables = tableRows[0];
     const orders = orderRows[0];
 
-    console.log("Demand/order split migration");
+    console.log("List/order split migration");
     console.log(`List table: ${tables.list_exists ? "yes" : "no"}`);
     console.log(`Member table: ${tables.member_exists ? "yes" : "no"}`);
-    console.log(`Demand table: ${tables.demand_exists ? "yes" : "no"}`);
+    console.log(`Legacy Demand table: ${tables.demand_exists ? "yes" : "no"}`);
     console.log(`Orders: ${orders.total}`);
-    console.log(`Legacy pending orders to move to Demand only: ${orders.pending}`);
+    console.log(`Legacy pending orders to move to List only: ${orders.pending}`);
     console.log(`Existing finalized orders to preserve: ${orders.finalized}`);
 };
 
@@ -53,10 +53,20 @@ const migrate = async () => {
     try {
         await client.query("BEGIN");
 
+        // The old schema used List as the group membership table. Rename that table first,
+        // but only when it still has the old groupId shape.
         await client.query(`
             DO $$
             BEGIN
-                IF to_regclass('"Member"') IS NULL AND to_regclass('"List"') IS NOT NULL THEN
+                IF to_regclass('"Member"') IS NULL
+                   AND to_regclass('"List"') IS NOT NULL
+                   AND EXISTS (
+                       SELECT 1
+                       FROM information_schema.columns
+                       WHERE table_schema = current_schema()
+                         AND table_name = 'List'
+                         AND column_name = 'groupId'
+                   ) THEN
                     ALTER TABLE "List" RENAME TO "Member";
                 END IF;
             END
@@ -68,8 +78,20 @@ const migrate = async () => {
             ADD COLUMN IF NOT EXISTS "finalizedAt" timestamp
         `);
 
+        // If the earlier Demand-named experiment has already been applied, preserve it by
+        // renaming it to the final List name instead of creating a second requirement table.
         await client.query(`
-            CREATE TABLE IF NOT EXISTS "Demand" (
+            DO $$
+            BEGIN
+                IF to_regclass('"List"') IS NULL AND to_regclass('"Demand"') IS NOT NULL THEN
+                    ALTER TABLE "Demand" RENAME TO "List";
+                END IF;
+            END
+            $$;
+        `);
+
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS "List" (
                 "userId" bigint NOT NULL REFERENCES "User"("id"),
                 "itemId" bigint NOT NULL REFERENCES "Item"("id"),
                 "count" integer DEFAULT 1 NOT NULL,
@@ -80,7 +102,7 @@ const migrate = async () => {
         `);
 
         await client.query(`
-            INSERT INTO "Demand" ("userId", "itemId", "count", "createdAt", "updatedAt")
+            INSERT INTO "List" ("userId", "itemId", "count", "createdAt", "updatedAt")
             SELECT "userId", "itemId", "count", "createdAt", "updatedAt"
             FROM "Order"
             ON CONFLICT ("userId", "itemId")

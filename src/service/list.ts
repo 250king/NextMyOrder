@@ -3,13 +3,13 @@
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/service/db";
-import { Demand, Group, Item, Member } from "@/service/db/schema";
-import { changeDemandCountSchema } from "@/type/demand";
+import { Group, Item, List, Member } from "@/service/db/schema";
+import { changeListCountSchema } from "@/type/list";
 import { getContext } from "@/util/context";
 
-export const changeDemandCount = async (params: z.input<typeof changeDemandCountSchema>) => {
+export const changeListCount = async (params: z.input<typeof changeListCountSchema>) => {
     const context = await getContext();
-    const { itemId, count } = changeDemandCountSchema.parse(params);
+    const { itemId, count } = changeListCountSchema.parse(params);
 
     await db.transaction(async (tx) => {
         const [item] = await tx
@@ -32,20 +32,20 @@ export const changeDemandCount = async (params: z.input<typeof changeDemandCount
 
         if (count === 0) {
             await tx
-                .delete(Demand)
-                .where(and(eq(Demand.userId, context.uid!), eq(Demand.itemId, item.id)));
+                .delete(List)
+                .where(and(eq(List.userId, context.uid!), eq(List.itemId, item.id)));
             return;
         }
 
         await tx
-            .insert(Demand)
+            .insert(List)
             .values({
                 userId: context.uid!,
                 itemId: item.id,
                 count,
             })
             .onConflictDoUpdate({
-                target: [Demand.userId, Demand.itemId],
+                target: [List.userId, List.itemId],
                 set: { count },
             });
     });

@@ -98,8 +98,8 @@ export const Item = pgTable(
     ]
 );
 
-export const Demand = pgTable(
-    "Demand",
+export const List = pgTable(
+    "List",
     {
         userId: bigint({ mode: "number" }).notNull().references(() => User.id),
         itemId: bigint({ mode: "number" }).notNull().references(() => Item.id),

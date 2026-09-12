@@ -5,7 +5,7 @@ import { parseZonedDateTime } from "@internationalized/date";
 import dayjs from "dayjs";
 import { AlertModal } from "@/component/common/alert";
 import { DateTimePicker } from "@/component/weight/picker";
-import { changeGroupLock, createGroup, finalizeGroupDemand, saveGroup } from "@/service/group";
+import { changeGroupLock, createGroup, finalizeGroupList, saveGroup } from "@/service/group";
 import { GroupResult } from "@/type/group";
 import { dataValue } from "@/util/cover";
 import { useHttp } from "@/util/request";
@@ -75,7 +75,7 @@ const GroupForm = ({
     );
 };
 
-export const GroupDemandFinalizeModal = ({ data }: { data: GroupResult }) => {
+export const GroupListFinalizeModal = ({ data }: { data: GroupResult }) => {
     return (
         <AlertModal
             title="确认需求并生成订单？"
@@ -83,7 +83,7 @@ export const GroupDemandFinalizeModal = ({ data }: { data: GroupResult }) => {
             confirmLabel="生成订单"
             trigger={<Button>确认需求</Button>}
             onConfirmed={async () => {
-                await finalizeGroupDemand(data.id);
+                await finalizeGroupList(data.id);
             }}
         >
             确认后系统会按照当前需求生成正式订单，之后将无法自行修改商品和数量。请确认需求内容无误后再继续。

@@ -3,9 +3,9 @@ import {
     Address,
     Delivery,
     DeliveryToOrder,
-    Demand,
     Group,
     Item,
+    List,
     Member,
     Order,
     Payment,
@@ -34,7 +34,7 @@ export const groupRelations = relations(Group, ({ many }) => ({
 
 export const userRelations = relations(User, ({ many }) => ({
     memberships: many(Member),
-    demands: many(Demand),
+    lists: many(List),
     orders: many(Order),
     deliveries: many(Delivery),
     payments: many(Payment),
@@ -46,17 +46,17 @@ export const itemRelations = relations(Item, ({ one, many }) => ({
         fields: [Item.groupId],
         references: [Group.id],
     }),
-    demands: many(Demand),
+    lists: many(List),
     orders: many(Order),
 }));
 
-export const demandRelations = relations(Demand, ({ one }) => ({
+export const listRelations = relations(List, ({ one }) => ({
     user: one(User, {
-        fields: [Demand.userId],
+        fields: [List.userId],
         references: [User.id],
     }),
     item: one(Item, {
-        fields: [Demand.itemId],
+        fields: [List.itemId],
         references: [Item.id],
     }),
 }));

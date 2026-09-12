@@ -2,11 +2,11 @@ import React from "react";
 import { notFound } from "next/navigation";
 import { Alert, Chip, Surface, Tabs } from "@heroui/react";
 import { and, count, eq, exists, getTableColumns, isNotNull, SQL, sql } from "drizzle-orm";
-import { DemandCard, OrderCard, TransitCard } from "@/component/card/group";
+import { ListCard, OrderCard, TransitCard } from "@/component/card/group";
 import { LinkTab } from "@/component/common/tab";
-import { GroupDemandFinalizeModal } from "@/component/modal/group";
+import { GroupListFinalizeModal } from "@/component/modal/group";
 import { db } from "@/service/db";
-import { Demand, Group, Item, Member, Order, Transit } from "@/service/db/schema";
+import { Group, Item, List, Member, Order, Transit } from "@/service/db/schema";
 import { PanelProps, Query } from "@/type/common";
 import { colorMap, GroupResult, statusMap } from "@/type/group";
 import { getContext } from "@/util/context";
@@ -23,13 +23,13 @@ type PageProps = {
     >;
 };
 
-const DemandPanel = async ({ data, userId, ...query }: PanelProps<GroupResult> & Query) => {
+const ListPanel = async ({ data, userId, ...query }: PanelProps<GroupResult> & Query) => {
     const pagination = toPagination(query);
     const filters: SQL[] = [eq(Item.groupId, data.id)];
-    const demandJoin = and(eq(Demand.itemId, Item.id), eq(Demand.userId, userId));
+    const listJoin = and(eq(List.itemId, Item.id), eq(List.userId, userId));
 
     if (data.status !== "PENDING") {
-        filters.push(isNotNull(Demand.itemId));
+        filters.push(isNotNull(List.itemId));
     }
 
     const [items, [total]] = await Promise.all([
@@ -37,11 +37,11 @@ const DemandPanel = async ({ data, userId, ...query }: PanelProps<GroupResult> &
             .select({
                 ...getTableColumns(Item),
                 selected: sql<number>`
-                    coalesce(${Demand.count}, 0)
+                    coalesce(${List.count}, 0)
                 `.mapWith(Number),
             })
             .from(Item)
-            .leftJoin(Demand, demandJoin)
+            .leftJoin(List, listJoin)
             .where(and(...filters))
             .limit(pagination.limit)
             .offset(pagination.offset),
@@ -50,11 +50,11 @@ const DemandPanel = async ({ data, userId, ...query }: PanelProps<GroupResult> &
                 total: count(Item.id),
             })
             .from(Item)
-            .leftJoin(Demand, demandJoin)
+            .leftJoin(List, listJoin)
             .where(and(...filters)),
     ]);
 
-    return <DemandCard items={items} total={total.total} data={data} {...query} />;
+    return <ListCard items={items} total={total.total} data={data} {...query} />;
 };
 
 const OrderPanel = async ({ data, userId, ...query }: PanelProps<GroupResult> & Query) => {
@@ -125,8 +125,8 @@ const Page = async ({ params, searchParams }: PageProps) => {
 
     const currentTab =
         data.status === "PENDING" || !isFinalized
-            ? "demand"
-            : search.tab === "demand" || search.tab === "track"
+            ? "list"
+            : search.tab === "list" || search.tab === "track"
               ? search.tab
               : "order";
 
@@ -172,7 +172,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
                 <Surface className="rounded-3xl p-4 shadow-sm">
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         <h2 className="text-base font-semibold">基础信息</h2>
-                        {canFinalize && <GroupDemandFinalizeModal data={data} />}
+                        {canFinalize && <GroupListFinalizeModal data={data} />}
                     </div>
                     <div className="mt-4 grid gap-4 text-sm md:grid-cols-3">
                         <div className="min-w-0">
@@ -206,7 +206,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
                     {data.status !== "PENDING" && isFinalized && (
                         <Tabs.ListContainer className="w-fit">
                             <Tabs.List className="w-fit max-w-full *:w-fit *:whitespace-nowrap">
-                                <LinkTab href={`/groups/${data.id}?tab=demand`} id="demand">
+                                <LinkTab href={`/groups/${data.id}?tab=list`} id="list">
                                     需求单
                                     <Tabs.Indicator />
                                 </LinkTab>
@@ -222,8 +222,8 @@ const Page = async ({ params, searchParams }: PageProps) => {
                         </Tabs.ListContainer>
                     )}
                     <div className="w-full">
-                        <Tabs.Panel className="p-0" id="demand">
-                            <DemandPanel data={data} userId={context.uid!} {...search} />
+                        <Tabs.Panel className="p-0" id="list">
+                            <ListPanel data={data} userId={context.uid!} {...search} />
                         </Tabs.Panel>
                         {isFinalized && (
                             <Tabs.Panel className="p-0" id="order">

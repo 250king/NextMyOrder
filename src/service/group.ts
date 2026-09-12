@@ -3,7 +3,7 @@
 import { and, eq, isNotNull } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/service/db";
-import { Demand, Group, Item, Member, Order } from "@/service/db/schema";
+import { Group, Item, List, Member, Order } from "@/service/db/schema";
 import { groupCreateSchema, groupDetailSchema } from "@/type/group";
 import { getContext } from "@/util/context";
 
@@ -65,7 +65,7 @@ export const changeGroupLock = async (params: number) => {
         .where(eq(Group.id, id));
 };
 
-export const finalizeGroupDemand = async (params: number) => {
+export const finalizeGroupList = async (params: number) => {
     const context = await getContext();
     const groupId = z.int().positive().parse(params);
 
@@ -102,21 +102,21 @@ export const finalizeGroupDemand = async (params: number) => {
             throw new Error("检测到已存在订单，请联系管理员处理");
         }
 
-        const demands = await tx
+        const listItems = await tx
             .select({
-                itemId: Demand.itemId,
-                count: Demand.count,
+                itemId: List.itemId,
+                count: List.count,
             })
-            .from(Demand)
-            .innerJoin(Item, eq(Item.id, Demand.itemId))
-            .where(and(eq(Demand.userId, context.uid!), eq(Item.groupId, groupId)));
+            .from(List)
+            .innerJoin(Item, eq(Item.id, List.itemId))
+            .where(and(eq(List.userId, context.uid!), eq(Item.groupId, groupId)));
 
-        if (demands.length > 0) {
+        if (listItems.length > 0) {
             await tx.insert(Order).values(
-                demands.map((demand) => ({
+                listItems.map((item) => ({
                     userId: context.uid!,
-                    itemId: demand.itemId,
-                    count: demand.count,
+                    itemId: item.itemId,
+                    count: item.count,
                     status: "CONFIRMED" as const,
                 }))
             );

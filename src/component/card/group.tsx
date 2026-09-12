@@ -6,7 +6,7 @@ import { LinkButton } from "@/component/common/link";
 import { CardImage, ImagePreview } from "@/component/weight/image";
 import { Loading } from "@/component/weight/loading";
 import { Pagination } from "@/component/weight/pagination";
-import { changeDemandCount } from "@/service/demand";
+import { changeListCount } from "@/service/list";
 import { DataCardProps, Query } from "@/type/common";
 import { colorMap as groupColorMap, statusMap as groupStatusMap, GroupQuery, GroupResult } from "@/type/group";
 import { ItemResult } from "@/type/item";
@@ -76,7 +76,7 @@ export const GroupCard = ({ items, total, status, page, keyword }: DataCardProps
     );
 };
 
-export const DemandCard = ({
+export const ListCard = ({
     data,
     items,
     total,
@@ -126,7 +126,7 @@ export const DemandCard = ({
                                         }}
                                         onChange={async (value) => {
                                             try {
-                                                await changeDemandCount({
+                                                await changeListCount({
                                                     itemId: item.id,
                                                     count: value,
                                                 });
