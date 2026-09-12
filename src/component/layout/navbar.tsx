@@ -11,7 +11,9 @@ export const Navbar = ({ user }: { user?: Context["user"] }) => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const navItems = [
         { name: "团购", href: "/groups" },
+        { name: "订单", href: "/order" },
         { name: "分发", href: "/deliveries" },
+        { name: "地址簿", href: "/addresses" },
         { name: "账单", href: "/payments" },
     ];
 
@@ -54,9 +56,6 @@ export const Navbar = ({ user }: { user?: Context["user"] }) => {
                             </Dropdown.Trigger>
                             <Dropdown.Popover className="min-w-40" placement="bottom end">
                                 <Dropdown.Menu>
-                                    <LinkDropdownItem href="/addresses">
-                                        <Label>地址簿</Label>
-                                    </LinkDropdownItem>
                                     <LinkDropdownItem href="/me">
                                         <Label>个人中心</Label>
                                     </LinkDropdownItem>
