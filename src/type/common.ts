@@ -3,7 +3,6 @@ import { userSchema } from "@/type/user";
 
 export type Context = {
     refreshToken: string | null;
-    isAdmin: boolean;
     uid: number | null;
     user: z.infer<typeof userSchema> | null;
 };
@@ -19,8 +18,8 @@ export type Query<T = void> = ([T] extends [void] ? object : T) & {
 
 export type PanelProps<T> = {
     data: T;
-    userId: number
-}
+    userId: number;
+};
 
 export type ModalState<T = void> = ([T] extends [void] ? object : { data: T }) & {
     open: boolean;
@@ -28,9 +27,9 @@ export type ModalState<T = void> = ([T] extends [void] ? object : { data: T }) &
 };
 
 export type DataCardProps<T, R> = T & {
-    items: R[],
-    total: number,
-}
+    items: R[];
+    total: number;
+};
 
 export const query = z.object({
     order: z.enum(["asc", "desc"]).default("asc"),
@@ -39,4 +38,4 @@ export const query = z.object({
     size: z.int().positive().max(100).default(10),
     keyword: z.string().optional(),
     id: z.number().int().positive().optional(),
-})
+});

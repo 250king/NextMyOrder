@@ -1,252 +1,55 @@
 "use server";
 
-import { and, asc, eq, inArray, isNotNull } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
+import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { parseAddress } from "@/service/client/amap";
-import { cancelOrder, createOrder } from "@/service/client/kd100";
 import { db } from "@/service/db";
-import { Address, Delivery, DeliveryToOrder, Order, TicketLink } from "@/service/db/schema";
-import { codeMap, deliveryDetailSchema } from "@/type/delivery";
+import { Address, Delivery } from "@/service/db/schema";
+import { deliveryDetailSchema } from "@/type/delivery";
 import { getContext } from "@/util/context";
-import { randomStr } from "@/util/cover";
-import { env } from "@/util/env";
 
-const getDelivery = async (deliveryId: number) => {
-    const context = await getContext();
-    if (!context.isAdmin) {
-        throw new Error("非管理员无权限");
-    }
-    const delivery = await db.query.Delivery.findFirst({
-        where: eq(Delivery.id, deliveryId),
-    });
-    if (!delivery) {
-        throw new Error("运单不存在");
-    }
-    return delivery;
-};
-
-export const getAddresses = async (params: number) => {
-    const context = await getContext();
-    const id = z.int().positive().parse(params);
-    const delivery = await db.query.Delivery.findFirst({
-        where: and(eq(Delivery.id, id), ...(context.isAdmin ? [] : [eq(Delivery.userId, context.uid!)])),
-    });
-    if (!delivery) {
-        throw new Error("运单不存在");
-    }
-    return db.query.Address.findMany({
-        where: eq(Address.userId, delivery.userId),
-    });
-};
-
-export const getSenderAddresses = async () => {
+export const getAddresses = async () => {
     const context = await getContext();
     return db.query.Address.findMany({
         where: eq(Address.userId, context.uid!),
+        orderBy: [desc(Address.id)],
     });
 };
 
 export const saveDelivery = async (params: z.infer<typeof deliveryDetailSchema>) => {
-    const data = deliveryDetailSchema.parse(params);
-    const { addressId, comment, save, company, deliveryId } = data;
-    let { recipient, phone, address } = data;
     const context = await getContext();
-    const delivery = await db.query.Delivery.findFirst({
-        where: and(eq(Delivery.id, deliveryId), ...(context.isAdmin ? [] : [eq(Delivery.userId, context.uid!)])),
-    });
-    if (!delivery) {
-        throw new Error("运单不存在");
-    }
-    if (addressId) {
-        const receiver = await db.query.Address.findFirst({
-            where: and(eq(Address.id, addressId), ...(context.isAdmin ? [] : [eq(Address.userId, context.uid!)])),
-        });
-        if (receiver) {
-            recipient = receiver.recipient;
-            phone = receiver.phone;
-            address = receiver.address;
-        }
-    }
-    if (save && recipient && phone && address) {
-        const addresses = await db.query.Address.findMany({
-            where: eq(Address.userId, delivery.userId),
-            orderBy: [asc(Address.id)],
-        });
-        if (addresses.length > 3) {
-            const list = addresses.slice(0, addresses.length - 2).map((i) => i.id);
-            await db.delete(Address).where(inArray(Address.id, list));
-        }
-        await db
-            .insert(Address)
-            .values({
-                userId: delivery.userId,
-                recipient,
-                phone,
-                address,
-            })
-            .onConflictDoNothing({
-                target: [Address.userId, Address.recipient, Address.phone, Address.address],
-            });
-    }
-    await db
-        .update(Delivery)
-        .set({
-            phone,
-            address,
-            company,
-            recipient: recipient!,
-            comment: context.isAdmin ? comment : undefined,
-        })
-        .where(and(eq(Delivery.id, deliveryId), ...(context.isAdmin ? [] : [eq(Delivery.userId, context.uid!)])));
-};
+    const { addressId, company, deliveryId } = deliveryDetailSchema.parse(params);
 
-export const pushDelivery = async (p1: number[], p2: number) => {
-    const context = await getContext();
-    if (!context.isAdmin) {
-        throw new Error("非管理员无权限");
-    }
-    const deliveryIds = z.int().positive().array().parse(p1);
-    const addressId = z.int().positive().parse(p2);
-    const sender = await db.query.Address.findFirst({
-        where: and(eq(Address.id, addressId)),
-    });
-    if (!sender) {
-        throw new Error("寄件地址不存在");
-    }
-    const deliveries = (
-        await db.query.Delivery.findMany({
+    const [delivery, address] = await Promise.all([
+        db.query.Delivery.findFirst({
             where: and(
-                inArray(Delivery.id, deliveryIds),
-                eq(Delivery.status, "PENDING"),
-                isNotNull(Delivery.address),
-                isNotNull(Delivery.phone),
-                isNotNull(Delivery.company)
+                eq(Delivery.id, deliveryId),
+                eq(Delivery.userId, context.uid!),
+                eq(Delivery.status, "PENDING")
             ),
-        })
-    )
-        .map((i) => ({
-            id: i.id,
-            recipient: i.recipient,
-            address: i.address!,
-            phone: i.phone!,
-            company: i.company! in codeMap ? codeMap[i.company!] : null,
-        }))
-        .filter((i) => !!i.company);
-    const finished = []
-    for (const i of deliveries) {
-        const res = await createOrder({
-            kuaidicom: i.company!,
-            sendManPrintAddr: sender.address,
-            sendManName: sender.recipient,
-            sendManMobile: sender.phone,
-            recManPrintAddr: i.address,
-            recManName: i.recipient,
-            recManMobile: i.phone,
-        });
-        if (!res.data.result) {
-            continue;
-        }
-        await db
-            .update(Delivery)
-            .set({
-                status: "PUSHED",
-                taskId: res.data.data.taskId,
-                ticketId: res.data.data.orderId,
-                ticketNum: res.data.data.kuaidinum || null,
-                queryToken: res.data.data.pollToken || null,
-            })
-            .where(eq(Delivery.id, i.id));
-        finished.push(i.id);
-    }
-    return finished;
-};
+        }),
+        db.query.Address.findFirst({
+            where: and(eq(Address.id, addressId), eq(Address.userId, context.uid!)),
+        }),
+    ]);
 
-export const withdrawDelivery = async (params: number, reason: string) => {
-    const context = await getContext();
-    if (!context.isAdmin) {
-        throw new Error("非管理员无权限");
+    if (!delivery) {
+        throw new Error("当前分发信息无法修改");
     }
-    const deliveryId = z.int().positive().parse(params);
-    const delivery = await getDelivery(deliveryId);
-    if (delivery.status != "PUSHED") {
-        throw new Error("当前订单无法撤销");
+    if (!address) {
+        throw new Error("地址不存在");
     }
-    await cancelOrder({
-        taskId: delivery.taskId!,
-        orderId: delivery.ticketId!,
-        cancelMsg: reason,
-    });
+
     await db
         .update(Delivery)
         .set({
-            status: "PENDING",
-            taskId: null,
-            ticketId: null,
-            ticketNum: null,
+            recipient: address.recipient,
+            phone: address.phone,
+            address: address.address,
+            company,
         })
-        .where(eq(Delivery.id, deliveryId));
-};
+        .where(and(eq(Delivery.id, deliveryId), eq(Delivery.userId, context.uid!)));
 
-export const removeDelivery = async (params: number) => {
-    const context = await getContext();
-    if (!context.isAdmin) {
-        throw new Error("非管理员无权限");
-    }
-    const deliveryId = z.int().positive().parse(params);
-    const delivery = await getDelivery(deliveryId);
-    if (delivery.status != "PENDING") {
-        throw new Error("当前运单无法删除");
-    }
-    await db.delete(DeliveryToOrder).where(eq(DeliveryToOrder.deliveryId, deliveryId));
-    await db.delete(TicketLink).where(eq(TicketLink.deliveryId, deliveryId));
-    await db.delete(Delivery).where(eq(Delivery.id, deliveryId));
+    revalidatePath("/deliveries");
+    revalidatePath(`/deliveries/${deliveryId}`);
 };
-
-export const generateQrCode = async (params: number) => {
-    const context = await getContext();
-    if (!context.isAdmin) {
-        throw new Error("非管理员无权限");
-    }
-    const deliveryId = z.int().positive().parse(params);
-    const delivery = await getDelivery(deliveryId);
-    if (delivery.status == "DELIVERED") {
-        throw new Error("当前运单已发出");
-    }
-    if (!delivery.phone || !delivery.address || !delivery.recipient) {
-        throw new Error("请完善运单信息");
-    }
-    const code = randomStr(8);
-    const result = await parseAddress(delivery.address);
-    await db.insert(TicketLink).values([
-        {
-            code,
-            deliveryId: deliveryId,
-        },
-    ]);
-    return {
-        url: new URL(`/ticket/${code}`, env.BASE_URL).toString(),
-        city: result.data?.geocodes?.[0]?.city || null,
-    };
-};
-
-export const bindOrders = async (p1: number, p2: number[]) => {
-    const context = await getContext();
-    if (!context.isAdmin) {
-        throw new Error("非管理员无权限");
-    }
-    const deliveryId = z.int().positive().parse(p1);
-    const orderIds = z.int().positive().array().parse(p2);
-    const delivery = await getDelivery(deliveryId);
-    if (delivery.status != "PENDING") {
-        throw new Error("当前运单无法绑定订单");
-    }
-    const orders = await db.query.Order.findMany({
-        where: inArray(Order.id, orderIds),
-    })
-    await db.insert(DeliveryToOrder).values(
-        orders.map((i) => ({
-            deliveryId,
-            orderId: i.id,
-        }))
-    );
-}

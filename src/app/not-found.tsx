@@ -8,7 +8,7 @@ const Page = async () => {
 
     return (
         <div className="flex min-h-dvh flex-col">
-            <Navbar user={context.user} isAdmin={context.isAdmin} />
+            <Navbar user={context.user} />
             <main className="flex flex-1 flex-col antialiased">
                 <div className="flex flex-1 flex-col items-center justify-center gap-4">
                     <div className="text-center">

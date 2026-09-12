@@ -13,14 +13,8 @@ import { getContext } from "@/util/context";
 import { date, toPagination } from "@/util/cover";
 
 type PageProps = {
-    params: Promise<{
-        deliveryId: number;
-    }>;
-    searchParams: Promise<
-        Query & {
-            tab?: string;
-        }
-    >;
+    params: Promise<{ deliveryId: number }>;
+    searchParams: Promise<Query & { tab?: string }>;
 };
 
 const GoodsPanel = async ({ data, ...query }: PanelProps<DeliveryResult> & Query) => {
@@ -33,11 +27,7 @@ const GoodsPanel = async ({ data, ...query }: PanelProps<DeliveryResult> & Query
                     with: {
                         user: true,
                         transit: true,
-                        item: {
-                            with: {
-                                group: true,
-                            },
-                        },
+                        item: { with: { group: true } },
                     },
                 },
             },
@@ -55,10 +45,8 @@ const Page = async ({ params, searchParams }: PageProps) => {
     const currentTab = search.tab === "track" ? "track" : "order";
     const context = await getContext();
     const data = await db.query.Delivery.findFirst({
-        where: and(eq(Delivery.id, path.deliveryId)),
-        with: {
-            user: true
-        }
+        where: and(eq(Delivery.id, path.deliveryId), eq(Delivery.userId, context.uid!)),
+        with: { user: true },
     });
     if (!data) {
         return notFound();
@@ -68,7 +56,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
         <div className="container mx-auto p-6">
             <div className="flex flex-col gap-4">
                 <header className="flex flex-col gap-3">
-                    <h1 className="text-2xl font-bold">分发管理 #{data.id}</h1>
+                    <h1 className="text-2xl font-bold">分发 #{data.id}</h1>
                     <div className="flex flex-wrap items-center gap-2">
                         {data.company && (
                             <Chip variant="primary">
@@ -76,29 +64,27 @@ const Page = async ({ params, searchParams }: PageProps) => {
                                 <Chip.Label>{companyMap[data.company]}</Chip.Label>
                             </Chip>
                         )}
-                        <Chip variant="primary" color={colorMap[data.status]}>
-                            {statusMap[data.status]}
-                        </Chip>
+                        <Chip variant="primary" color={colorMap[data.status]}>{statusMap[data.status]}</Chip>
                     </div>
                 </header>
                 {(!data.address || !data.recipient || !data.phone) && (
                     <Alert status="warning">
                         <Alert.Indicator />
                         <Alert.Content>
-                            <Alert.Title>部分收件人信息不完善</Alert.Title>
-                            <Alert.Description>请尽快完善收件人信息，否则商品无法发出</Alert.Description>
+                            <Alert.Title>收件信息尚未完善</Alert.Title>
+                            <Alert.Description>请从地址簿选择收件地址，否则商品无法发出。</Alert.Description>
                         </Alert.Content>
                     </Alert>
                 )}
                 <Surface className="rounded-3xl p-4 shadow-sm">
-                    <div className="flex flex-wrap items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-4">
                         <h2 className="text-base font-semibold">基础信息</h2>
-                        {data.status == "PENDING" && <DeliveryModifyModal data={data} />}
+                        {data.status === "PENDING" && <DeliveryModifyModal data={data} />}
                     </div>
                     <div className="mt-4 grid gap-4 text-sm md:grid-cols-3">
                         <div className="min-w-0">
                             <div className="text-muted">收件人</div>
-                            <div className="truncate font-medium">{data.user.name}</div>
+                            <div className="truncate font-medium">{data.recipient || "-"}</div>
                         </div>
                         <div className="min-w-0">
                             <div className="text-muted">手机</div>

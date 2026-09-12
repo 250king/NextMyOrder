@@ -13,14 +13,8 @@ import { getContext } from "@/util/context";
 import { date, toPagination } from "@/util/cover";
 
 type PageProps = {
-    params: Promise<{
-        groupId: number;
-    }>;
-    searchParams: Promise<
-        Query & {
-            tab?: string;
-        }
-    >;
+    params: Promise<{ groupId: number }>;
+    searchParams: Promise<Query & { tab?: string }>;
 };
 
 const ListPanel = async ({ data, userId, ...query }: PanelProps<GroupResult> & Query) => {
@@ -36,9 +30,7 @@ const ListPanel = async ({ data, userId, ...query }: PanelProps<GroupResult> & Q
         db
             .select({
                 ...getTableColumns(Item),
-                selected: sql<number>`
-                    coalesce(${List.count}, 0)
-                `.mapWith(Number),
+                selected: sql<number>`coalesce(${List.count}, 0)`.mapWith(Number),
             })
             .from(Item)
             .leftJoin(List, listJoin)
@@ -46,9 +38,7 @@ const ListPanel = async ({ data, userId, ...query }: PanelProps<GroupResult> & Q
             .limit(pagination.limit)
             .offset(pagination.offset),
         db
-            .select({
-                total: count(Item.id),
-            })
+            .select({ total: count(Item.id) })
             .from(Item)
             .leftJoin(List, listJoin)
             .where(and(...filters)),
@@ -60,18 +50,13 @@ const ListPanel = async ({ data, userId, ...query }: PanelProps<GroupResult> & Q
 const OrderPanel = async ({ data, userId, ...query }: PanelProps<GroupResult> & Query) => {
     const pagination = toPagination(query);
     const belongsToGroup = exists(
-        db
-            .select({ id: Item.id })
-            .from(Item)
-            .where(and(eq(Item.id, Order.itemId), eq(Item.groupId, data.id)))
+        db.select({ id: Item.id }).from(Item).where(and(eq(Item.id, Order.itemId), eq(Item.groupId, data.id)))
     );
     const filters = and(eq(Order.userId, userId), belongsToGroup);
     const [items, total] = await Promise.all([
         db.query.Order.findMany({
             where: filters,
-            with: {
-                item: true,
-            },
+            with: { item: true },
             ...pagination,
         }),
         db.$count(Order, filters),
@@ -84,9 +69,7 @@ const TransitPanel = async ({ data, userId, ...query }: PanelProps<GroupResult> 
     const pagination = toPagination(query);
     const hasCurrentUserOrder = exists(
         db
-            .select({
-                id: Order.id,
-            })
+            .select({ id: Order.id })
             .from(Order)
             .innerJoin(Item, eq(Item.id, Order.itemId))
             .where(and(eq(Order.transitId, Transit.id), eq(Order.userId, userId), eq(Item.groupId, data.id)))
@@ -110,7 +93,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
             .where(and(eq(Member.groupId, Group.id), eq(Member.userId, context.uid!)))
     );
     const data = await db.query.Group.findFirst({
-        where: and(eq(Group.id, path.groupId), ...(context.isAdmin ? [] : [membership])),
+        where: and(eq(Group.id, path.groupId), membership),
     });
 
     if (!data) {

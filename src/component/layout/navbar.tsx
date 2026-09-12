@@ -6,17 +6,9 @@ import { Avatar, Button, Drawer, Dropdown, Label } from "@heroui/react";
 import { LinkDropdownItem } from "@/component/common/link";
 import { Context } from "@/type/common";
 
-export const Navbar = ({ user }: Partial<Omit<Context, "accessToken" | "uid">>) => {
+export const Navbar = ({ user }: { user?: Context["user"] }) => {
     const pathname = usePathname();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-    /*
-    const adminList = [
-        { name: "首页", href: "/home" },
-        { name: "用户", href: "/users" },
-
-        { name: "国际运输", href: "/shipping" },
-    ];
-    */
     const navItems = [
         { name: "团购", href: "/groups" },
         { name: "分发", href: "/deliveries" },
@@ -33,12 +25,7 @@ export const Navbar = ({ user }: Partial<Omit<Context, "accessToken" | "uid">>) 
             <header className="container mx-auto flex h-16 items-center gap-8 px-6">
                 <div className="flex shrink-0 items-center gap-4">
                     {!user || (
-                        <Button
-                            isIconOnly
-                            className="md:hidden"
-                            variant="secondary"
-                            onPress={() => setIsDrawerOpen(true)}
-                        >
+                        <Button isIconOnly className="md:hidden" variant="secondary" onPress={() => setIsDrawerOpen(true)}>
                             <span className="icon-[ri--list-unordered]" />
                         </Button>
                     )}
@@ -67,6 +54,9 @@ export const Navbar = ({ user }: Partial<Omit<Context, "accessToken" | "uid">>) 
                             </Dropdown.Trigger>
                             <Dropdown.Popover className="min-w-40" placement="bottom end">
                                 <Dropdown.Menu>
+                                    <LinkDropdownItem href="/addresses">
+                                        <Label>地址簿</Label>
+                                    </LinkDropdownItem>
                                     <LinkDropdownItem href="/me">
                                         <Label>个人中心</Label>
                                     </LinkDropdownItem>

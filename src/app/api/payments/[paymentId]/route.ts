@@ -5,24 +5,17 @@ import { Payment } from "@/service/db/schema";
 import { getContext } from "@/util/context";
 
 type Context = {
-    params: Promise<{
-        paymentId: string;
-    }>;
+    params: Promise<{ paymentId: string }>;
 };
 
 export const GET = async (_: NextRequest, ctx: Context) => {
     const { paymentId } = await ctx.params;
     const context = await getContext();
     const data = await db.query.Payment.findFirst({
-        where: and(
-            eq(Payment.id, Number(paymentId)),
-            ...(context.isAdmin ? [] : [eq(Payment.userId, context.uid!)])
-        ),
+        where: and(eq(Payment.id, Number(paymentId)), eq(Payment.userId, context.uid!)),
     });
     if (!data) {
         return Response.json({ error: "payment not found" }, { status: 404 });
     }
-    return NextResponse.json({
-        finished: !!data.paidAt,
-    });
+    return NextResponse.json({ finished: !!data.paidAt });
 };
