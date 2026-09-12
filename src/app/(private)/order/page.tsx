@@ -1,4 +1,4 @@
-import { and, eq, type SQL } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { OrderCard } from "@/component/card/group";
 import { db } from "@/service/db";
 import { Order } from "@/service/db/schema";
@@ -14,13 +14,7 @@ const Page = async ({ searchParams }: PageProps) => {
     const query = await searchParams;
     const context = await getContext();
     const pagination = toPagination(query);
-    const filters: SQL[] = [eq(Order.userId, context.uid!)];
-
-    if (query.id) {
-        filters.push(eq(Order.id, Number(query.id)));
-    }
-
-    const where = and(...filters);
+    const where = eq(Order.userId, context.uid!);
     const [items, total] = await Promise.all([
         db.query.Order.findMany({
             where,
