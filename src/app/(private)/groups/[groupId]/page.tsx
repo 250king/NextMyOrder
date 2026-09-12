@@ -2,7 +2,7 @@ import React from "react";
 import { notFound } from "next/navigation";
 import { Alert, Chip, Surface, Tabs } from "@heroui/react";
 import { and, count, eq, exists, getTableColumns, isNotNull, SQL, sql } from "drizzle-orm";
-import { ListCard, OrderCard, TransitCard } from "@/component/card/group";
+import { ListCard, TransitCard } from "@/component/card/group";
 import { LinkTab } from "@/component/common/tab";
 import { GroupListFinalizeModal } from "@/component/modal/group";
 import { db } from "@/service/db";
@@ -22,7 +22,9 @@ const ListPanel = async ({ data, userId, ...query }: PanelProps<GroupResult> & Q
     const filters: SQL[] = [eq(Item.groupId, data.id)];
     const listJoin = and(eq(List.itemId, Item.id), eq(List.userId, userId));
 
-    if (data.status !== "PENDING") {
+    if (data.status === "PENDING") {
+        filters.push(eq(Item.allowed, true));
+    } else {
         filters.push(isNotNull(List.itemId));
     }
 
@@ -45,20 +47,6 @@ const ListPanel = async ({ data, userId, ...query }: PanelProps<GroupResult> & Q
     ]);
 
     return <ListCard items={items} total={total.total} data={data} {...query} />;
-};
-
-const OrderPanel = async ({ data, userId, ...query }: PanelProps<GroupResult> & Query) => {
-    const pagination = toPagination(query);
-    const filters = and(eq(Order.userId, userId), eq(Order.groupId, data.id));
-    const [items, total] = await Promise.all([
-        db.query.Order.findMany({
-            where: filters,
-            ...pagination,
-        }),
-        db.$count(Order, filters),
-    ]);
-
-    return <OrderCard items={items} total={total} {...query} />;
 };
 
 const TransitPanel = async ({ data, userId, ...query }: PanelProps<GroupResult> & Query) => {
@@ -100,13 +88,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
     });
     const isFinalized = Boolean(member?.finalizedAt);
     const canFinalize = data.status === "CLOSED" && Boolean(member) && !isFinalized;
-
-    const currentTab =
-        data.status === "PENDING" || !isFinalized
-            ? "list"
-            : search.tab === "list" || search.tab === "track"
-              ? search.tab
-              : "order";
+    const currentTab = data.status === "PENDING" || !isFinalized ? "list" : search.tab === "track" ? "track" : "list";
 
     return (
         <div className="container mx-auto p-6">
@@ -188,10 +170,6 @@ const Page = async ({ params, searchParams }: PageProps) => {
                                     需求单
                                     <Tabs.Indicator />
                                 </LinkTab>
-                                <LinkTab href={`/groups/${data.id}?tab=order`} id="order">
-                                    订单
-                                    <Tabs.Indicator />
-                                </LinkTab>
                                 <LinkTab href={`/groups/${data.id}?tab=track`} id="track">
                                     国际运单
                                     <Tabs.Indicator />
@@ -203,11 +181,6 @@ const Page = async ({ params, searchParams }: PageProps) => {
                         <Tabs.Panel className="p-0" id="list">
                             <ListPanel data={data} userId={context.uid!} {...search} />
                         </Tabs.Panel>
-                        {isFinalized && (
-                            <Tabs.Panel className="p-0" id="order">
-                                <OrderPanel data={data} userId={context.uid!} {...search} />
-                            </Tabs.Panel>
-                        )}
                         {isFinalized && (
                             <Tabs.Panel className="p-0" id="track">
                                 <TransitPanel data={data} userId={context.uid!} {...search} />
