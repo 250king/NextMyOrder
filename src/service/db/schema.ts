@@ -42,7 +42,10 @@ export const Group = pgTable(
         status: GroupStatus().default("PENDING").notNull(),
         image: text(),
         createdAt: timestamp({ mode: "date" }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-        updatedAt: timestamp({ mode: "date" }).default(sql`CURRENT_TIMESTAMP`).$onUpdate(() => sql`CURRENT_TIMESTAMP`).notNull(),
+        updatedAt: timestamp({ mode: "date" })
+            .default(sql`CURRENT_TIMESTAMP`)
+            .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
+            .notNull(),
     },
     (table) => [uniqueIndex().using("btree", table.name, table.qq)]
 );
@@ -70,7 +73,10 @@ export const Item = pgTable(
         weight: decimal({ mode: "number" }),
         allowed: boolean().default(false).notNull(),
         createdAt: timestamp({ mode: "date" }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-        updatedAt: timestamp({ mode: "date" }).default(sql`CURRENT_TIMESTAMP`).$onUpdate(() => sql`CURRENT_TIMESTAMP`).notNull(),
+        updatedAt: timestamp({ mode: "date" })
+            .default(sql`CURRENT_TIMESTAMP`)
+            .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
+            .notNull(),
     },
     (table) => [uniqueIndex().using("btree", table.groupId, table.url, table.name, table.price)]
 );
@@ -82,7 +88,10 @@ export const List = pgTable(
         itemId: bigint({ mode: "number" }).notNull().references(() => Item.id),
         count: integer().default(1).notNull(),
         createdAt: timestamp({ mode: "date" }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-        updatedAt: timestamp({ mode: "date" }).default(sql`CURRENT_TIMESTAMP`).$onUpdate(() => sql`CURRENT_TIMESTAMP`).notNull(),
+        updatedAt: timestamp({ mode: "date" })
+            .default(sql`CURRENT_TIMESTAMP`)
+            .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
+            .notNull(),
     },
     (table) => [primaryKey({ columns: [table.userId, table.itemId] })]
 );
@@ -103,7 +112,10 @@ export const Order = pgTable(
         count: integer().default(1).notNull(),
         status: OrderStatus().default("PENDING").notNull(),
         createdAt: timestamp({ mode: "date" }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-        updatedAt: timestamp({ mode: "date" }).default(sql`CURRENT_TIMESTAMP`).$onUpdate(() => sql`CURRENT_TIMESTAMP`).notNull(),
+        updatedAt: timestamp({ mode: "date" })
+            .default(sql`CURRENT_TIMESTAMP`)
+            .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
+            .notNull(),
         comment: text(),
     },
     (table) => [uniqueIndex().using("btree", table.userId, table.itemId)]
@@ -118,7 +130,10 @@ export const Transit = pgTable("Transit", {
     fee: decimal({ mode: "number" }),
     status: TransitStatus().default("PENDING").notNull(),
     createdAt: timestamp({ mode: "date" }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-    updatedAt: timestamp({ mode: "date" }).default(sql`CURRENT_TIMESTAMP`).$onUpdate(() => sql`CURRENT_TIMESTAMP`).notNull(),
+    updatedAt: timestamp({ mode: "date" })
+        .default(sql`CURRENT_TIMESTAMP`)
+        .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
+        .notNull(),
     comment: text(),
 });
 
@@ -133,27 +148,29 @@ export const Delivery = pgTable("Delivery", {
     createdAt: timestamp({ mode: "date" }).default(sql`CURRENT_TIMESTAMP`).notNull(),
     comment: text(),
     ticketNum: text(),
-    updatedAt: timestamp({ mode: "date" }).default(sql`CURRENT_TIMESTAMP`).$onUpdate(() => sql`CURRENT_TIMESTAMP`).notNull(),
+    updatedAt: timestamp({ mode: "date" })
+        .default(sql`CURRENT_TIMESTAMP`)
+        .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
+        .notNull(),
 });
 
 export const Payment = pgTable("Payment", {
     id: bigserial({ mode: "number" }).primaryKey().notNull(),
     userId: bigint({ mode: "number" }).notNull().references(() => User.id),
     requestId: text().unique(),
-    refId: bigint({ mode: "number" }).notNull(),
-    type: PaymentType().notNull(),
     amount: decimal({ mode: "number" }).notNull(),
     method: PaymentMethod(),
     currency: text().default("CNY").notNull(),
-    currencyRate: decimal({ mode: "number" }).default(1).notNull(),
     createdAt: timestamp({ mode: "date" }).default(sql`CURRENT_TIMESTAMP`).notNull(),
     paidAt: timestamp({ mode: "date" }),
     comment: text(),
 });
 
 export const PaymentItem = pgTable("PaymentItem", {
-    id: bigserial({ mode: "number" }),
-    paymentId: bigserial({ mode: "number" }).references(() => Payment.id),
+    id: bigserial({ mode: "number" }).primaryKey().notNull(),
+    paymentId: bigint({ mode: "number" }).notNull().references(() => Payment.id),
+    type: PaymentType().notNull(),
+    refId: bigint({ mode: "number" }).notNull(),
     name: text().notNull(),
     image: text(),
     description: text(),
@@ -163,6 +180,8 @@ export const PaymentItem = pgTable("PaymentItem", {
     unit: text().default("个").notNull(),
     currency: text().default("CNY").notNull(),
     currencyRate: decimal({ mode: "number" }).default(1).notNull(),
+    settledTotal: decimal({ mode: "number" }).notNull(),
+    createdAt: timestamp({ mode: "date" }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
 export const RefundRequest = pgTable("RefundRequest", {
@@ -179,7 +198,10 @@ export const User = pgTable("User", {
     qq: text().notNull().unique(),
     email: text().unique(),
     createdAt: timestamp({ mode: "date" }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-    updatedAt: timestamp({ mode: "date" }).default(sql`CURRENT_TIMESTAMP`).$onUpdate(() => sql`CURRENT_TIMESTAMP`).notNull(),
+    updatedAt: timestamp({ mode: "date" })
+        .default(sql`CURRENT_TIMESTAMP`)
+        .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
+        .notNull(),
 });
 
 export const Address = pgTable(
