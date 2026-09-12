@@ -197,6 +197,9 @@ export const OrderCard = ({
                                 <LinkButton href={order.itemUrl} variant="secondary" isIconOnly>
                                     <span className="icon-[ri--external-link-line]" />
                                 </LinkButton>
+                                <LinkButton href={`/order/${order.id}`} variant="secondary">
+                                    详情
+                                </LinkButton>
                             </Card.Footer>
                         </div>
                     </Card>
