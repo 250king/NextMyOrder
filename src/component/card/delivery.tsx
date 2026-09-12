@@ -49,7 +49,9 @@ export const DeliveryCard = ({
                         <Card.Header className="flex w-full flex-row items-start justify-between gap-3">
                             <div className="flex flex-wrap items-center gap-2">
                                 {(!item.address || !item.phone || !item.recipient) && (
-                                    <Chip variant="primary" color="warning">物流信息未完善</Chip>
+                                    <Chip variant="primary" color="warning">
+                                        物流信息未完善
+                                    </Chip>
                                 )}
                                 {item.company && (
                                     <Chip variant="primary">
@@ -57,17 +59,23 @@ export const DeliveryCard = ({
                                         <Chip.Label>{companyMap[item.company]}</Chip.Label>
                                     </Chip>
                                 )}
-                                <Chip variant="primary" color={colorMap[item.status]}>{statusMap[item.status]}</Chip>
+                                <Chip variant="primary" color={colorMap[item.status]}>
+                                    {statusMap[item.status]}
+                                </Chip>
                             </div>
                             <span className="text-default-500 shrink-0 font-mono text-sm">#{item.id}</span>
                         </Card.Header>
                         <Card.Content className="flex flex-1 flex-col gap-2">
-                            {item.ticketNum && <div className="text-default-500 text-sm">快递单号：{item.ticketNum}</div>}
+                            {item.ticketNum && (
+                                <div className="text-default-500 text-sm">快递单号：{item.ticketNum}</div>
+                            )}
                             <div className="text-default-500 text-sm">创建时间：{date(item.createdAt)}</div>
                             <div className="text-default-500 text-sm">更新时间：{date(item.updatedAt)}</div>
                         </Card.Content>
                         <Card.Footer className="mt-auto flex w-full justify-end gap-2">
-                            <LinkButton href={`/deliveries/${item.id}`} variant="secondary">详情</LinkButton>
+                            <LinkButton href={`/deliveries/${item.id}`} variant="secondary">
+                                详情
+                            </LinkButton>
                         </Card.Footer>
                     </Card>
                 ))}
@@ -108,11 +116,15 @@ export const GoodsGard = ({
                             <Card.Content className="flex flex-1 flex-col gap-2">
                                 <div className="text-xl font-bold">
                                     {currency(item.itemPrice, "JPY")}
-                                    <span className="px-1 align-baseline text-xs font-medium text-muted">× {item.count}</span>
+                                    <span className="px-1 align-baseline text-xs font-medium text-muted">
+                                        × {item.count}
+                                    </span>
                                 </div>
                             </Card.Content>
                             <Card.Footer className="mt-auto flex w-full justify-end gap-2">
-                                <LinkButton href={`/groups/${item.groupId}?tab=order`} variant="secondary">详情</LinkButton>
+                                <LinkButton href={`/order?id=${item.id}`} variant="secondary">
+                                    详情
+                                </LinkButton>
                             </Card.Footer>
                         </div>
                     </Card>
