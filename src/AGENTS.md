@@ -4,6 +4,8 @@ These rules apply to work under `src/`.
 
 For any task that creates or changes user-visible UI, **read `../docs/UI_STYLE.md` before editing code**. The current NextMyOrder visual language is a product constraint, not a suggestion.
 
+For any task that changes billing/payment data, **read `../docs/PAYMENT_MODEL.md` before editing code**. Payment aggregation and snapshot semantics are data-integrity constraints.
+
 ## Mandatory UI workflow
 
 Before implementing a UI change:
@@ -26,6 +28,17 @@ Before implementing a UI change:
 - Preserve nearby spacing, typography, responsive breakpoints, and component variants when adding to an existing workflow.
 - Reuse existing shared components before creating visually similar duplicates.
 - Do not restyle unrelated UI as part of a functional task.
+
+## Payment and snapshot constraints
+
+- `Payment` is an aggregate and must not be tied to a single source entity.
+- Never add `type` or `refId` back to `Payment`.
+- Each charge line belongs in `PaymentItem` and carries its own `type + refId` reference.
+- `PaymentItem` must keep an immutable snapshot of the billed description and money fields.
+- Billing/history UI must read amount/name/description data from `PaymentItem`, not by re-reading the current referenced entity.
+- `Payment.amount` is the settlement total of the whole bill; mixed charge types are allowed in one payment.
+- `PaymentItem.settledTotal` is an accounting snapshot and must not be silently recomputed from a later entity value.
+- Because `PaymentItem.refId` is polymorphic, code creating a line item must validate the source entity before insertion.
 
 ## Existing patterns to prefer
 
