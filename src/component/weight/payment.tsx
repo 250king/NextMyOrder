@@ -2,11 +2,11 @@
 import React from "react";
 import axios from "axios";
 import QRCode from "qrcode";
-import { Payment } from "@/service/db/schema";
+import type { PaymentRow } from "@/type/payment";
 
 type WeightProps = {
     url: string;
-    data: typeof Payment.$inferSelect;
+    data: PaymentRow;
 };
 
 export const PaymentWeight = ({ url, data }: WeightProps) => {
