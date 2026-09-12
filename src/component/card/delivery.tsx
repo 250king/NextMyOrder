@@ -95,24 +95,24 @@ export const GoodsGard = ({
                     <Card key={item.id} className="w-full items-stretch md:flex-row">
                         <div className="relative h-35 w-full shrink-0 overflow-hidden rounded-2xl sm:h-30 sm:w-30">
                             <ImagePreview
-                                alt={item.item.name}
-                                src={item.item.image || "https://static.250king.top/image/2026/04/i3f4xep2.png"}
+                                alt={item.itemName}
+                                src={item.itemImage || "https://static.250king.top/image/2026/04/i3f4xep2.png"}
                                 className="h-full w-full scale-125 object-cover select-none"
                             />
                         </div>
                         <div className="flex min-w-0 flex-1 flex-col gap-3">
                             <Card.Header className="gap-1">
-                                <Card.Title className="truncate">{item.item.name}</Card.Title>
+                                <Card.Title className="truncate">{item.itemName}</Card.Title>
                                 <div className="text-muted shrink-0 font-mono text-sm">#{item.id}</div>
                             </Card.Header>
                             <Card.Content className="flex flex-1 flex-col gap-2">
                                 <div className="text-xl font-bold">
-                                    {currency(item.item.price, "JPY")}
+                                    {currency(item.itemPrice, "JPY")}
                                     <span className="px-1 align-baseline text-xs font-medium text-muted">× {item.count}</span>
                                 </div>
                             </Card.Content>
                             <Card.Footer className="mt-auto flex w-full justify-end gap-2">
-                                <LinkButton href={`/groups/${item.item.groupId}?tab=order`} variant="secondary">详情</LinkButton>
+                                <LinkButton href={`/groups/${item.groupId}?tab=order`} variant="secondary">详情</LinkButton>
                             </Card.Footer>
                         </div>
                     </Card>
