@@ -13,12 +13,14 @@ import { ItemResult } from "@/type/item";
 import {
     statusMap as orderStatusMap,
     colorMap as orderColorMap,
+    OrderQuery,
     OrderSnapshotResult,
 } from "@/type/order";
 import {
     statusMap as transitStatusMap,
     colorMap as transitColorMap,
     iconMap,
+    TransitQuery,
     typeMap,
     TransitResult,
 } from "@/type/transit";
@@ -107,8 +109,11 @@ export const ListCard = ({
                             <Card.Header className="gap-1">
                                 <Card.Title className="truncate">{item.name}</Card.Title>
                             </Card.Header>
-                            <Card.Content className="flex flex-1 flex-col gap-2">
+                            <Card.Content className="flex flex-1 flex-col gap-1">
                                 <div className="text-xl font-bold">{currency(item.price, "JPY")}</div>
+                                {!isEditable && (
+                                    <div className="text-muted text-sm">数量 × {item.selected}</div>
+                                )}
                             </Card.Content>
                             <Card.Footer className="mt-auto flex w-full items-center justify-end gap-2">
                                 <LinkButton href={item.url} variant="secondary" isIconOnly>
@@ -143,11 +148,7 @@ export const ListCard = ({
                                             <NumberField.IncrementButton />
                                         </NumberField.Group>
                                     </NumberField>
-                                ) : (
-                                    <div className="text-muted text-sm">
-                                        数量 <span className="font-semibold">× {item.selected}</span>
-                                    </div>
-                                )}
+                                ) : null}
                             </Card.Footer>
                         </div>
                     </Card>
@@ -162,12 +163,26 @@ export const OrderCard = ({
     items,
     total,
     page,
-}: DataCardProps<Query, OrderSnapshotResult>) => {
+    status,
+    keyword,
+}: DataCardProps<OrderQuery, OrderSnapshotResult>) => {
     const [isPending, startTransition] = React.useTransition();
+    const { updateFilter } = useFilter(startTransition);
 
     return (
         <div className="relative flex flex-col gap-4">
             {isPending && <Loading />}
+            <SearchFilter
+                key={keyword || ""}
+                initialValue={keyword}
+                onSearch={(val) => updateFilter({ keyword: val })}
+            />
+            <EnumFilter
+                label="订单状态"
+                currentValue={status}
+                options={orderStatusMap}
+                onChange={(val) => updateFilter({ status: val })}
+            />
             <p className="text-default-500 text-sm">共生成{total}条订单</p>
             <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {items.map((order) => (
@@ -197,7 +212,7 @@ export const OrderCard = ({
                                 <LinkButton href={order.itemUrl} variant="secondary" isIconOnly>
                                     <span className="icon-[ri--external-link-line]" />
                                 </LinkButton>
-                                <LinkButton href={`/order/${order.id}`} variant="secondary">
+                                <LinkButton href={`/orders/${order.id}`} variant="secondary">
                                     详情
                                 </LinkButton>
                             </Card.Footer>
@@ -214,13 +229,26 @@ export const TransitCard = ({
     items,
     total,
     page,
-    data,
-}: DataCardProps<Query, TransitResult> & { data: GroupResult }) => {
+    status,
+    keyword,
+}: DataCardProps<TransitQuery, TransitResult>) => {
     const [isPending, startTransition] = React.useTransition();
+    const { updateFilter } = useFilter(startTransition);
 
     return (
         <div className="relative flex flex-col gap-4">
             {isPending && <Loading />}
+            <SearchFilter
+                key={keyword || ""}
+                initialValue={keyword}
+                onSearch={(val) => updateFilter({ keyword: val })}
+            />
+            <EnumFilter
+                label="运单状态"
+                currentValue={status}
+                options={transitStatusMap}
+                onChange={(val) => updateFilter({ status: val })}
+            />
             <p className="text-default-500 text-sm">共找到{total}条记录</p>
             <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {items.map((item) => (
@@ -251,7 +279,7 @@ export const TransitCard = ({
                             <div className="text-default-500 text-sm">{item.comment}</div>
                         </Card.Content>
                         <Card.Footer className="mt-auto flex w-full justify-end gap-2">
-                            <LinkButton href={`/groups/${data.id}/transit/${item.id}`} variant="secondary">
+                            <LinkButton href={`/transits/${item.id}`} variant="secondary">
                                 详情
                             </LinkButton>
                         </Card.Footer>

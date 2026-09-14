@@ -19,7 +19,6 @@ export const DeliveryCompany = pgEnum("DeliveryCompany", ["SF", "YTO", "ZTO", "J
 export const DeliveryStatus = pgEnum("DeliveryStatus", ["PENDING", "PUSHED", "DELIVERED", "ARRIVED", "CANCELED"]);
 export const OrderStatus = pgEnum("OrderStatus", [
     "PENDING",
-    "CONFIRMED",
     "PURCHASED",
     "TRANSITING",
     "ARRIVED",

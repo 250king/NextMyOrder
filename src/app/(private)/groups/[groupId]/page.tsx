@@ -1,12 +1,11 @@
 import React from "react";
 import { notFound } from "next/navigation";
-import { Alert, Chip, Surface, Tabs } from "@heroui/react";
+import { Alert, Chip, Surface } from "@heroui/react";
 import { and, count, eq, exists, getTableColumns, isNotNull, SQL, sql } from "drizzle-orm";
-import { ListCard, TransitCard } from "@/component/card/group";
-import { LinkTab } from "@/component/common/tab";
+import { ListCard } from "@/component/card/group";
 import { GroupListFinalizeModal } from "@/component/modal/group";
 import { db } from "@/service/db";
-import { Group, Item, List, Member, Order, Transit } from "@/service/db/schema";
+import { Group, Item, List, Member } from "@/service/db/schema";
 import { PanelProps, Query } from "@/type/common";
 import { colorMap, GroupResult, statusMap } from "@/type/group";
 import { getContext } from "@/util/context";
@@ -14,7 +13,7 @@ import { date, toPagination } from "@/util/cover";
 
 type PageProps = {
     params: Promise<{ groupId: number }>;
-    searchParams: Promise<Query & { tab?: string }>;
+    searchParams: Promise<Query>;
 };
 
 const ListPanel = async ({ data, userId, ...query }: PanelProps<GroupResult> & Query) => {
@@ -49,22 +48,6 @@ const ListPanel = async ({ data, userId, ...query }: PanelProps<GroupResult> & Q
     return <ListCard items={items} total={total.total} data={data} {...query} />;
 };
 
-const TransitPanel = async ({ data, userId, ...query }: PanelProps<GroupResult> & Query) => {
-    const pagination = toPagination(query);
-    const hasCurrentUserOrder = exists(
-        db
-            .select({ id: Order.id })
-            .from(Order)
-            .where(and(eq(Order.transitId, Transit.id), eq(Order.userId, userId), eq(Order.groupId, data.id)))
-    );
-    const [items, total] = await Promise.all([
-        db.select().from(Transit).where(hasCurrentUserOrder).limit(pagination.limit).offset(pagination.offset),
-        db.$count(Transit, hasCurrentUserOrder),
-    ]);
-
-    return <TransitCard items={items} total={total} data={data} {...query} />;
-};
-
 const Page = async ({ params, searchParams }: PageProps) => {
     const path = await params;
     const search = await searchParams;
@@ -88,7 +71,6 @@ const Page = async ({ params, searchParams }: PageProps) => {
     });
     const isFinalized = Boolean(member?.finalizedAt);
     const canFinalize = data.status === "CLOSED" && Boolean(member) && !isFinalized;
-    const currentTab = data.status === "PENDING" || !isFinalized ? "list" : search.tab === "track" ? "track" : "list";
 
     return (
         <div className="container mx-auto p-6">
@@ -162,32 +144,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
                     </div>
                 </Surface>
 
-                <Tabs selectedKey={currentTab} className="w-full gap-4">
-                    {data.status !== "PENDING" && isFinalized && (
-                        <Tabs.ListContainer className="w-fit">
-                            <Tabs.List className="w-fit max-w-full *:w-fit *:whitespace-nowrap">
-                                <LinkTab href={`/groups/${data.id}?tab=list`} id="list">
-                                    需求单
-                                    <Tabs.Indicator />
-                                </LinkTab>
-                                <LinkTab href={`/groups/${data.id}?tab=track`} id="track">
-                                    国际运单
-                                    <Tabs.Indicator />
-                                </LinkTab>
-                            </Tabs.List>
-                        </Tabs.ListContainer>
-                    )}
-                    <div className="w-full">
-                        <Tabs.Panel className="p-0" id="list">
-                            <ListPanel data={data} userId={context.uid!} {...search} />
-                        </Tabs.Panel>
-                        {isFinalized && (
-                            <Tabs.Panel className="p-0" id="track">
-                                <TransitPanel data={data} userId={context.uid!} {...search} />
-                            </Tabs.Panel>
-                        )}
-                    </div>
-                </Tabs>
+                <ListPanel data={data} userId={context.uid!} {...search} />
             </div>
         </div>
     );

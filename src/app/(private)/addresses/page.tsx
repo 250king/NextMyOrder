@@ -11,7 +11,6 @@ const Page = async () => {
                 <header className="flex flex-wrap items-end justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-bold">地址簿</h1>
-                        <p className="text-muted mt-1 text-sm">管理常用收件地址，分发时直接选择，不再重复填写。</p>
                     </div>
                     <AddressCreateModal />
                 </header>

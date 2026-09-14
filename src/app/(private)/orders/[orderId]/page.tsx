@@ -4,7 +4,8 @@ import { Chip, Surface } from "@heroui/react";
 import { and, eq } from "drizzle-orm";
 import { LinkButton } from "@/component/common/link";
 import { db } from "@/service/db";
-import { Order } from "@/service/db/schema";
+import { DeliveryToOrder, Group, Order } from "@/service/db/schema";
+import { companyMap } from "@/type/delivery";
 import { colorMap, statusMap } from "@/type/order";
 import { getContext } from "@/util/context";
 import { currency, date } from "@/util/cover";
@@ -18,11 +19,26 @@ const Page = async ({ params }: PageProps) => {
     const context = await getContext();
     const data = await db.query.Order.findFirst({
         where: and(eq(Order.id, orderId), eq(Order.userId, context.uid!)),
+        with: {
+            transit: true,
+        },
     });
 
     if (!data) {
         notFound();
     }
+
+    const group = await db.query.Group.findFirst({
+        where: eq(Group.id, data.groupId),
+    });
+
+    const bindings = await db.query.DeliveryToOrder.findMany({
+        where: eq(DeliveryToOrder.orderId, data.id),
+        with: {
+            delivery: true,
+        },
+    });
+    const deliveries = bindings.map((binding) => binding.delivery).filter((delivery) => delivery.userId === context.uid);
 
     return (
         <div className="container mx-auto p-6">
@@ -51,9 +67,18 @@ const Page = async ({ params }: PageProps) => {
                         </div>
                         <div className="min-w-0">
                             <div className="text-muted">团购</div>
-                            <Link href={`/groups/${data.groupId}`} className="font-medium text-focus hover:underline">
-                                #{data.groupId}
-                            </Link>
+                            <div className="font-medium">
+                                {group ? (
+                                    <Link
+                                        href={`/groups/${data.groupId}`}
+                                        className="text-focus hover:underline"
+                                    >
+                                        #{data.groupId} · {group.name}
+                                    </Link>
+                                ) : (
+                                    `#${data.groupId}`
+                                )}
+                            </div>
                         </div>
                         <div className="min-w-0">
                             <div className="text-muted">单价</div>
@@ -70,15 +95,37 @@ const Page = async ({ params }: PageProps) => {
                         <div className="min-w-0">
                             <div className="text-muted">国际运单</div>
                             <div className="font-medium">
-                                {data.transitId ? (
+                                {data.transit ? (
                                     <Link
-                                        href={`/groups/${data.groupId}/transit/${data.transitId}`}
+                                        href={`/transits/${data.transit.id}`}
                                         className="text-focus hover:underline"
                                     >
-                                        #{data.transitId}
+                                        {`#${data.transit.id} · ${data.transit.carrier}${data.transit.ticketNum ? ` · ${data.transit.ticketNum}` : ""}`}
                                     </Link>
                                 ) : (
                                     "-"
+                                )}
+                            </div>
+                        </div>
+                        <div className="min-w-0">
+                            <div className="text-muted">所属分发</div>
+                            <div className="font-medium">
+                                {deliveries.length === 0 ? (
+                                    "-"
+                                ) : (
+                                    <span className="flex flex-col gap-1">
+                                        {deliveries.map((delivery) => (
+                                            <Link
+                                                key={delivery.id}
+                                                href={`/deliveries/${delivery.id}`}
+                                                className="text-focus hover:underline"
+                                            >
+                                                #{delivery.id}
+                                                {delivery.company ? ` · ${companyMap[delivery.company]}` : ""}
+                                                {delivery.ticketNum ? ` · ${delivery.ticketNum}` : ""}
+                                            </Link>
+                                        ))}
+                                    </span>
                                 )}
                             </div>
                         </div>

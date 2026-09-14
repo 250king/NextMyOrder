@@ -67,6 +67,9 @@ export const GoodsGard = ({
         <div className="relative flex flex-col gap-4">
             {isPending && <Loading />}
             <p className="text-default-500 text-sm">共找到{total}条记录</p>
+            {items.length === 0 ? (
+                <div className="py-10 text-center text-sm text-muted">暂未绑定商品，具体绑定由店主在后台操作</div>
+            ) : (
             <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {items.map((item) => (
                     <Card key={item.id} className="w-full items-stretch md:flex-row">
@@ -91,7 +94,7 @@ export const GoodsGard = ({
                                 </div>
                             </Card.Content>
                             <Card.Footer className="mt-auto flex w-full justify-end gap-2">
-                                <LinkButton href={`/order/${item.id}`} variant="secondary">
+                                <LinkButton href={`/orders/${item.id}`} variant="secondary">
                                     详情
                                 </LinkButton>
                             </Card.Footer>
@@ -99,6 +102,7 @@ export const GoodsGard = ({
                     </Card>
                 ))}
             </div>
+            )}
             <Pagination startTransition={startTransition} total={total} page={page} />
         </div>
     );

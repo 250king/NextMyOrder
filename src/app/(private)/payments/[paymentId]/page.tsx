@@ -1,9 +1,10 @@
 import React from "react";
 import { notFound } from "next/navigation";
-import { Alert, Button, Chip, Surface, Tabs } from "@heroui/react";
+import { Alert, Button, Card, Chip, Surface, Tabs } from "@heroui/react";
 import { and, eq } from "drizzle-orm";
 import { LinkButton } from "@/component/common/link";
 import { LinkTab } from "@/component/common/tab";
+import { ImagePreview } from "@/component/weight/image";
 import { db } from "@/service/db";
 import { Payment } from "@/service/db/schema";
 import {
@@ -130,48 +131,73 @@ const Page = async ({ params, searchParams }: PageProps) => {
                             {data.items.length === 0 ? (
                                 <div className="py-10 text-center text-sm text-muted">暂无收款明细</div>
                             ) : (
-                                <div>
+                                <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 lg:grid-cols-3">
                                     {data.items.map((item) => (
-                                        <div
-                                            key={item.id}
-                                            className="flex flex-col gap-3 border-b border-separator py-4 first:pt-0 last:border-b-0 last:pb-0 sm:flex-row sm:items-start sm:justify-between"
-                                        >
-                                            <div className="min-w-0 space-y-2">
-                                                <div className="flex flex-wrap items-center gap-2">
-                                                    <Chip variant="primary">
-                                                        <span className={typeIconMap[item.type]} />
-                                                        <Chip.Label>{typeMap[item.type]}</Chip.Label>
-                                                    </Chip>
-                                                    <span className="text-muted font-mono text-xs">
-                                                        {referenceMap[item.type]} #{item.refId}
-                                                    </span>
-                                                </div>
-                                                <div>
-                                                    <div className="font-medium">{item.name}</div>
-                                                    {item.description && (
-                                                        <div className="mt-1 text-sm text-muted">{item.description}</div>
-                                                    )}
-                                                </div>
-                                                <div className="text-sm text-muted">
-                                                    {currency(item.price, item.currency)} × {item.count} {item.unit}
-                                                    {item.currency !== data.currency && (
-                                                        <span className="ml-2">
-                                                            · 1 {item.currency} = {item.currencyRate} {data.currency}
+                                        <Card key={item.id} className="w-full items-stretch md:flex-row">
+                                            <div className="relative h-35 w-full shrink-0 overflow-hidden rounded-2xl sm:h-30 sm:w-30">
+                                                <ImagePreview
+                                                    alt={item.name}
+                                                    src={
+                                                        item.image ||
+                                                        "https://static.250king.top/image/2026/04/i3f4xep2.png"
+                                                    }
+                                                    className="h-full w-full scale-125 object-cover select-none"
+                                                />
+                                            </div>
+                                            <div className="flex min-w-0 flex-1 flex-col gap-3">
+                                                <Card.Header className="flex-col items-start gap-2">
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                        <Chip variant="primary">
+                                                            <span className={typeIconMap[item.type]} />
+                                                            <Chip.Label>{typeMap[item.type]}</Chip.Label>
+                                                        </Chip>
+                                                        <span className="text-muted font-mono text-xs">
+                                                            {referenceMap[item.type]} #{item.refId}
                                                         </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="shrink-0 sm:text-right">
-                                                {item.currency !== data.currency && (
-                                                    <div className="text-sm text-muted">
-                                                        {currency(item.total, item.currency)}
                                                     </div>
+                                                    <Card.Title className="truncate">{item.name}</Card.Title>
+                                                    {item.description && (
+                                                        <Card.Description className="line-clamp-2">
+                                                            {item.description}
+                                                        </Card.Description>
+                                                    )}
+                                                </Card.Header>
+                                                <Card.Content className="flex flex-1 flex-col gap-1">
+                                                    <div className="text-sm text-muted">
+                                                        {currency(item.price, item.currency)} × {item.count}{" "}
+                                                        {item.unit}
+                                                        {item.currency !== data.currency && (
+                                                            <span className="ml-2">
+                                                                · 1 {item.currency} = {item.currencyRate}{" "}
+                                                                {data.currency}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {item.currency !== data.currency && (
+                                                        <div className="text-sm text-muted">
+                                                            {currency(item.total, item.currency)}
+                                                        </div>
+                                                    )}
+                                                    <div className="text-xl font-bold">
+                                                        {currency(item.settledTotal, data.currency)}
+                                                    </div>
+                                                </Card.Content>
+                                                {(item.type === "LIST" || item.type === "DELIVERY") && (
+                                                    <Card.Footer className="mt-auto flex w-full justify-end gap-2">
+                                                        <LinkButton
+                                                            href={
+                                                                item.type === "LIST"
+                                                                    ? `/orders/${item.refId}`
+                                                                    : `/deliveries/${item.refId}`
+                                                            }
+                                                            variant="secondary"
+                                                        >
+                                                            查看来源
+                                                        </LinkButton>
+                                                    </Card.Footer>
                                                 )}
-                                                <div className="text-lg font-semibold">
-                                                    {currency(item.settledTotal, data.currency)}
-                                                </div>
                                             </div>
-                                        </div>
+                                        </Card>
                                     ))}
                                 </div>
                             )}

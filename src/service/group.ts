@@ -69,7 +69,7 @@ export const finalizeGroupList = async (params: number) => {
                     itemPrice: item.itemPrice,
                     itemWeight: item.itemWeight,
                     count: item.count,
-                    status: "CONFIRMED" as const,
+                    status: "PENDING" as const,
                 }))
             );
         }

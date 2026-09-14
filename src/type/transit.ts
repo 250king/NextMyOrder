@@ -1,10 +1,15 @@
 import { Transit, TransitStatus, TransitType } from "@/service/db/schema";
+import { Query } from "@/type/common";
 
 export type TransitType = (typeof TransitType.enumValues)[number]
 
 export type TransitStatus = (typeof TransitStatus.enumValues)[number]
 
 export type TransitResult = typeof Transit.$inferSelect
+
+export type TransitQuery = Query<{
+    status?: TransitStatus;
+}>;
 
 export const statusMap: Record<TransitStatus, string> = {
     PENDING: "待发出",
