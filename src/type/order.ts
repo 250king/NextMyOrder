@@ -1,26 +1,22 @@
-import { z } from "zod";
 import { Order, OrderStatus } from "@/service/db/schema";
-import { query } from "@/type/common";
-import { ItemResult } from "@/type/item";
+import { Query } from "@/type/common";
 import { TransitResult } from "@/type/transit";
 import { UserResult } from "@/type/user";
 
-export type OrderStatus = (typeof OrderStatus.enumValues)[number]
+export type OrderStatus = (typeof OrderStatus.enumValues)[number];
 
 export const statusMap: Record<OrderStatus, string> = {
     PENDING: "待处理",
-    CONFIRMED: "已确认",
     PURCHASED: "已下单",
     TRANSITING: "已发货",
     ARRIVED: "已抵达仓库",
     DELIVERING: "已发出",
     COMPLETED: "已完成",
-    CANCELED: "已取消"
-}
+    CANCELED: "已取消",
+};
 
 export const colorMap: Record<OrderStatus, "default" | "success" | "warning" | "accent"> = {
     PENDING: "default",
-    CONFIRMED: "accent",
     PURCHASED: "default",
     TRANSITING: "default",
     ARRIVED: "accent",
@@ -29,18 +25,13 @@ export const colorMap: Record<OrderStatus, "default" | "success" | "warning" | "
     CANCELED: "warning",
 };
 
-export type OrderResult = typeof Order.$inferSelect & {
+export type OrderSnapshotResult = typeof Order.$inferSelect;
+
+export type OrderQuery = Query<{
+    status?: OrderStatus;
+}>;
+
+export type OrderResult = OrderSnapshotResult & {
     user: UserResult;
-    item: ItemResult;
     transit: TransitResult | null;
-}
-
-export const orderQuery = query.extend({
-    userId: z.int().positive().optional(),
-    notInDelivery: z.int().positive().optional(),
-})
-
-export const changeCountSchema = z.object({
-    itemId: z.int().positive(),
-    count: z.int().nonnegative(),
-})
+};

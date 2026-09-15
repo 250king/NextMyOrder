@@ -20,6 +20,7 @@ const Page = async ({ params }: PageProps) => {
     const data = await db.query.Payment.findFirst({
         where: and(eq(Payment.id, query.paymentId), eq(Payment.userId, context.uid!)),
     });
+
     if (!data) {
         return notFound();
     }
@@ -33,11 +34,15 @@ const Page = async ({ params }: PageProps) => {
             </div>
         );
     }
+    if (data.currency !== "CNY") {
+        throw new Error("当前支付通道仅支持人民币结算");
+    }
     if (data.requestId) {
         await cancelOrder(data.requestId);
     }
+
     const requestNum = genReqNum(data.id);
-    const amount = ((data.amount * data.currencyRate) / (1 - 0.0038)).toFixed(2);
+    const amount = (data.amount / (1 - 0.0038)).toFixed(2);
     const res = await generateUrl(requestNum, amount);
     await db
         .update(Payment)

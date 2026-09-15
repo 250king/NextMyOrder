@@ -1,107 +1,76 @@
 import React from "react";
 import { notFound } from "next/navigation";
-import { Alert, Chip, Surface, Tabs } from "@heroui/react";
+import { Alert, Chip, Surface } from "@heroui/react";
 import { and, count, eq, exists, getTableColumns, isNotNull, SQL, sql } from "drizzle-orm";
-import { BuyCard, TransitCard } from "@/component/card/group";
-import { LinkTab } from "@/component/common/tab";
-import { GroupOrderConfirmModal } from "@/component/modal/group";
+import { ListCard } from "@/component/card/group";
+import { GroupListFinalizeModal } from "@/component/modal/group";
 import { db } from "@/service/db";
-import { Group, Item, List, Order, Transit } from "@/service/db/schema";
+import { Group, Item, List, Member } from "@/service/db/schema";
 import { PanelProps, Query } from "@/type/common";
 import { colorMap, GroupResult, statusMap } from "@/type/group";
-import type { OrderStatus } from "@/type/order";
 import { getContext } from "@/util/context";
 import { date, toPagination } from "@/util/cover";
 
 type PageProps = {
-    params: Promise<{
-        groupId: number;
-    }>;
-    searchParams: Promise<{
-        tab?: string;
-    }>;
+    params: Promise<{ groupId: number }>;
+    searchParams: Promise<Query>;
 };
 
-const BuyPanel = async ({ data, userId, ...query }: PanelProps<GroupResult> & Query) => {
+const ListPanel = async ({ data, userId, ...query }: PanelProps<GroupResult> & Query) => {
     const pagination = toPagination(query);
     const filters: SQL[] = [eq(Item.groupId, data.id)];
-    if (data.status !== "PENDING") {
-        filters.push(isNotNull(Order.id));
+    const listJoin = and(eq(List.itemId, Item.id), eq(List.userId, userId));
+
+    if (data.status === "PENDING") {
+        filters.push(eq(Item.allowed, true));
+    } else {
+        filters.push(isNotNull(List.itemId));
     }
-    const orderJoin = and(eq(Order.itemId, Item.id), eq(Order.userId, userId));
+
     const [items, [total]] = await Promise.all([
         db
             .select({
                 ...getTableColumns(Item),
-                selected: sql<number>`
-                    coalesce(${Order.count}, 0)
-                `.mapWith(Number),
-                status: sql<OrderStatus>`
-                    coalesce(${Order.status}, 'PENDING'::"OrderStatus")
-                `,
-                orderId: sql<number>`
-                    coalesce(${Order.id}, NULL)
-                `,
+                selected: sql<number>`coalesce(${List.count}, 0)`.mapWith(Number),
             })
             .from(Item)
-            .leftJoin(Order, orderJoin)
+            .leftJoin(List, listJoin)
             .where(and(...filters))
             .limit(pagination.limit)
             .offset(pagination.offset),
         db
-            .select({
-                total: count(Item.id),
-            })
+            .select({ total: count(Item.id) })
             .from(Item)
-            .leftJoin(Order, orderJoin)
+            .leftJoin(List, listJoin)
             .where(and(...filters)),
     ]);
 
-    return <BuyCard items={items} total={total.total} data={data} {...query} />;
-};
-
-const TransitPanel = async ({ data, userId, ...query }: PanelProps<GroupResult> & Query) => {
-    const pagination = toPagination(query);
-    const hasCurrentUserOrder = exists(
-        db
-            .select({
-                id: Order.id,
-            })
-            .from(Order)
-            .innerJoin(Item, eq(Item.id, Order.itemId))
-            .where(and(eq(Order.transitId, Transit.id), eq(Order.userId, userId), eq(Item.groupId, data.id)))
-    );
-    const [items, total] = await Promise.all([
-        db.select().from(Transit).where(hasCurrentUserOrder).limit(pagination.limit).offset(pagination.offset),
-        db.$count(Transit, hasCurrentUserOrder),
-    ]);
-
-    return <TransitCard items={items} total={total} data={data} {...query} />;
+    return <ListCard items={items} total={total.total} data={data} {...query} />;
 };
 
 const Page = async ({ params, searchParams }: PageProps) => {
     const path = await params;
     const search = await searchParams;
     const context = await getContext();
-    const sql = exists(
+    const membership = exists(
         db
             .select()
-            .from(List)
-            .where(and(eq(List.groupId, Group.id), eq(List.userId, context.uid!)))
+            .from(Member)
+            .where(and(eq(Member.groupId, Group.id), eq(Member.userId, context.uid!)))
     );
-    const currentTab = search.tab === "track" ? "track" : "buy";
     const data = await db.query.Group.findFirst({
-        where: and(eq(Group.id, path.groupId), ...(context.isAdmin ? [] : [sql])),
+        where: and(eq(Group.id, path.groupId), membership),
     });
-    const [noConfirmed] = await db
-        .select({ id: Order.id })
-        .from(Order)
-        .innerJoin(Item, eq(Item.id, Order.itemId))
-        .where(and(eq(Item.groupId, path.groupId), eq(Order.userId, context.uid!), eq(Order.status, "PENDING")))
-        .limit(1);
+
     if (!data) {
         notFound();
     }
+
+    const member = await db.query.Member.findFirst({
+        where: and(eq(Member.groupId, data.id), eq(Member.userId, context.uid!)),
+    });
+    const isFinalized = Boolean(member?.finalizedAt);
+    const canFinalize = data.status === "CLOSED" && Boolean(member) && !isFinalized;
 
     return (
         <div className="container mx-auto p-6">
@@ -112,31 +81,40 @@ const Page = async ({ params, searchParams }: PageProps) => {
                         <Chip className="shrink-0" variant="primary" color={colorMap[data.status]}>
                             {statusMap[data.status]}
                         </Chip>
+                        {data.status !== "PENDING" && member && (
+                            <Chip variant="primary" color={isFinalized ? "success" : "warning"}>
+                                {isFinalized ? "订单已生成" : "待确认需求"}
+                            </Chip>
+                        )}
                     </div>
                 </header>
-                {data.status == "PENDING" && (
+
+                {data.status === "PENDING" && (
                     <Alert status="warning">
                         <Alert.Indicator />
                         <Alert.Content>
                             <Alert.Title>团购截止时间为 {date(data.deadline)}</Alert.Title>
-                            <Alert.Description>请在截止时间前完成选购，过后将无法进行选购操作。</Alert.Description>
+                            <Alert.Description>截止前可以随时调整需求数量，截单后需求将被冻结。</Alert.Description>
                         </Alert.Content>
                     </Alert>
                 )}
-                {data.status == "CLOSED" && noConfirmed && (
+
+                {canFinalize && (
                     <Alert status="warning">
                         <Alert.Indicator />
                         <Alert.Content>
-                            <Alert.Title>请尽快确认订单</Alert.Title>
+                            <Alert.Title>团购已截止，请确认最终需求</Alert.Title>
                             <Alert.Description>
-                                若不及时确认订单，将会视作弃权处理。若信息有误，请及时联系管理员修改。
+                                当前需求已经冻结。确认后会生成正式订单，之后无法自行修改商品和数量。
                             </Alert.Description>
                         </Alert.Content>
                     </Alert>
                 )}
+
                 <Surface className="rounded-3xl p-4 shadow-sm">
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         <h2 className="text-base font-semibold">基础信息</h2>
+                        {canFinalize && <GroupListFinalizeModal data={data} />}
                     </div>
                     <div className="mt-4 grid gap-4 text-sm md:grid-cols-3">
                         <div className="min-w-0">
@@ -144,9 +122,17 @@ const Page = async ({ params, searchParams }: PageProps) => {
                             <div className="font-medium">{data.qq}</div>
                         </div>
                         <div className="min-w-0">
-                            <div className="text-muted">截至时间</div>
+                            <div className="text-muted">截止时间</div>
                             <div className="font-medium">{date(data.deadline)}</div>
                         </div>
+                        {member && data.status !== "PENDING" && (
+                            <div className="min-w-0">
+                                <div className="text-muted">需求确认</div>
+                                <div className="font-medium">
+                                    {member.finalizedAt ? date(member.finalizedAt) : "尚未确认"}
+                                </div>
+                            </div>
+                        )}
                         <div className="min-w-0">
                             <div className="text-muted">创建时间</div>
                             <div className="font-medium">{date(data.createdAt)}</div>
@@ -157,36 +143,8 @@ const Page = async ({ params, searchParams }: PageProps) => {
                         </div>
                     </div>
                 </Surface>
-                <Tabs selectedKey={currentTab} className="w-full gap-4">
-                    {data.status !== "PENDING" &&
-                        (!noConfirmed ? (
-                            <Tabs.ListContainer className="w-fit">
-                                <Tabs.List className="w-fit max-w-full *:w-fit *:whitespace-nowrap">
-                                    <LinkTab href={`/groups/${data.id}?tab=buy`} id="buy">
-                                        需求单
-                                        <Tabs.Indicator />
-                                    </LinkTab>
-                                    <LinkTab href={`/groups/${data.id}?tab=track`} id="track">
-                                        国际运单
-                                        <Tabs.Indicator />
-                                    </LinkTab>
-                                </Tabs.List>
-                            </Tabs.ListContainer>
-                        ) : (
-                            <div className="flex w-full justify-end">
-                                <GroupOrderConfirmModal data={data} />
-                            </div>
-                        ))
-                    }
-                    <div className="w-full">
-                        <Tabs.Panel className="p-0" id="buy">
-                            <BuyPanel data={data} userId={context.uid!} {...search} />
-                        </Tabs.Panel>
-                        <Tabs.Panel className="p-0" id="track">
-                            <TransitPanel data={data} userId={context.uid!} {...search} />
-                        </Tabs.Panel>
-                    </div>
-                </Tabs>
+
+                <ListPanel data={data} userId={context.uid!} {...search} />
             </div>
         </div>
     );
