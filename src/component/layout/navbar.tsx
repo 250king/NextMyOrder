@@ -14,8 +14,8 @@ export const Navbar = ({ user }: { user?: Context["user"] }) => {
         { name: "订单", href: "/orders" },
         { name: "国际运单", href: "/transits" },
         { name: "分发", href: "/deliveries" },
-        { name: "地址簿", href: "/addresses" },
         { name: "账单", href: "/payments" },
+        { name: "地址簿", href: "/addresses" },
     ];
 
     const getNavClassName = (href: string) => {

@@ -25,7 +25,49 @@ import {
     TransitResult,
 } from "@/type/transit";
 import { currency } from "@/util/cover";
+import { debounce } from "@/util/debounce";
 import { getErrorMessage } from "@/util/request";
+
+const ListCountField = ({ item }: { item: ItemResult & { selected: number } }) => {
+    const updateCount = React.useMemo(
+        () => debounce(async (count: number) => {
+            try {
+                await changeListCount({
+                    itemId: item.id,
+                    count,
+                });
+                toast.success("修改成功");
+            } catch (error) {
+                console.error(error);
+                toast.danger(getErrorMessage(error));
+            }
+        }, 500),
+        [item.id]
+    );
+
+    React.useEffect(() => updateCount.cancel, [updateCount]);
+
+    return (
+        <NumberField
+            variant="secondary"
+            className="w-32"
+            defaultValue={item.selected ?? 0}
+            minValue={0}
+            maxValue={99}
+            formatOptions={{
+                maximumFractionDigits: 0,
+            }}
+            onChange={updateCount}
+            name="count"
+        >
+            <NumberField.Group>
+                <NumberField.DecrementButton />
+                <NumberField.Input />
+                <NumberField.IncrementButton />
+            </NumberField.Group>
+        </NumberField>
+    );
+};
 
 export const GroupCard = ({ items, total, status, page, keyword }: DataCardProps<GroupQuery, GroupResult>) => {
     const [isPending, startTransition] = React.useTransition();
@@ -120,34 +162,7 @@ export const ListCard = ({
                                     <span className="icon-[ri--external-link-line]" />
                                 </LinkButton>
                                 {isEditable ? (
-                                    <NumberField
-                                        variant="secondary"
-                                        className="w-32"
-                                        defaultValue={item.selected ?? 0}
-                                        minValue={0}
-                                        maxValue={99}
-                                        formatOptions={{
-                                            maximumFractionDigits: 0,
-                                        }}
-                                        onChange={async (value) => {
-                                            try {
-                                                await changeListCount({
-                                                    itemId: item.id,
-                                                    count: value,
-                                                });
-                                            } catch (error) {
-                                                console.error(error);
-                                                toast.danger(getErrorMessage(error));
-                                            }
-                                        }}
-                                        name="count"
-                                    >
-                                        <NumberField.Group>
-                                            <NumberField.DecrementButton />
-                                            <NumberField.Input />
-                                            <NumberField.IncrementButton />
-                                        </NumberField.Group>
-                                    </NumberField>
+                                    <ListCountField item={item} />
                                 ) : null}
                             </Card.Footer>
                         </div>

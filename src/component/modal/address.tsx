@@ -5,6 +5,7 @@ import { Button, FieldError, Input, Label, Modal, TextArea, TextField } from "@h
 import { AlertModal } from "@/component/common/alert";
 import { createAddress, removeAddress, updateAddress } from "@/service/address";
 import { AddressResult } from "@/type/address";
+import { mainlandChinaMobilePattern } from "@/type/mobile";
 import { useHttp } from "@/util/request";
 
 type AddressFormProps = {
@@ -25,7 +26,7 @@ const AddressForm = ({ data, isPending, onSubmit }: AddressFormProps) => (
             type="tel"
             defaultValue={data?.phone}
             variant="secondary"
-            pattern="^1[3-9]\\d{9}$"
+            pattern={mainlandChinaMobilePattern}
             isDisabled={isPending}
             isRequired
             fullWidth
