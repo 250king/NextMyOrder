@@ -8,17 +8,14 @@ import { getContext } from "@/util/context";
 import { toPagination } from "@/util/cover";
 
 type PageProps = {
-    searchParams: Promise<DeliveryQuery & {
-        selected?: string;
-    }>;
+    searchParams: Promise<DeliveryQuery>;
 };
 
 const Page = async ({ searchParams }: PageProps) => {
     const query = await searchParams;
     const context = await getContext();
     const pagination = toPagination(query);
-    const filters: SQL[] = [];
-    filters.push(eq(Delivery.userId, context.uid!));
+    const filters: SQL[] = [eq(Delivery.userId, context.uid!)];
     if (query.status) {
         filters.push(eq(Delivery.status, query.status));
     }

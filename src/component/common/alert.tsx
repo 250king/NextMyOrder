@@ -10,9 +10,21 @@ type AlertProps = React.PropsWithChildren<{
     trigger?: React.ReactNode;
     open?: boolean;
     onOpenChange?: (value: boolean) => void;
+    confirmLabel?: React.ReactNode;
+    confirmVariant?: React.ComponentProps<typeof Button>["variant"];
 }>;
 
-export const AlertModal = ({title, onConfirmed, children, trigger, status, open, onOpenChange}: AlertProps) => {
+export const AlertModal = ({
+    title,
+    onConfirmed,
+    children,
+    trigger,
+    status,
+    open,
+    onOpenChange,
+    confirmLabel = "确认",
+    confirmVariant,
+}: AlertProps) => {
     const [isPending, runAction] = useHttp();
     const [show, setShow] = React.useState(false);
 
@@ -39,16 +51,16 @@ export const AlertModal = ({title, onConfirmed, children, trigger, status, open,
                                 取消
                             </Button>
                             <Button
-                                variant="danger"
+                                variant={confirmVariant}
                                 isPending={isPending}
                                 onClick={async () => {
                                     runAction(async () => {
                                         await onConfirmed();
                                         handleClose(false);
-                                    })
+                                    });
                                 }}
                             >
-                                确认
+                                {confirmLabel}
                             </Button>
                         </AlertDialog.Footer>
                     </AlertDialog.Dialog>
@@ -56,4 +68,4 @@ export const AlertModal = ({title, onConfirmed, children, trigger, status, open,
             </AlertDialog.Backdrop>
         </AlertDialog>
     );
-}
+};

@@ -1,7 +1,7 @@
 import { and, eq, exists, type SQL } from "drizzle-orm";
 import { GroupCard } from "@/component/card/group";
 import { db } from "@/service/db";
-import { Group, List } from "@/service/db/schema";
+import { Group, Member } from "@/service/db/schema";
 import { GroupQuery } from "@/type/group";
 import { getContext } from "@/util/context";
 import { toPagination } from "@/util/cover";
@@ -19,8 +19,8 @@ const Page = async ({ searchParams }: PageProps) => {
         exists(
             db
                 .select()
-                .from(List)
-                .where(and(eq(List.groupId, Group.id), eq(List.userId, context.uid!)))
+                .from(Member)
+                .where(and(eq(Member.groupId, Group.id), eq(Member.userId, context.uid!)))
         )
     );
     if (query.status) {
